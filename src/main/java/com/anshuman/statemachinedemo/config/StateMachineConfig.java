@@ -1,10 +1,10 @@
 package com.anshuman.statemachinedemo.config;
 
 
-import com.anshuman.statemachinedemo.config.StateMachineConfig.AppEvents;
-import com.anshuman.statemachinedemo.config.StateMachineConfig.AppStates;
+import com.anshuman.statemachinedemo.config.StateMachineConfig.AppEvent;
+import com.anshuman.statemachinedemo.config.StateMachineConfig.AppState;
+import com.anshuman.statemachinedemo.util.StringUtil;
 import java.util.EnumSet;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,20 +22,20 @@ import org.springframework.statemachine.transition.Transition;
 @Configuration
 @EnableStateMachine
 @Slf4j
-public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<AppStates, AppEvents> {
+public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<AppState, AppEvent> {
 
-    public enum AppEvents {
+    public enum AppEvent {
         START, SUBMIT, TRIGGER_REVIEW_OF, REQUEST_CHANGES_IN, APPROVE, REJECT, CANCEL, ROLL_BACK_APPROVAL, ROLL_BACK_REJECTION, TRIGGER_CLOSE
     }
 
-    public enum AppStates {
+    public enum AppState {
         INITIAL, CREATED, SUBMITTED, UNDER_PROCESS, APPROVED, REJECTED, CANCELED, CLOSED
     }
 
 
 
     @Override
-    public void configure(StateMachineConfigurationConfigurer<AppStates, AppEvents> config)
+    public void configure(StateMachineConfigurationConfigurer<AppState, AppEvent> config)
         throws Exception {
         config
             .withConfiguration()
@@ -44,117 +44,94 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<AppSta
     }
 
     @Override
-    public void configure(StateMachineStateConfigurer<AppStates, AppEvents> states)
+    public void configure(StateMachineStateConfigurer<AppState, AppEvent> states)
         throws Exception {
         states
             .withStates()
-                .initial(AppStates.CREATED)
-                .end(AppStates.CLOSED)
-                .states(EnumSet.allOf(AppStates.class));
-
+                .initial(AppState.CREATED)
+                .end(AppState.CLOSED)
+                .states(EnumSet.allOf(AppState.class));
 
     }
 
     @Override
-    public void configure(StateMachineTransitionConfigurer<AppStates, AppEvents> transitions)
+    public void configure(StateMachineTransitionConfigurer<AppState, AppEvent> transitions)
         throws Exception {
         transitions
             .withExternal()
-                .source(AppStates.CREATED)
-                .target(AppStates.SUBMITTED)
-                .event(AppEvents.SUBMIT)
+                .source(AppState.CREATED)
+                .target(AppState.SUBMITTED)
+                .event(AppEvent.SUBMIT)
                 .and()
             .withExternal()
-                .source(AppStates.SUBMITTED)
-                .target(AppStates.UNDER_PROCESS)
-                .event(AppEvents.TRIGGER_REVIEW_OF)
+                .source(AppState.SUBMITTED)
+                .target(AppState.UNDER_PROCESS)
+                .event(AppEvent.TRIGGER_REVIEW_OF)
                 .and()
             .withExternal()
-                .source(AppStates.UNDER_PROCESS)
-                .target(AppStates.CREATED)
-                .event(AppEvents.REQUEST_CHANGES_IN)
+                .source(AppState.UNDER_PROCESS)
+                .target(AppState.CREATED)
+                .event(AppEvent.REQUEST_CHANGES_IN)
                 .and()
             .withExternal()
-                .source(AppStates.UNDER_PROCESS)
-                .target(AppStates.CANCELED)
-                .event(AppEvents.CANCEL)
+                .source(AppState.UNDER_PROCESS)
+                .target(AppState.CANCELED)
+                .event(AppEvent.CANCEL)
                 .and()
             .withExternal()
-                .source(AppStates.UNDER_PROCESS)
-                .target(AppStates.APPROVED)
-                .event(AppEvents.APPROVE)
+                .source(AppState.UNDER_PROCESS)
+                .target(AppState.APPROVED)
+                .event(AppEvent.APPROVE)
                 .and()
             .withExternal()
-                .source(AppStates.APPROVED)
-                .target(AppStates.UNDER_PROCESS)
-                .event(AppEvents.ROLL_BACK_APPROVAL)
+                .source(AppState.APPROVED)
+                .target(AppState.UNDER_PROCESS)
+                .event(AppEvent.ROLL_BACK_APPROVAL)
                 .and()
             .withExternal()
-                .source(AppStates.REJECTED)
-                .target(AppStates.UNDER_PROCESS)
-                .event(AppEvents.ROLL_BACK_REJECTION)
+                .source(AppState.REJECTED)
+                .target(AppState.UNDER_PROCESS)
+                .event(AppEvent.ROLL_BACK_REJECTION)
                 .and()
             .withExternal()
-                .source(AppStates.UNDER_PROCESS)
-                .target(AppStates.REJECTED)
-                .event(AppEvents.REJECT)
+                .source(AppState.UNDER_PROCESS)
+                .target(AppState.REJECTED)
+                .event(AppEvent.REJECT)
                 .and()
             .withExternal()
-                .source(AppStates.REJECTED)
-                .target(AppStates.CLOSED)
-                .event(AppEvents.TRIGGER_CLOSE)
+                .source(AppState.REJECTED)
+                .target(AppState.CLOSED)
+                .event(AppEvent.TRIGGER_CLOSE)
                 .and()
             .withExternal()
-                .source(AppStates.APPROVED)
-                .target(AppStates.CLOSED)
-                .event(AppEvents.TRIGGER_CLOSE)
+                .source(AppState.APPROVED)
+                .target(AppState.CLOSED)
+                .event(AppEvent.TRIGGER_CLOSE)
                 .and()
             .withExternal()
-                .source(AppStates.CANCELED)
-                .target(AppStates.CLOSED)
-                .event(AppEvents.TRIGGER_CLOSE);
+                .source(AppState.CANCELED)
+                .target(AppState.CLOSED)
+                .event(AppEvent.TRIGGER_CLOSE);
     }
 
     @Bean
-    public StateMachineListener<AppStates, AppEvents> listener() {
+    public StateMachineListener<AppState, AppEvent> listener() {
         return new StateMachineListenerAdapter<>() {
 
             @Override
-            public void transition(Transition<AppStates, AppEvents> transition) {
+            public void transition(Transition<AppState, AppEvent> transition) {
                 log.debug("Transitioning: {} {}",
-                    Optional
-                        .ofNullable(transition)
-                        .map(Transition::getSource)
-                        .map(t -> " from: " + t.getId())
-                        .orElse(""),
-                    Optional
-                        .ofNullable(transition)
-                        .map(Transition::getTarget)
-                        .map(t -> " to: " + t.getId())
-                        .orElse(""));
+                    StringUtil.sourceStateFromTransition(transition),
+                    StringUtil.targetStateFromTransition(transition));
             }
 
             @Override
-            public void stateContext(StateContext<AppStates, AppEvents> stateContext) {
+            public void stateContext(StateContext<AppState, AppEvent> stateContext) {
                 log.trace("State Context: {} {} {} {}",
-                    Optional
-                        .ofNullable(stateContext.getStage())
-                        .flatMap(stage -> Optional
-                            .of(stage.name())
-                            .map(st -> " Stage: " + st)
-                        ).orElse(""),
-                    Optional
-                        .ofNullable(stateContext.getSource())
-                        .map(st -> " | Source: " + st.getId())
-                        .orElse(""),
-                    Optional
-                        .ofNullable(stateContext.getEvent())
-                        .map(e ->" | Event: " + e)
-                        .orElse(""),
-                    Optional
-                        .ofNullable(stateContext.getTarget())
-                        .map(st -> " | Target: " + st.getId())
-                        .orElse(""));
+                    StringUtil.stageFromContext(stateContext),
+                    StringUtil.sourceStateFromContext(stateContext),
+                    StringUtil.eventFromContext(stateContext),
+                    StringUtil.targetStateFromContext(stateContext));
             }
         };
     }
