@@ -10,8 +10,8 @@ import org.springframework.statemachine.StateMachine;
 @UtilityClass
 public class WFHelper {
 
-    public static <K, V> void invokeStateChanges(BiConsumer<String, StateMachine<K, V>> stateChangesConsumer,
-        String metaData, StateMachine<K, V> stateMachine) {
+    public static <S, E> void invokeStateChanges(BiConsumer<String, StateMachine<S, E>> stateChangesConsumer,
+        String metaData, StateMachine<S, E> stateMachine) {
         log.debug("\n{}" + metaData);
         stateMachine.start();
         log.debug("Initial State: {}", StringUtil.state(stateMachine.getState()));
