@@ -1,5 +1,0 @@
-package com.anshuman.statemachinedemo.leaveapp;
-
-public enum LeaveAppEvent {
-    START, SUBMIT, TRIGGER_REVIEW_OF, REQUEST_CHANGES_IN, APPROVE, REJECT, CANCEL, ROLL_BACK_APPROVAL, ROLL_BACK_REJECTION, TRIGGER_CLOSE
-}
