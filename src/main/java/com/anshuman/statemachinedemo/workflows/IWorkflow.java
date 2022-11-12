@@ -1,11 +1,12 @@
 package com.anshuman.statemachinedemo.workflows;
 
-import com.anshuman.statemachinedemo.config.StateMachineConfig.AppEvent;
+import org.springframework.statemachine.StateMachine;
 
-public interface IWorkflow {
+public interface IWorkflow<S, E> {
 
-    Object getState(Long workflowInstanceId, AppEvent event);
+    StateMachine<S, E> loadStateMachine(long workflowInstanceId);
 
-    Object setState();
+    S getCurrentState(Object workflow, long workflowInstanceId);
 
+    boolean sendEventToStateMachine(StateMachine<S, E> stateMachine, long workflowInstanceId, E event);
 }

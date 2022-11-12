@@ -1,5 +1,5 @@
 package com.anshuman.statemachinedemo.leaveapp;
 
 public enum LeaveAppState {
-    INITIAL, CREATED, SUBMITTED, UNDER_PROCESS, APPROVED, REJECTED, CANCELED, CLOSED
+    INITIAL, CREATED, SUBMITTED, UNDER_PROCESS, CLOSED
 }

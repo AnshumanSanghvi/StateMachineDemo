@@ -1,13 +1,21 @@
 package com.anshuman.statemachinedemo.leaveapp;
 
 
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.closeApprove;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.closeCancel;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.closeReject;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.initiateLeaveAppWorkflow;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.returnBack;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.rollBack;
+
 import com.anshuman.statemachinedemo.util.StringUtil;
 import java.util.EnumSet;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 import org.springframework.statemachine.StateContext;
-import org.springframework.statemachine.config.EnableStateMachine;
+import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
@@ -18,7 +26,7 @@ import org.springframework.statemachine.transition.Transition;
 
 
 @Configuration
-@EnableStateMachine
+@EnableStateMachineFactory
 @Slf4j
 public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapter<LeaveAppState, LeaveAppEvent> {
 
@@ -37,8 +45,8 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
         throws Exception {
         states
             .withStates()
-                .initial(LeaveAppState.CREATED)
-                .end(LeaveAppState.CLOSED)
+                .initial(LeaveAppState.CREATED, context -> initiateLeaveAppWorkflow(context.getExtendedState()))
+//                .end(LeaveAppState.CLOSED)
                 .states(EnumSet.allOf(LeaveAppState.class));
 
     }
@@ -48,59 +56,50 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
         throws Exception {
         transitions
             .withExternal()
+                .source(LeaveAppState.INITIAL)
+                .event(LeaveAppEvent.START)
                 .source(LeaveAppState.CREATED)
-                .target(LeaveAppState.SUBMITTED)
+                .and()
+            .withExternal()
+                .source(LeaveAppState.CREATED)
                 .event(LeaveAppEvent.SUBMIT)
+                .target(LeaveAppState.SUBMITTED)
                 .and()
             .withExternal()
                 .source(LeaveAppState.SUBMITTED)
-                .target(LeaveAppState.UNDER_PROCESS)
                 .event(LeaveAppEvent.TRIGGER_REVIEW_OF)
+                .target(LeaveAppState.UNDER_PROCESS)
                 .and()
             .withExternal()
                 .source(LeaveAppState.UNDER_PROCESS)
-                .target(LeaveAppState.CREATED)
                 .event(LeaveAppEvent.REQUEST_CHANGES_IN)
+                .target(LeaveAppState.CREATED)
+                .action(context -> returnBack(context.getExtendedState()))
                 .and()
             .withExternal()
                 .source(LeaveAppState.UNDER_PROCESS)
-                .target(LeaveAppState.CANCELED)
                 .event(LeaveAppEvent.CANCEL)
+                .target(LeaveAppState.CLOSED)
+                .action(context -> closeCancel(context.getExtendedState()))
                 .and()
             .withExternal()
                 .source(LeaveAppState.UNDER_PROCESS)
-                .target(LeaveAppState.APPROVED)
                 .event(LeaveAppEvent.APPROVE)
-                .and()
-            .withExternal()
-                .source(LeaveAppState.APPROVED)
-                .target(LeaveAppState.UNDER_PROCESS)
-                .event(LeaveAppEvent.ROLL_BACK_APPROVAL)
-                .and()
-            .withExternal()
-                .source(LeaveAppState.REJECTED)
-                .target(LeaveAppState.UNDER_PROCESS)
-                .event(LeaveAppEvent.ROLL_BACK_REJECTION)
+                .target(LeaveAppState.CLOSED)
+                .action(context -> closeApprove(context.getExtendedState()))
                 .and()
             .withExternal()
                 .source(LeaveAppState.UNDER_PROCESS)
-                .target(LeaveAppState.REJECTED)
                 .event(LeaveAppEvent.REJECT)
+                .target(LeaveAppState.CLOSED)
+                .action(context -> closeReject(context.getExtendedState()))
                 .and()
             .withExternal()
-                .source(LeaveAppState.REJECTED)
-                .target(LeaveAppState.CLOSED)
-                .event(LeaveAppEvent.TRIGGER_CLOSE)
-                .and()
-            .withExternal()
-                .source(LeaveAppState.APPROVED)
-                .target(LeaveAppState.CLOSED)
-                .event(LeaveAppEvent.TRIGGER_CLOSE)
-                .and()
-            .withExternal()
-                .source(LeaveAppState.CANCELED)
-                .target(LeaveAppState.CLOSED)
-                .event(LeaveAppEvent.TRIGGER_CLOSE);
+                .source(LeaveAppState.CLOSED)
+                .event(LeaveAppEvent.ROLL_BACK)
+                .target(LeaveAppState.UNDER_PROCESS)
+                .action(context -> rollBack(context.getExtendedState()))
+                .and();
     }
 
     @Bean
@@ -116,11 +115,22 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
 
             @Override
             public void stateContext(StateContext<LeaveAppState, LeaveAppEvent> stateContext) {
-                log.trace("State Context: {} {} {} {}",
+                log.trace("State Context: {} {} {} {} {}",
                     StringUtil.stageFromContext(stateContext),
                     StringUtil.sourceStateFromContext(stateContext),
                     StringUtil.eventFromContext(stateContext),
-                    StringUtil.targetStateFromContext(stateContext));
+                    StringUtil.targetStateFromContext(stateContext),
+                    StringUtil.extendedStateFromContext(stateContext));
+            }
+
+            @Override
+            public void eventNotAccepted(Message<LeaveAppEvent> event) {
+                if (event == null) {
+                    log.error("Event not accepted.");
+                    return;
+                }
+                log.trace("Event not accepted. Event Headers: {}", StringUtil.messageHeaders(event.getHeaders()));
+                log.error("Event not accepted. Event Payload: {}", event.getPayload());
             }
         };
     }
