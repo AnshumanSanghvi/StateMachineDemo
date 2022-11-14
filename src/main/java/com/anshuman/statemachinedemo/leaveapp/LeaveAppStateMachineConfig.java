@@ -6,8 +6,8 @@ import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions
 import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.closeReject;
 import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.initiateLeaveAppWorkflow;
 import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.returnBack;
-import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateMachineActions.rollBack;
 
+import com.anshuman.statemachinedemo.other.StateMachineMonitor;
 import com.anshuman.statemachinedemo.util.StringUtil;
 import java.util.EnumSet;
 import lombok.extern.slf4j.Slf4j;
@@ -30,14 +30,17 @@ import org.springframework.statemachine.transition.Transition;
 @Slf4j
 public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapter<LeaveAppState, LeaveAppEvent> {
 
-
     @Override
     public void configure(StateMachineConfigurationConfigurer<LeaveAppState, LeaveAppEvent> config)
         throws Exception {
         config
+            .withMonitoring()
+                .monitor(new StateMachineMonitor<>())
+                .and()
             .withConfiguration()
-            .autoStartup(true)
-            .listener(listener());
+                .autoStartup(true)
+                .machineId("LeaveApplicationWorkflowStateMachineV1")
+                .listener(listener());
     }
 
     @Override
@@ -45,9 +48,9 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
         throws Exception {
         states
             .withStates()
-                .initial(LeaveAppState.CREATED, context -> initiateLeaveAppWorkflow(context.getExtendedState()))
-//                .end(LeaveAppState.CLOSED)
-                .states(EnumSet.allOf(LeaveAppState.class));
+                .initial(LeaveAppState.INITIAL, context -> initiateLeaveAppWorkflow(context.getExtendedState()))
+                .states(EnumSet.allOf(LeaveAppState.class))
+                .end(LeaveAppState.COMPLETED);
 
     }
 
@@ -56,50 +59,65 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
         throws Exception {
         transitions
             .withExternal()
+                .name("UserCreatesTheLeaveApplication")
                 .source(LeaveAppState.INITIAL)
                 .event(LeaveAppEvent.START)
-                .source(LeaveAppState.CREATED)
+                .target(LeaveAppState.CREATED)
                 .and()
             .withExternal()
+                .name("UserSubmitsTheCreatedTheLeaveApplication")
                 .source(LeaveAppState.CREATED)
                 .event(LeaveAppEvent.SUBMIT)
                 .target(LeaveAppState.SUBMITTED)
                 .and()
             .withExternal()
+                .name("SystemTriggersTheSubmittedLeaveApplication")
                 .source(LeaveAppState.SUBMITTED)
                 .event(LeaveAppEvent.TRIGGER_REVIEW_OF)
                 .target(LeaveAppState.UNDER_PROCESS)
                 .and()
             .withExternal()
+                .name("ReviewerRequestsChangesInTheLeaveApplicationUnderReview")
                 .source(LeaveAppState.UNDER_PROCESS)
                 .event(LeaveAppEvent.REQUEST_CHANGES_IN)
                 .target(LeaveAppState.CREATED)
                 .action(context -> returnBack(context.getExtendedState()))
                 .and()
             .withExternal()
+                .name("UserCancelsTheLeaveApplicationUnderReview")
                 .source(LeaveAppState.UNDER_PROCESS)
                 .event(LeaveAppEvent.CANCEL)
                 .target(LeaveAppState.CLOSED)
                 .action(context -> closeCancel(context.getExtendedState()))
                 .and()
             .withExternal()
+                .name("ReviewerApprovesTheLeaveApplicationUnderReview")
                 .source(LeaveAppState.UNDER_PROCESS)
                 .event(LeaveAppEvent.APPROVE)
                 .target(LeaveAppState.CLOSED)
                 .action(context -> closeApprove(context.getExtendedState()))
                 .and()
             .withExternal()
+                .name("ReviewerRejectsTheLeaveApplicationUnderReview")
                 .source(LeaveAppState.UNDER_PROCESS)
-                .event(LeaveAppEvent.REJECT)
                 .target(LeaveAppState.CLOSED)
+                .event(LeaveAppEvent.REJECT)
+                .guard(LeaveAppStateMachineGuards::cannotRollBackCanceledApplication)
                 .action(context -> closeReject(context.getExtendedState()))
                 .and()
             .withExternal()
+                .name("ReviewerRollsBackTheLeaveApplicationUnderReview")
                 .source(LeaveAppState.CLOSED)
-                .event(LeaveAppEvent.ROLL_BACK)
                 .target(LeaveAppState.UNDER_PROCESS)
-                .action(context -> rollBack(context.getExtendedState()))
-                .and();
+                .event(LeaveAppEvent.ROLL_BACK)
+                .guard(LeaveAppStateMachineGuards::cannotRollBackCanceledApplication)
+                //.action(context -> rollBack(context.getExtendedState()))
+                .and()
+            .withExternal()
+                .name("SystemCompletesTheLeaveApplication")
+                .source(LeaveAppState.CLOSED)
+                .event(LeaveAppEvent.TRIGGER_COMPLETE)
+                .target(LeaveAppState.COMPLETED);
     }
 
     @Bean
@@ -108,9 +126,7 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
 
             @Override
             public void transition(Transition<LeaveAppState, LeaveAppEvent> transition) {
-                log.debug("Transitioning: {} {}",
-                    StringUtil.sourceStateFromTransition(transition),
-                    StringUtil.targetStateFromTransition(transition));
+                log.info("Transitioning: {}", StringUtil.transition(transition));
             }
 
             @Override
@@ -126,7 +142,7 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
             @Override
             public void eventNotAccepted(Message<LeaveAppEvent> event) {
                 if (event == null) {
-                    log.error("Event not accepted.");
+                    log.error("Event not accepted, as the event message is null.");
                     return;
                 }
                 log.trace("Event not accepted. Event Headers: {}", StringUtil.messageHeaders(event.getHeaders()));

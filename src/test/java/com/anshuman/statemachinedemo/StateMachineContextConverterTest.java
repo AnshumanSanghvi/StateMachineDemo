@@ -1,9 +1,9 @@
 package com.anshuman.statemachinedemo;
 
-import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateExtended.IS_PARALLEL;
-import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateExtended.ONLY_FORWARD_WITH_APPROVAL;
-import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateExtended.RETURN_COUNT;
-import static com.anshuman.statemachinedemo.leaveapp.LeaveAppStateExtended.ROLL_BACK_COUNT;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppConst.IS_PARALLEL;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppConst.ONLY_FORWARD_WITH_APPROVAL;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppConst.RETURN_COUNT;
+import static com.anshuman.statemachinedemo.leaveapp.LeaveAppConst.ROLL_BACK_COUNT;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

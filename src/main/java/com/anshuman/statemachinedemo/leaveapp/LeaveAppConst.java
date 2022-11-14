@@ -3,7 +3,7 @@ package com.anshuman.statemachinedemo.leaveapp;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public class LeaveAppStateExtended {
+public class LeaveAppConst {
 
     public static String IS_PARALLEL = "isParallel";
 

@@ -11,7 +11,7 @@ public enum LeaveAppEvent {
     REJECT("Reject Leave Application"),
     CANCEL("Cancel Leave Application"),
     ROLL_BACK("Roll Back Decision on Leave Application"),
-    TRIGGER_CLOSE("Close Leave Application");
+    TRIGGER_COMPLETE("Complete Leave Application");
 
     @Getter
     private final String humanReadableStatus;

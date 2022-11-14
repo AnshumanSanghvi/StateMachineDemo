@@ -22,7 +22,7 @@
         <spring-boot.version>2.7.5</spring-boot.version>
         <spring-statemachine.version>3.2.0</spring-statemachine.version>
         <snake-yaml.version>1.33</snake-yaml.version>
-        <kyro.version>5.3.0</kyro.version>
+        <kryo.version>5.3.0</kryo.version>
     </properties>
     <dependencies>
 
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
-            <version>${kyro.version}</version>
+            <version>${kryo.version}</version>
         </dependency>
 
         <!-- development utils -->
@@ -119,6 +119,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.statemachine</groupId>
+            <artifactId>spring-statemachine-test</artifactId>
+            <version>${spring-statemachine.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -1,11 +1,13 @@
 package com.anshuman.statemachinedemo.util;
 
+import static java.util.stream.Collectors.joining;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.experimental.UtilityClass;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.statemachine.StateContext;
@@ -95,7 +97,7 @@ public class StringUtil {
         return entrySet
             .stream()
             .map(entry -> "{key: " + object(entry.getKey()) + ", value: " + object(entry.getValue()) + "}")
-            .collect(Collectors.joining(", "));
+            .collect(joining(", "));
     }
 
     public static <S, E> String extendedStateFromContext(StateContext<S, E> stateContext) {
@@ -109,6 +111,60 @@ public class StringUtil {
             .filter(Predicate.not(String::isEmpty))
             .map(str -> " | ExtendedState: " + str)
             .orElse("");
+    }
+
+    public static <S, E> String transition(Transition<S, E> transition) {
+        if (transition == null)
+            return "";
+
+        String name = Optional.ofNullable(transition.getName())
+            .map(Object::toString)
+            .filter(Predicate.not(String::isEmpty))
+            .map(s -> "name: " + s)
+            .orElse("");
+
+        String sourceState = Optional.ofNullable(transition.getSource())
+            .map(State::getId)
+            .map(Object::toString)
+            .filter(Predicate.not(String::isEmpty))
+            .map(s -> "source state: " + s)
+            .orElse("");
+
+        String targetState =  Optional.ofNullable(transition.getTarget())
+            .map(State::getId)
+            .map(Object::toString)
+            .filter(Predicate.not(String::isEmpty))
+            .map(s -> "target state: " + s)
+            .orElse("");
+
+        String actions  = Optional.ofNullable(transition.getActions())
+            .map(list -> list.stream().map(Object::toString).collect(joining(", ")))
+            .filter(Predicate.not(String::isEmpty))
+            .map(s -> "actions: " + s)
+            .orElse("");
+
+        String kind = Optional.ofNullable(transition.getKind())
+            .map(Object::toString)
+            .filter(Predicate.not(String::isEmpty))
+            .map(s -> "kind: " + s)
+            .orElse("");
+
+        String guard = Optional.ofNullable(transition.getGuard())
+            .map(Object::toString)
+            .filter(Predicate.not(String::isEmpty))
+            .map(s -> "guard: " + s)
+            .orElse("");
+
+        String trigger = Optional.ofNullable(transition.getTrigger())
+            .map(Object::toString)
+            .filter(Predicate.not(String::isEmpty))
+            .map(s -> "trigger: " + s)
+            .orElse("");
+        
+        return Stream.of(name, sourceState, targetState, kind, guard, actions, trigger)
+            .filter(Predicate.not(String::isEmpty).and(Predicate.not(String::isBlank)))
+            .collect(joining(", "));
+            
     }
 
 }
