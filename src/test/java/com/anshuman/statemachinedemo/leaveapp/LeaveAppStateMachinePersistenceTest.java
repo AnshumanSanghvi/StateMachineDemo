@@ -2,6 +2,7 @@ package com.anshuman.statemachinedemo.leaveapp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.anshuman.statemachinedemo.App;
 import com.anshuman.statemachinedemo.workflow.config.LeaveAppWFStateMachineConfig;
@@ -11,6 +12,7 @@ import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
 import com.anshuman.statemachinedemo.workflow.persist.DefaultStateMachineAdapter;
 import com.anshuman.statemachinedemo.workflow.repository.LeaveAppRepository;
 import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
+import com.anshuman.statemachinedemo.workflow.util.ReactiveHelper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +39,16 @@ class LeaveAppStateMachinePersistenceTest {
         // Given a leave application entity
         LeaveAppEntity leaveAppEntity1 = new LeaveAppEntity();
         leaveAppEntity1.setId(1L);
-        stateMachine = stateMachineAdapter.create();
-        stateMachine.sendEvent(LeaveAppEvent.START);
+        stateMachine = getStateMachine(stateMachineAdapter.create());
+        boolean eventSentSuccessfully = ReactiveHelper.eventSentSuccessfully(stateMachine, LeaveAppEvent.START);
+        assertTrue(eventSentSuccessfully);
         stateMachineAdapter.persist(stateMachine, leaveAppEntity1);
 
         LeaveAppEntity leaveAppEntity2 = new LeaveAppEntity();
         leaveAppEntity2.setId(2L);
-        stateMachine = stateMachineAdapter.create();
-        stateMachine.sendEvent(LeaveAppEvent.START);
-        stateMachine.sendEvent(LeaveAppEvent.SUBMIT);
+        stateMachine = getStateMachine(stateMachineAdapter.create());
+        eventSentSuccessfully = ReactiveHelper.eventSentSuccessfully(stateMachine, LeaveAppEvent.START, LeaveAppEvent.SUBMIT);
+        assertTrue(eventSentSuccessfully);
         stateMachineAdapter.persist(stateMachine, leaveAppEntity2);
 
         // when we persist it
@@ -56,15 +59,20 @@ class LeaveAppStateMachinePersistenceTest {
         assertNotNull(savedLeaveAppEntity1);
         assertNotNull(savedLeaveAppEntity1.getStateMachineContext());
         assertEquals(LeaveAppState.CREATED, savedLeaveAppEntity1.getCurrentState());
-        stateMachine = stateMachineAdapter.restore(savedLeaveAppEntity1);
+        stateMachine = getStateMachine(stateMachineAdapter.restore(savedLeaveAppEntity1));
         assertEquals(LeaveAppState.CREATED, stateMachine.getState().getId());
 
         LeaveAppEntity savedLeaveEntity2 = savedLeaveEntities.stream().filter(le -> le.getId().equals(2L)).findFirst().orElse(null);
         assertNotNull(savedLeaveEntity2);
         assertNotNull(savedLeaveEntity2.getStateMachineContext());
         assertEquals(LeaveAppState.SUBMITTED, savedLeaveEntity2.getCurrentState());
-        stateMachine = stateMachineAdapter.restore(savedLeaveEntity2);
+        stateMachine = getStateMachine(stateMachineAdapter.restore(savedLeaveEntity2));
         assertEquals(LeaveAppState.SUBMITTED, stateMachine.getState().getId());
+    }
+
+    private StateMachine<LeaveAppState, LeaveAppEvent> getStateMachine(StateMachine<LeaveAppState, LeaveAppEvent> stateMachine) {
+        stateMachine.startReactively().block();
+        return stateMachine;
     }
 
 }

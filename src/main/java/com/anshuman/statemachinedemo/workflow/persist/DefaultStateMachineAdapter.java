@@ -29,7 +29,7 @@ public class DefaultStateMachineAdapter<S, E, T> {
 
     public StateMachine<S, E> create() {
         StateMachine<S, E> stateMachine = stateMachineFactory.getStateMachine();
-        stateMachine.start();
+        stateMachine.startReactively();
         return stateMachine;
     }
 
