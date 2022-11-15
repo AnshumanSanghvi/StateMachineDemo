@@ -2,6 +2,7 @@ package com.anshuman.statemachinedemo.leaveapp;
 
 import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
 import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
+import com.anshuman.statemachinedemo.workflow.util.ReactiveHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.statemachine.StateMachine;
 
@@ -11,8 +12,7 @@ public class LeaveApplicationWorkflowScenarios {
     public static void userInitializesApplication(StateMachine<LeaveAppState, LeaveAppEvent> stateMachine) {
         if (stateMachine.getState().getId().equals(LeaveAppState.INITIAL)) {
             sendEvent(stateMachine, LeaveAppEvent.START);
-        }
-        else {
+        } else {
             stateMachine.setStateMachineError(new RuntimeException("Cannot process application, incorrect source state."));
         }
     }
@@ -109,9 +109,10 @@ public class LeaveApplicationWorkflowScenarios {
     }
 
     private static void sendEvent(StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, LeaveAppEvent event) {
-        boolean eventSent = stateMachine.sendEvent(event);
-        if (!eventSent)
+        boolean eventSent = ReactiveHelper.eventSentSuccessfully(stateMachine, event);
+        if (!eventSent) {
             log.warn("Event: {} was not sent to the stateMachine with id: {}, and having state: {}", event, stateMachine.getId(),
                 stateMachine.getState().getId());
+        }
     }
 }
