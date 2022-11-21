@@ -109,7 +109,7 @@ public class LeaveApplicationWorkflowScenarios {
     }
 
     private static void sendEvent(StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, LeaveAppEvent event) {
-        boolean eventSent = ReactiveHelper.eventSentSuccessfully(stateMachine, event);
+        boolean eventSent = ReactiveHelper.eventsSentSuccessfully(stateMachine, event);
         if (!eventSent) {
             log.warn("Event: {} was not sent to the stateMachine with id: {}, and having state: {}", event, stateMachine.getId(),
                 stateMachine.getState().getId());
