@@ -40,14 +40,14 @@ class LeaveAppStateMachinePersistenceTest {
         LeaveAppEntity leaveAppEntity1 = new LeaveAppEntity();
         leaveAppEntity1.setId(1L);
         stateMachine = getStateMachine(stateMachineAdapter.create());
-        boolean eventSentSuccessfully = ReactiveHelper.eventSentSuccessfully(stateMachine, LeaveAppEvent.START);
+        boolean eventSentSuccessfully = ReactiveHelper.eventsSentSuccessfully(stateMachine, LeaveAppEvent.START);
         assertTrue(eventSentSuccessfully);
         stateMachineAdapter.persist(stateMachine, leaveAppEntity1);
 
         LeaveAppEntity leaveAppEntity2 = new LeaveAppEntity();
         leaveAppEntity2.setId(2L);
         stateMachine = getStateMachine(stateMachineAdapter.create());
-        eventSentSuccessfully = ReactiveHelper.eventSentSuccessfully(stateMachine, LeaveAppEvent.START, LeaveAppEvent.SUBMIT);
+        eventSentSuccessfully = ReactiveHelper.eventsSentSuccessfully(stateMachine, LeaveAppEvent.START, LeaveAppEvent.SUBMIT);
         assertTrue(eventSentSuccessfully);
         stateMachineAdapter.persist(stateMachine, leaveAppEntity2);
 
