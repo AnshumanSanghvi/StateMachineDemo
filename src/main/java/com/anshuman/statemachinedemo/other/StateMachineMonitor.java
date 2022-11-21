@@ -19,6 +19,6 @@ public class StateMachineMonitor<S, E> extends AbstractStateMachineMonitor<S, E>
     @Override
     public void action(StateMachine<S, E> stateMachine, Function<StateContext<S, E>, Mono<Void>> action,
         long duration) {
-        log.debug("Action: {} on stateMachine: {} took {} ms", action.toString(), stateMachine.getId(), duration);
+        log.debug("Action on stateMachine: {} took {} ms", stateMachine.getId(), duration);
     }
 }

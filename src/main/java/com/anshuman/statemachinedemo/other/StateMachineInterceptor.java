@@ -2,6 +2,7 @@ package com.anshuman.statemachinedemo.other;
 
 
 import com.anshuman.statemachinedemo.workflow.util.StringUtil;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.statemachine.StateContext;
@@ -24,14 +25,15 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
 
     @Override
     public Message<E> preEvent(Message<E> message, StateMachine<S, E> stateMachine) {
-        log.trace("preEvent- event to be passed: {}, to stateMachine  with id: {}  and current state: {}",
-            message.getPayload(), stateMachine.getId(), stateMachine.getState().getId());
+        log.trace("preEvent- event to be passed: {}, to stateMachine  with id: {}, hasError: {}, and current state: {}",
+            message.getPayload(), stateMachine.getId(), stateMachine.hasStateMachineError(), stateMachine.getState().getId());
         return message;
     }
 
     @Override
     public StateContext<S, E> preTransition(StateContext<S, E> stateContext) {
-        log.trace("preTransition- State Context: {} {} {} {} {}",
+
+        log.trace("preTransition- stateContext: {} {} {} {} {}",
             StringUtil.stageFromContext(stateContext),
             StringUtil.sourceStateFromContext(stateContext),
             StringUtil.eventFromContext(stateContext),
@@ -44,13 +46,16 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
     public void preStateChange(State<S, E> state, Message<E> message,
         Transition<S, E> transition, StateMachine<S, E> stateMachine,
         StateMachine<S, E> rootStateMachine) {
-        log.trace("preStateChange- state {}, event: {}, transition: [{}], stateMachine: {}, rootStateMachine: {}",
-            state.getId(), message.getPayload(), StringUtil.transition(transition), stateMachine.getId(), rootStateMachine.getId());
+        log.trace("preStateChange- state: {}, event: {}, transition: {}, stateMachine: {}",
+            state.getId(),
+            Optional.ofNullable(message).map(Message::getPayload).map(E::toString).orElse("null"),
+            Optional.ofNullable(transition).map(Transition::getName).orElse("null"),
+            stateMachine.getId());
     }
 
     @Override
     public StateContext<S, E> postTransition(StateContext<S, E> stateContext) {
-        log.trace("postTransition- State Context: {} {} {} {} {}",
+        log.trace("postTransition- stateContext: {} {} {} {} {}",
             StringUtil.stageFromContext(stateContext),
             StringUtil.sourceStateFromContext(stateContext),
             StringUtil.eventFromContext(stateContext),
@@ -63,14 +68,17 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
     public void postStateChange(State<S, E> state, Message<E> message,
         Transition<S, E> transition, StateMachine<S, E> stateMachine,
         StateMachine<S, E> rootStateMachine) {
-        log.trace("postStateChange- state {}, event: {}, transition: [{}], stateMachine: {}, rootStateMachine: {}",
-            state.getId(), message.getPayload(), StringUtil.transition(transition), stateMachine.getId(), rootStateMachine.getId());
+        log.trace("postStateChange- state: {}, event: {}, transition: {}, stateMachine: {}",
+            state.getId(),
+            Optional.ofNullable(message).map(Message::getPayload).map(E::toString).orElse("null"),
+            Optional.ofNullable(transition).map(Transition::getName).orElse("null"),
+            stateMachine.getId());
     }
 
     @Override
     public Exception stateMachineError(StateMachine<S, E> stateMachine,
         Exception exception) {
-        log.error("StateMachineError- stateMachine id: {}, current state: {}, hasStateMachineError: {}, error message: {}",
+        log.error("StateMachineError- stateMachine id: {}, current state: {}, hasError: {}, error message: {}",
             stateMachine.getId(), stateMachine.getState().getId(), stateMachine.hasStateMachineError(), exception.getMessage());
         return exception;
     }
