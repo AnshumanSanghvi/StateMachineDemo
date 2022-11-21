@@ -23,6 +23,7 @@ import org.springframework.statemachine.kryo.UUIDSerializer;
 @Converter(autoApply = true)
 @Slf4j
 public class StateMachineContextConverter implements AttributeConverter<StateMachineContext, byte[]> {
+
     private static final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(() -> {
         Kryo kryo = new Kryo();
         kryo.addDefaultSerializer(StateMachineContext.class, new StateMachineContextSerializer());
@@ -50,7 +51,7 @@ public class StateMachineContextConverter implements AttributeConverter<StateMac
         Kryo kryo = kryoThreadLocal.get();
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            try(Output output = new Output(out)) {
+            try (Output output = new Output(out)) {
                 kryo.writeObject(output, context);
             }
             byte[] outByteArr = out.toByteArray();
@@ -71,7 +72,7 @@ public class StateMachineContextConverter implements AttributeConverter<StateMac
         Kryo kryo = kryoThreadLocal.get();
 
         try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
-            try(Input input = new Input(in)) {
+            try (Input input = new Input(in)) {
                 StateMachineContext stateMachineContext = kryo.readObject(input, StateMachineContext.class);
                 log.debug("StateMachineContext: {}, deserialized from thread local byte array of: {} bytes",
                     stateMachineContext.getId(), data.length);

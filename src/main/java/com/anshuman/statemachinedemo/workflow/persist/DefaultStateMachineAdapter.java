@@ -7,6 +7,7 @@ import org.springframework.statemachine.persist.StateMachinePersister;
 
 /**
  * This is a wrapper class over the DefualtStateMachinePersister. We use its method to persist and restore a state machine context.
+ *
  * @param <S> Parameter for the State class
  * @param <E> Parameter for the Event class
  * @param <T> Paremeter for the context object class which provides the required StateMachineContext
@@ -29,10 +30,9 @@ public class DefaultStateMachineAdapter<S, E, T> {
 
     public StateMachine<S, E> create() {
         StateMachine<S, E> stateMachine = stateMachineFactory.getStateMachine();
-        stateMachine.startReactively();
+        stateMachine.startReactively().block();
         return stateMachine;
     }
-
 
 
 }

@@ -24,7 +24,7 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineBuilder;
 import org.springframework.statemachine.config.StateMachineBuilder.Builder;
 
-// test ways to have dynamic state machine building, e.g reviewer flow per number of total reviewers
+// test ways to have dynamic state machine building, e.g. reviewer flow per number of total reviewers
 // test ☑️guards, ☑️actions, pseudo states, junctions, sub machines, regions ☑️ (execution is parallel)
 // test external, ☑️internal and local transitions
 @Slf4j

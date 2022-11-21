@@ -20,10 +20,10 @@ public class StateMachinePersistenceConfig {
      * as the object graph is too rich and contains too many dependencies on other Spring context classes.
      * StateMachineContext is a runtime representation of a state machine,
      * that you can use to restore an existing machine into a state represented by a particular StateMachineContext object.
-     * @return An instance of the StateMachinePersist interface, responsible for serialization and deserialization of a StateMachineContext
      * @param <S> Parameter for State class
      * @param <E> Parameter for Event class
      * @param <I> Parameter for Identity class
+     * @return An instance of the StateMachinePersist interface, responsible for serialization and deserialization of a StateMachineContext
      */
     @Bean
     public <S, E, I extends Serializable> StateMachinePersist<S, E, ContextEntity<S, E, I>> stateMachinePersist() {
@@ -41,15 +41,11 @@ public class StateMachinePersistenceConfig {
     }
 
     /**
-     *
-     * @return The DefaultStateMachinePersister which is an implementation of the StateMachinePersister interface, which is responsible for persisting
-     * and
-     * restoring a state
-     * machine from a persistent
-     * storage.
      * @param <S> Parameter for the State class
      * @param <E> Parameter for the Event class
      * @param <I> Parameter for the Identity class
+     * @return The DefaultStateMachinePersister which is an implementation of the StateMachinePersister interface, which is responsible for persisting and
+     * restoring a state machine from a persistent storage.
      */
     @Bean
     public <S, E, I extends Serializable> StateMachinePersister<S, E, ContextEntity<S, E, I>> stateMachinePersister(
@@ -58,12 +54,11 @@ public class StateMachinePersistenceConfig {
     }
 
     /**
-     *
-     * @param stateMachineFactory  The StateMachineFactory bean
-     * @return  A bean of the DefaultStateMachineAdapter
-     * @param <S> Parameter for the State class
-     * @param <E> Parameter for the Event class
-     * @param <I> Parameter for the Identity class
+     * @param stateMachineFactory The StateMachineFactory bean
+     * @param <S>                 Parameter for the State class
+     * @param <E>                 Parameter for the Event class
+     * @param <I>                 Parameter for the Identity class
+     * @return A bean of the DefaultStateMachineAdapter
      */
     @Bean
     public <S, E, I extends Serializable> DefaultStateMachineAdapter<S, E, ContextEntity<S, E, I>> stateMachineAdapter(

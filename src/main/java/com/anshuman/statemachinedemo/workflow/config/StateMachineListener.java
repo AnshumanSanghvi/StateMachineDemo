@@ -14,12 +14,13 @@ public class StateMachineListener<S, E> extends StateMachineListenerAdapter<S, E
 
     @Override
     public void transition(Transition<S, E> transition) {
-        log.trace("Transitioning: {}", StringUtil.transition(transition));
+        log.debug("Transitioning: [{}]", StringUtil.transition(transition));
     }
 
     @Override
     public void stateContext(StateContext<S, E> stateContext) {
-        log.trace("State Context: {} {} {} {} {}",
+        log.trace("State Context: [stateMachine: {}, stage: {}, source state: {}, event: {}, target state: {}, extended state: [{}]]",
+            stateContext.getStateMachine().getUuid() + " (" + stateContext.getStateMachine().getId() + ")",
             StringUtil.stageFromContext(stateContext),
             StringUtil.sourceStateFromContext(stateContext),
             StringUtil.eventFromContext(stateContext),
@@ -33,7 +34,7 @@ public class StateMachineListener<S, E> extends StateMachineListenerAdapter<S, E
             log.error("Event not accepted, as the event message is null.");
             return;
         }
-        log.error("Event not accepted. Payload: {}, Headers: {}", event.getPayload(), StringUtil.messageHeaders(event.getHeaders()));
+        log.error("Event not accepted. Name: {}", event.getPayload());
 
     }
 

@@ -7,3 +7,5 @@ logging:
 spring:
   jpa:
     open-in-view: false
+  main:
+    lazy-initialization: false

@@ -33,8 +33,7 @@ public class TaskSMRun implements CommandLineRunner {
             stateMachine.startReactively().block();
             System.out.println(ReactiveHelper.parseResultToString(stateMachine, events));
             stateMachine.stopReactively().block();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             // swallow exception
         }
     }

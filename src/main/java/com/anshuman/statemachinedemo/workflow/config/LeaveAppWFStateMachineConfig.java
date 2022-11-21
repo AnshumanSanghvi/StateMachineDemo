@@ -1,7 +1,6 @@
 package com.anshuman.statemachinedemo.workflow.config;
 
 
-import com.anshuman.statemachinedemo.other.StateMachineMonitor;
 import com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions;
 import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
 import com.anshuman.statemachinedemo.workflow.guard.LeaveAppStateMachineGuards;
@@ -14,7 +13,6 @@ import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
-
 
 
 @Configuration

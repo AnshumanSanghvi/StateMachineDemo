@@ -130,7 +130,7 @@ class LeaveAppStateMachineScenariosTest {
         invokeStateChanges((sm) -> approverRollsBackCanceledApplication(stateMachine), stateMachine);
         hasError(stateMachine);
         assertEquals(LeaveAppState.CLOSED, stateMachine.getState().getId());
-        assertEquals( 0, ((Integer) stateMachine.getExtendedState().getVariables().getOrDefault(ROLL_BACK_COUNT, 0)));
+        assertEquals(0, ((Integer) stateMachine.getExtendedState().getVariables().getOrDefault(ROLL_BACK_COUNT, 0)));
         assertTrue(((String) stateMachine.getExtendedState().getVariables().get(CLOSED_STATE)).equalsIgnoreCase(CANCELED));
     }
 

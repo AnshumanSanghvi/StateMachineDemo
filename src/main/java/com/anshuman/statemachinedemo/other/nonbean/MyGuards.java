@@ -9,7 +9,7 @@ import org.springframework.statemachine.StateContext;
 @Slf4j
 public class MyGuards {
 
-    public static boolean applicationReturnGuard(StateContext<State, Event> context) {
+    public static boolean returnCountGuard(StateContext<State, Event> context) {
         log.trace("Calling guard: applicationReturnGuard with currentState: {}", context.getStateMachine().getState().getId());
         Map<Object, Object> map = context.getExtendedState().getVariables();
         int returnCount = (Integer) map.getOrDefault(LeaveAppConstants.RETURN_COUNT, 0);
@@ -21,7 +21,7 @@ public class MyGuards {
         return returnCountThreshold;
     }
 
-    public static boolean applicationRollBackGuard(StateContext<State, Event> context) {
+    public static boolean rollBackCountGuard(StateContext<State, Event> context) {
         log.trace("Calling guard: applicationRollBackGuard with currentState: {}", context.getStateMachine().getState().getId());
         Map<Object, Object> map = context.getExtendedState().getVariables();
         int rollbackCount = (Integer) map.getOrDefault(LeaveAppConstants.ROLL_BACK_COUNT, 0);
