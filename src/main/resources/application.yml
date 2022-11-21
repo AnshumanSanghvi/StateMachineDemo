@@ -2,8 +2,15 @@ logging:
   level:
     org.springframework: info
     org.springframework.statemachine.support: info
-    com.anshuman.statemachinedemo: DEBUG
+    com.anshuman.statemachinedemo: TRACE
 
 spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/workflow?logUnclosedConnections=true&currentSchema=public&reWriteBatchedInserts=true
+    username: anshuman
+    password: anshuman
   jpa:
     open-in-view: false
+  main:
+    lazy-initialization: false

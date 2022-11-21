@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@EntityScan(basePackages = {"com.anshuman.statemachinedemo.workflow.entity"})
+@EntityScan(basePackages = {"com.anshuman.statemachinedemo.workflow.model.entity"})
 @EnableJpaRepositories(basePackages = {"com.anshuman.statemachinedemo.workflow.repository"})
 public class App {
 

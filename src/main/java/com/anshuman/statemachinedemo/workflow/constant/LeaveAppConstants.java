@@ -21,4 +21,6 @@ public class LeaveAppConstants {
 
     public static final String CANCELED = "canceled";
 
+    public static final String REVIEWED_COUNT = "reviewedCount";
+    public static final String REVIEWERS_COUNT = "reviewersCount";
 }

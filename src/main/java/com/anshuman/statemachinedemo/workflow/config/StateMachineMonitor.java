@@ -1,4 +1,4 @@
-package com.anshuman.statemachinedemo.other;
+package com.anshuman.statemachinedemo.workflow.config;
 
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;

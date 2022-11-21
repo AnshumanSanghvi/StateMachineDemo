@@ -1,8 +1,10 @@
 package com.anshuman.statemachinedemo.workflow.util;
 
+import com.anshuman.statemachinedemo.workflow.exception.StateMachineException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,8 +54,7 @@ public class ReactiveHelper {
             .or(() -> Optional.of(Collections.emptyList()))
             .stream()
             .flatMap(Collection::stream)
-            .map(eventResult -> "{event: " + eventResult.getEvent() +
-                ", resultType: " + eventResult.getResultType() + "}")
+            .map(EventResult::toString)
             .collect(Collectors.joining(",\n")) + "]";
     }
 
@@ -65,6 +66,18 @@ public class ReactiveHelper {
             .block();
         log.trace("Parsing StateMachine eventresults to list: {}", eventResults);
         return eventResults;
+    }
+
+    @SafeVarargs
+    public static <S, E> List<EventResult<S, E>> stateMachineHandler(StateMachine<S, E> stateMachine, E... events) {
+        try {
+            stateMachine.startReactively().block();
+            var results = ReactiveHelper.parseResultToList(stateMachine, events);
+            stateMachine.stopReactively().block();
+            return results;
+        } catch (Exception ex) {
+            throw new StateMachineException(ex);
+        }
     }
 
 }

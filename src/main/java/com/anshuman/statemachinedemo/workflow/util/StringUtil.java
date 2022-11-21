@@ -18,59 +18,63 @@ import org.springframework.statemachine.transition.Transition;
 @UtilityClass
 public class StringUtil {
 
-    public static <K, V> String state(State<K, V> state) {
+    public static <S, E> String state(State<S, E> state) {
         return Optional.ofNullable(state)
             .map(State::getId)
             .map(String::valueOf)
-            .orElse("");
+            .orElse("null");
     }
 
-    public static <K, V> String stageFromContext(StateContext<K, V> stateContext) {
+    public static <S, E> String stageFromContext(StateContext<S, E> stateContext) {
         return Optional
             .ofNullable(stateContext)
             .flatMap(sc -> Optional.ofNullable(sc.getStage()))
-            .flatMap(stage -> Optional.of(stage.name()).map(st -> "Stage: " + st))
-            .orElse("");
+            .flatMap(stage -> Optional.of(stage.name()))
+            .orElse("null");
     }
 
-    public static <K, V> String sourceStateFromContext(StateContext<K, V> stateContext) {
+    public static <S, E> String sourceStateFromContext(StateContext<S, E> stateContext) {
         return Optional
             .ofNullable(stateContext)
             .flatMap(sc -> Optional.ofNullable(sc.getSource()))
-            .map(st -> "Source: " + st.getId())
-            .orElse("");
+            .map(State::getId)
+            .map(S::toString)
+            .orElse("null");
     }
 
-    public static <K, V> String eventFromContext(StateContext<K, V> stateContext) {
+    public static <S, E> String eventFromContext(StateContext<S, E> stateContext) {
         return Optional
             .ofNullable(stateContext)
             .flatMap(sc -> Optional.ofNullable(sc.getEvent()))
-            .map(e -> "Event: " + e)
-            .orElse("");
+            .map(E::toString)
+            .orElse("null");
     }
 
-    public static <K, V> String targetStateFromContext(StateContext<K, V> stateContext) {
+    public static <S, E> String targetStateFromContext(StateContext<S, E> stateContext) {
         return Optional
             .ofNullable(stateContext)
             .flatMap(sc -> Optional.ofNullable(sc.getTarget()))
-            .map(st -> "Target: " + st.getId())
-            .orElse("");
+            .map(State::getId)
+            .map(S::toString)
+            .orElse("null");
     }
 
-    public static <K, V> String sourceStateFromTransition(Transition<K, V> transition) {
+    public static <S, E> String sourceStateFromTransition(Transition<S, E> transition) {
         return Optional
             .ofNullable(transition)
             .map(Transition::getSource)
-            .map(t -> "From: " + t.getId())
-            .orElse("");
+            .map(State::getId)
+            .map(S::toString)
+            .orElse("null");
     }
 
-    public static <K, V> String targetStateFromTransition(Transition<K, V> transition) {
+    public static <S, E> String targetStateFromTransition(Transition<S, E> transition) {
         return Optional
             .ofNullable(transition)
             .map(Transition::getTarget)
-            .map(t -> "To: " + t.getId())
-            .orElse("");
+            .map(State::getId)
+            .map(S::toString)
+            .orElse("null");
     }
 
     public static <S, E> String extendedStateFromContext(StateContext<S, E> stateContext) {
@@ -82,8 +86,7 @@ public class StringUtil {
             .map(Map::entrySet)
             .map(StringUtil::entrySet)
             .filter(Predicate.not(String::isEmpty))
-            .map(str -> "ExtendedState: " + str)
-            .orElse("");
+            .orElse("null");
     }
 
     public static String extendedState(ExtendedState extendedState) {
@@ -110,7 +113,7 @@ public class StringUtil {
             .orElse("");
     }
 
-    private static <K, V> String entrySet(Set<Entry<K, V>> entrySet) {
+    private static <S, E> String entrySet(Set<Entry<S, E>> entrySet) {
         if (entrySet == null)
             return "";
         if (entrySet.isEmpty())
@@ -135,21 +138,20 @@ public class StringUtil {
             .map(State::getId)
             .map(Object::toString)
             .filter(Predicate.not(String::isEmpty))
-            .map(s -> "source state: " + s)
+            .map(s -> "{source state: " + s + (transition.getSource().isSubmachineState() ? ", isSubMachine: true":"") + "}")
             .orElse("");
 
-        String targetState =  Optional.ofNullable(transition.getTarget())
+        String targetState = Optional.ofNullable(transition.getTarget())
             .map(State::getId)
             .map(Object::toString)
             .filter(Predicate.not(String::isEmpty))
-            .map(s -> "target state: " + s)
+            .map(s -> "{target state: " + s + (transition.getTarget().isSubmachineState() ? ", isSubMachine: true":"") + "}")
             .orElse("");
 
-//        String actions  = Optional.ofNullable(transition.getActions())
-//            .map(list -> list.stream().map(Object::toString).collect(joining(", ")))
-//            .filter(Predicate.not(String::isEmpty))
-//            .map(s -> "actions: " + s)
-//            .orElse("");
+        String event = Optional.ofNullable(transition.getTrigger())
+            .flatMap(trigger -> Optional.ofNullable(trigger.getEvent()))
+            .map(e -> "event: " + e)
+            .orElse("");
 
         String kind = Optional.ofNullable(transition.getKind())
             .map(Object::toString)
@@ -157,19 +159,7 @@ public class StringUtil {
             .map(s -> "kind: " + s)
             .orElse("");
 
-//        String guard = Optional.ofNullable(transition.getGuard())
-//            .map(Object::toString)
-//            .filter(Predicate.not(String::isEmpty))
-//            .map(s -> "guard: " + s)
-//            .orElse("");
-
-//        String trigger = Optional.ofNullable(transition.getTrigger())
-//            .map(Object::toString)
-//            .filter(Predicate.not(String::isEmpty))
-//            .map(s -> "trigger: " + s)
-//            .orElse("");
-
-        return Stream.of(name, sourceState, targetState, kind) //, guard, actions, trigger)
+        return Stream.of(name, sourceState, event, targetState, kind) //, guard, actions, trigger)
             .filter(Predicate.not(String::isEmpty).and(Predicate.not(String::isBlank)))
             .collect(joining(", "));
 

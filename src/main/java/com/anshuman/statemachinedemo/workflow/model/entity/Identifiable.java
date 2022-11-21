@@ -1,4 +1,4 @@
-package com.anshuman.statemachinedemo.workflow.entity;
+package com.anshuman.statemachinedemo.workflow.model.entity;
 
 import java.io.Serializable;
 

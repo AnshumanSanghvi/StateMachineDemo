@@ -23,6 +23,7 @@
         <spring-statemachine.version>3.2.0</spring-statemachine.version>
         <snake-yaml.version>1.33</snake-yaml.version>
         <kryo.version>5.3.0</kryo.version>
+        <postgres.version>42.5.1</postgres.version>
     </properties>
     <dependencies>
 
@@ -32,13 +33,6 @@
             <artifactId>snakeyaml</artifactId>
             <version>${snake-yaml.version}</version>
         </dependency>
-
-        <!-- logging -->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-log4j2</artifactId>-->
-<!--            <version>${spring-boot.version}</version>-->
-<!--        </dependency>-->
 
         <!-- spring state machine -->
         <dependency>
@@ -61,21 +55,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
-        <!-- spring data rest -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-rest</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-rest-hal-browser</artifactId>
-            <version>3.1.9.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-hateoas</artifactId>
         </dependency>
 
         <!-- spring web -->
@@ -104,6 +83,13 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+            <version>${postgres.version}</version>
         </dependency>
 
         <!-- utils -->

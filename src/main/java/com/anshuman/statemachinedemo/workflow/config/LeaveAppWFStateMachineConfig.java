@@ -1,11 +1,10 @@
 package com.anshuman.statemachinedemo.workflow.config;
 
 
-import com.anshuman.statemachinedemo.other.StateMachineMonitor;
 import com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions;
-import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
+import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
 import com.anshuman.statemachinedemo.workflow.guard.LeaveAppStateMachineGuards;
-import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
+import com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState;
 import java.util.EnumSet;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,6 @@ import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
-
 
 
 @Configuration

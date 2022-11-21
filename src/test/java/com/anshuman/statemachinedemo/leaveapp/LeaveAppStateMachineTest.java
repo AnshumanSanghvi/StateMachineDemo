@@ -7,8 +7,8 @@ import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.
 import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.RETURN_COUNT;
 
 import com.anshuman.statemachinedemo.workflow.config.LeaveAppWFStateMachineConfig;
-import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
-import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
+import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
+import com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

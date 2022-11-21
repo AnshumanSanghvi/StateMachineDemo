@@ -1,4 +1,4 @@
-package com.anshuman.statemachinedemo.workflow.event;
+package com.anshuman.statemachinedemo.workflow.model.enums.event;
 
 import lombok.Getter;
 

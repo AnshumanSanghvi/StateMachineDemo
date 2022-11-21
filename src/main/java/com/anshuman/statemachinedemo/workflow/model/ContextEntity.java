@@ -1,6 +1,6 @@
-package com.anshuman.statemachinedemo.workflow.persist;
+package com.anshuman.statemachinedemo.workflow.model;
 
-import com.anshuman.statemachinedemo.workflow.entity.Identifiable;
+import com.anshuman.statemachinedemo.workflow.model.entity.Identifiable;
 import java.io.Serializable;
 import org.springframework.statemachine.StateMachineContext;
 

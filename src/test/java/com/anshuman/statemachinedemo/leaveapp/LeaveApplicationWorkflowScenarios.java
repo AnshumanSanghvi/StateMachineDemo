@@ -1,7 +1,7 @@
 package com.anshuman.statemachinedemo.leaveapp;
 
-import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
-import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
+import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
+import com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState;
 import com.anshuman.statemachinedemo.workflow.util.ReactiveHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.statemachine.StateMachine;

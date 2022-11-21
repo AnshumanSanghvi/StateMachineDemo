@@ -4,8 +4,8 @@ package com.anshuman.statemachinedemo.workflow.guard;
 import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.CANCELED;
 import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.CLOSED_STATE;
 
-import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
-import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
+import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
+import com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.statemachine.StateContext;
 

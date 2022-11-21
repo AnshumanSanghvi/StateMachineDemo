@@ -23,8 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.anshuman.statemachinedemo.workflow.config.LeaveAppWFStateMachineConfig;
-import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
-import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
+import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
+import com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState;
 import javax.annotation.PostConstruct;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -130,7 +130,7 @@ class LeaveAppStateMachineScenariosTest {
         invokeStateChanges((sm) -> approverRollsBackCanceledApplication(stateMachine), stateMachine);
         hasError(stateMachine);
         assertEquals(LeaveAppState.CLOSED, stateMachine.getState().getId());
-        assertEquals( 0, ((Integer) stateMachine.getExtendedState().getVariables().getOrDefault(ROLL_BACK_COUNT, 0)));
+        assertEquals(0, ((Integer) stateMachine.getExtendedState().getVariables().getOrDefault(ROLL_BACK_COUNT, 0)));
         assertTrue(((String) stateMachine.getExtendedState().getVariables().get(CLOSED_STATE)).equalsIgnoreCase(CANCELED));
     }
 
