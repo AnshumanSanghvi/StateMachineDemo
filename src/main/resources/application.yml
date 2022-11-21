@@ -1,0 +1,9 @@
+logging:
+  level:
+    org.springframework: info
+    org.springframework.statemachine.support: info
+    com.anshuman.statemachinedemo: DEBUG
+
+spring:
+  jpa:
+    open-in-view: false
