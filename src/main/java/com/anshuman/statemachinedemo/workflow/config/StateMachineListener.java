@@ -14,7 +14,7 @@ public class StateMachineListener<S, E> extends StateMachineListenerAdapter<S, E
 
     @Override
     public void transition(Transition<S, E> transition) {
-        log.debug("Transitioning: {}", StringUtil.transition(transition));
+        log.trace("Transitioning: {}", StringUtil.transition(transition));
     }
 
     @Override
@@ -33,15 +33,15 @@ public class StateMachineListener<S, E> extends StateMachineListenerAdapter<S, E
             log.error("Event not accepted, as the event message is null.");
             return;
         }
-        log.trace("Event not accepted. Event Headers: {}", StringUtil.messageHeaders(event.getHeaders()));
-        log.error("Event not accepted. Event Payload: {}", event.getPayload());
+        log.error("Event not accepted. Payload: {}, Headers: {}", event.getPayload(), StringUtil.messageHeaders(event.getHeaders()));
+
     }
 
     @Override
     public void stateMachineError(StateMachine<S, E> stateMachine, Exception exception) {
         log.error("Exception encountered on stateMachine {} with uuid: {}", stateMachine.getId(), stateMachine.getUuid(), exception);
 
-        log.trace("StateMachine Exception additional info: id: {}, uuid: {}, hasException: {}, current state: {}, extendedState: {}",
+        log.debug("StateMachine Exception additional info: id: {}, uuid: {}, hasException: {}, current state: {}, extendedState: {}",
             stateMachine.getId(), stateMachine.getUuid(), stateMachine.hasStateMachineError(), stateMachine.getState().getId(),
             StringUtil.extendedState(stateMachine.getExtendedState()));
 
