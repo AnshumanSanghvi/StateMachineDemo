@@ -2,8 +2,9 @@ package com.anshuman.statemachinedemo.workflow.config;
 
 
 import com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions;
-import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
+import com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants;
 import com.anshuman.statemachinedemo.workflow.guard.LeaveAppStateMachineGuards;
+import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
 import com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState;
 import java.util.EnumSet;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 @Configuration
 @EnableStateMachineFactory
 @Slf4j
-public class LeaveAppWFStateMachineConfig extends EnumStateMachineConfigurerAdapter<LeaveAppState, LeaveAppEvent> {
+public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapter<LeaveAppState, LeaveAppEvent> {
 
     @Override
     public void configure(StateMachineConfigurationConfigurer<LeaveAppState, LeaveAppEvent> config)
@@ -28,7 +29,7 @@ public class LeaveAppWFStateMachineConfig extends EnumStateMachineConfigurerAdap
                 .monitor(new StateMachineMonitor<>())
                 .and()
             .withConfiguration()
-                .machineId("LeaveApplicationWorkflowStateMachineV1")
+                .machineId(LeaveAppConstants.LEAVE_APP_WF_V1)
                 .listener(new StateMachineListener<>());
     }
 

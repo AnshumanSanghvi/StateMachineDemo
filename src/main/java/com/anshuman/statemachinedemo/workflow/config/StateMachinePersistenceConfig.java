@@ -2,7 +2,6 @@ package com.anshuman.statemachinedemo.workflow.config;
 
 import com.anshuman.statemachinedemo.workflow.model.ContextEntity;
 import com.anshuman.statemachinedemo.workflow.persist.DefaultStateMachineAdapter;
-import java.io.Serializable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,19 +21,18 @@ public class StateMachinePersistenceConfig {
      * that you can use to restore an existing machine into a state represented by a particular StateMachineContext object.
      * @param <S> Parameter for State class
      * @param <E> Parameter for Event class
-     * @param <I> Parameter for Identity class
      * @return An instance of the StateMachinePersist interface, responsible for serialization and deserialization of a StateMachineContext
      */
     @Bean
-    public <S, E, I extends Serializable> StateMachinePersist<S, E, ContextEntity<S, E, I>> stateMachinePersist() {
+    public <S, E> StateMachinePersist<S, E, ContextEntity<S, E>> stateMachinePersist() {
         return new StateMachinePersist<>() {
             @Override
-            public void write(StateMachineContext<S, E> context, ContextEntity<S, E, I> contextObj) throws Exception {
+            public void write(StateMachineContext<S, E> context, ContextEntity<S, E> contextObj) throws Exception {
                 contextObj.setStateMachineContext(context);
             }
 
             @Override
-            public StateMachineContext<S, E> read(ContextEntity<S, E, I> contextObj) throws Exception {
+            public StateMachineContext<S, E> read(ContextEntity<S, E> contextObj) throws Exception {
                 return contextObj.getStateMachineContext();
             }
         };
@@ -43,13 +41,12 @@ public class StateMachinePersistenceConfig {
     /**
      * @param <S> Parameter for the State class
      * @param <E> Parameter for the Event class
-     * @param <I> Parameter for the Identity class
      * @return The DefaultStateMachinePersister which is an implementation of the StateMachinePersister interface, which is responsible for persisting and
      * restoring a state machine from a persistent storage.
      */
     @Bean
-    public <S, E, I extends Serializable> StateMachinePersister<S, E, ContextEntity<S, E, I>> stateMachinePersister(
-        @Autowired StateMachinePersist<S, E, ContextEntity<S, E, I>> stateMachinePersist) {
+    public <S, E> StateMachinePersister<S, E, ContextEntity<S, E>> stateMachinePersister(
+        @Autowired StateMachinePersist<S, E, ContextEntity<S, E>> stateMachinePersist) {
         return new DefaultStateMachinePersister<>(stateMachinePersist);
     }
 
@@ -57,13 +54,12 @@ public class StateMachinePersistenceConfig {
      * @param stateMachineFactory The StateMachineFactory bean
      * @param <S>                 Parameter for the State class
      * @param <E>                 Parameter for the Event class
-     * @param <I>                 Parameter for the Identity class
      * @return A bean of the DefaultStateMachineAdapter
      */
     @Bean
-    public <S, E, I extends Serializable> DefaultStateMachineAdapter<S, E, ContextEntity<S, E, I>> stateMachineAdapter(
+    public <S, E> DefaultStateMachineAdapter<S, E, ContextEntity<S, E>> stateMachineAdapter(
         @Autowired StateMachineFactory<S, E> stateMachineFactory,
-        @Autowired StateMachinePersister<S, E, ContextEntity<S, E, I>> stateMachinePersister) {
+        @Autowired StateMachinePersister<S, E, ContextEntity<S, E>> stateMachinePersister) {
         return new DefaultStateMachineAdapter<>(stateMachineFactory, stateMachinePersister);
     }
 

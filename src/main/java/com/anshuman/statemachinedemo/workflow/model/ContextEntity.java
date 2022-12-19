@@ -1,10 +1,8 @@
 package com.anshuman.statemachinedemo.workflow.model;
 
-import com.anshuman.statemachinedemo.workflow.model.entity.Identifiable;
-import java.io.Serializable;
 import org.springframework.statemachine.StateMachineContext;
 
-public interface ContextEntity<S, E, I extends Serializable> extends Identifiable<I> {
+public interface ContextEntity<S, E> {
 
     StateMachineContext<S, E> getStateMachineContext();
 

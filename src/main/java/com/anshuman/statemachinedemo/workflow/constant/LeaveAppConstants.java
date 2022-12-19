@@ -23,4 +23,5 @@ public class LeaveAppConstants {
 
     public static final String REVIEWED_COUNT = "reviewedCount";
     public static final String REVIEWERS_COUNT = "reviewersCount";
+    public static final String LEAVE_APP_WF_V1 = "LeaveApplicationWorkflowStateMachineV1";
 }

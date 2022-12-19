@@ -1,5 +1,6 @@
 package com.anshuman.statemachinedemo.workflow.util;
 
+import java.util.function.Predicate;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.statemachine.StateMachineEventResult;
@@ -16,6 +17,8 @@ public class EventResult<S, E> {
     private ResultType resultType;
     private S currentState;
 
+    public static final Predicate<EventResult> accepted = result -> result.getResultType().equals(ResultType.ACCEPTED);
+
     public EventResult(StateMachineEventResult<S, E> result) {
         Region<S, E> region = result.getRegion();
         this.setRegion(region.getUuid().toString() + " (" + region.getId() + ")");
@@ -27,7 +30,7 @@ public class EventResult<S, E> {
 
     @Override
     public String toString() {
-        return "EventResult [" +
+        return "EventResult[" +
             "stateMachine: " + this.region +
             ", isSubMachine: " + this.isSubMachine +
             ", event: " + this.event +

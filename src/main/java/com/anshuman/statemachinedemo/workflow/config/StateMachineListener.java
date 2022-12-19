@@ -40,12 +40,8 @@ public class StateMachineListener<S, E> extends StateMachineListenerAdapter<S, E
 
     @Override
     public void stateMachineError(StateMachine<S, E> stateMachine, Exception exception) {
-        log.error("Exception encountered on stateMachine {} with uuid: {}", stateMachine.getId(), stateMachine.getUuid(), exception);
-
-        log.debug("StateMachine Exception additional info: id: {}, uuid: {}, hasException: {}, current state: {}, extendedState: {}",
-            stateMachine.getId(), stateMachine.getUuid(), stateMachine.hasStateMachineError(), stateMachine.getState().getId(),
-            StringUtil.extendedState(stateMachine.getExtendedState()));
-
+        log.error("Exception encountered on stateMachine {}", StringUtil.stateMachine(stateMachine, false), exception);
+        log.debug("StateMachine Exception additional info: {}", StringUtil.stateMachine(stateMachine, true));
         throw new StateMachineException(exception);
     }
 

@@ -12,6 +12,7 @@ import lombok.experimental.UtilityClass;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.statemachine.ExtendedState;
 import org.springframework.statemachine.StateContext;
+import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.state.State;
 import org.springframework.statemachine.transition.Transition;
 
@@ -45,7 +46,12 @@ public class StringUtil {
     public static <S, E> String eventFromContext(StateContext<S, E> stateContext) {
         return Optional
             .ofNullable(stateContext)
-            .flatMap(sc -> Optional.ofNullable(sc.getEvent()))
+            .map(StringUtil::event)
+            .orElse("null");
+    }
+
+    public static <S, E> String event(E event) {
+        return Optional.ofNullable(event)
             .map(E::toString)
             .orElse("null");
     }
@@ -163,6 +169,31 @@ public class StringUtil {
             .filter(Predicate.not(String::isEmpty).and(Predicate.not(String::isBlank)))
             .collect(joining(", "));
 
+    }
+
+    public static <S, E> String stateMachine(StateMachine<S, E> stateMachine, boolean detailed) {
+        if (stateMachine == null) {
+            return "";
+        }
+
+        String stateStr = state(stateMachine.getState());
+        String idStr = stateMachine.getId();
+        String output = "StateMachine[id: " + idStr + ", currentState: " + stateStr;
+
+        if(detailed) {
+            String extendedStateStr = extendedState(stateMachine.getExtendedState());
+            String uuidStr = stateMachine.getUuid().toString();
+            String allStatesStr = stateMachine.getStates().stream().map(StringUtil::state).collect(joining(", "));
+            String initialStateStr = StringUtil.state(stateMachine.getInitialState());
+            String transitionsStr = stateMachine.getTransitions().stream().map(StringUtil::transition).collect(joining(", "));
+            output+= ", uuid: " + uuidStr +
+                ", extendedState: " + extendedStateStr +
+                ", initialState: " + initialStateStr +
+                " allStates: {" + allStatesStr + "}" +
+                ", transitions: {" + transitionsStr + "}";
+        }
+
+        return output + "]";
     }
 
 }
