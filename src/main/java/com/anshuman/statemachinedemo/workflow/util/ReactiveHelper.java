@@ -85,5 +85,18 @@ public class ReactiveHelper {
             throw new StateMachineException(ex);
         }
     }
+    public static <S, E> List<EventResult<S, E>> stateMachineHandler(StateMachine<S, E> stateMachine, E event) {
+        try {
+            stateMachine.startReactively().block();
+            var results = stateMachine.sendEvent(toMessageMono(event))
+                .toStream()
+                .map(EventResult::new)
+                .toList();
+            stateMachine.stopReactively().block();
+            return results;
+        } catch (Exception ex) {
+            throw new StateMachineException(ex);
+        }
+    }
 
 }
