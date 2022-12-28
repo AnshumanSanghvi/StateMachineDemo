@@ -1,5 +1,6 @@
 package com.anshuman.statemachinedemo.workflow.service;
 
+import com.anshuman.statemachinedemo.workflow.exception.WorkflowException;
 import com.anshuman.statemachinedemo.workflow.model.entity.WorkflowTypeEntity;
 import com.anshuman.statemachinedemo.workflow.model.enums.WorkflowType;
 import com.anshuman.statemachinedemo.workflow.repository.WorkflowTypeRepository;
@@ -32,6 +33,6 @@ public class WorkflowTypeService {
 
     private void validateThatWorkflowTypeDoesNotExist(WorkflowType workflowType) {
         if(existsByTypeId(workflowType))
-            throw new RuntimeException("Cannot create new workflow type, there already exists a type for the given type id");
+            throw new WorkflowException("Cannot create new workflow type, there already exists a type for the given type id");
     }
 }

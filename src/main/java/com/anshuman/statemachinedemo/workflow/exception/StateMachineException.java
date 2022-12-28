@@ -1,6 +1,6 @@
 package com.anshuman.statemachinedemo.workflow.exception;
 
-public class StateMachineException extends RuntimeException {
+public class StateMachineException extends WorkflowException {
 
     public StateMachineException() {
         super();
