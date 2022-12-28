@@ -18,7 +18,7 @@ import org.hibernate.Hibernate;
 
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @NoArgsConstructor
 @Slf4j
 @Entity

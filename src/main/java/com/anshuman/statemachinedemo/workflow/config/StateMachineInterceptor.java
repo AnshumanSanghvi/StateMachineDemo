@@ -18,15 +18,13 @@ import org.springframework.statemachine.transition.Transition;
  *
  * @param <S> State Parameter class
  * @param <E> Event Parameter class
- *            <p>
- *            stateMachine.getStateMachineAccessor().withRegion().addStateMachineInterception(new StateMachineInterceptor());
  */
 @Slf4j
 public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapter<S, E> {
 
     @Override
     public Message<E> preEvent(Message<E> message, StateMachine<S, E> stateMachine) {
-        log.info("preEvent: [stateMachine: {}, event to be passed: {}, hasError: {}, current state: {}]",
+        log.trace("preEvent: [stateMachine: {}, event to be passed: {}, hasError: {}, current state: {}]",
             stateMachine.getId(),
             message.getPayload(),
             stateMachine.hasStateMachineError(),
@@ -38,7 +36,7 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
     public void preStateChange(State<S, E> state, Message<E> message,
         Transition<S, E> transition, StateMachine<S, E> stateMachine,
         StateMachine<S, E> rootStateMachine) {
-        log.info("preStateChange: [stateMachine: {}, current state: {}, event to be passed: {}, transition: {name: {}, source state: {}, target state: {}}]",
+        log.trace("preStateChange: [stateMachine: {}, current state: {}, event to be passed: {}, transition: {name: {}, source state: {}, target state: {}}]",
             stateMachine.getId(),
             state.getId(),
             Optional.ofNullable(message).map(Message::getPayload).map(E::toString).orElse("null"),
@@ -52,7 +50,7 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
     public void postStateChange(State<S, E> state, Message<E> message,
         Transition<S, E> transition, StateMachine<S, E> stateMachine,
         StateMachine<S, E> rootStateMachine) {
-        log.info("postStateChange: [stateMachine: {}, current state: {}, event passed: {}, transition: {name: {}, source state: {}, target state: {}}]",
+        log.trace("postStateChange: [stateMachine: {}, current state: {}, event passed: {}, transition: {name: {}, source state: {}, target state: {}}]",
             stateMachine.getId(),
             state.getId(),
             Optional.ofNullable(message).map(Message::getPayload).map(E::toString).orElse("null"),
@@ -65,7 +63,7 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
     @Override
     public StateContext<S, E> preTransition(StateContext<S, E> stateContext) {
 
-        log.info("preTransition: [stateMachine: {}, stage: {}, source state: {}, event: {}, target state: {}, extended state: [{}]]",
+        log.trace("preTransition: [stateMachine: {}, stage: {}, source state: {}, event: {}, target state: {}, extended state: [{}]]",
             stateContext.getStateMachine().getId(),
             StringUtil.stageFromContext(stateContext),
             StringUtil.sourceStateFromContext(stateContext),
@@ -77,7 +75,7 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
 
     @Override
     public StateContext<S, E> postTransition(StateContext<S, E> stateContext) {
-        log.info("postTransition: [stateMachine: {}, stage: {}, source state: {}, event: {}, target state: {}, extended state: [{}]]",
+        log.trace("postTransition: [stateMachine: {}, stage: {}, source state: {}, event: {}, target state: {}, extended state: [{}]]",
             stateContext.getStateMachine().getId(),
             StringUtil.stageFromContext(stateContext),
             StringUtil.sourceStateFromContext(stateContext),
