@@ -24,7 +24,7 @@ import org.springframework.statemachine.StateMachineContext;
 @ToString(callSuper = true)
 @Getter
 @Setter
-@Table(name = "leave_wf_inst")
+@Table(name = "leave_wf_inst", schema = "public")
 @Where(clause = "isActive = 1")
 public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
     implements ContextEntity<LeaveAppState, LeaveAppEvent> {
@@ -40,7 +40,7 @@ public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
     private StateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext;
 
     @Column(name = "is_active")
-    private short isActive;
+    private short isActive = 1;
 
     public void setStateMachineContext(StateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
         this.setCurrentState(stateMachineContext.getState());

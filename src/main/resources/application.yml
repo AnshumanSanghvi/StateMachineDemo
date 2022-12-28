@@ -2,7 +2,7 @@ logging:
   level:
     org.springframework: info
     org.springframework.statemachine.support: info
-    com.anshuman.statemachinedemo: TRACE
+    com.anshuman.statemachinedemo: DEBUG
 
 spring:
   datasource:
@@ -12,5 +12,6 @@ spring:
     password: anshuman
   jpa:
     open-in-view: false
+    show-sql: true
   main:
     lazy-initialization: false

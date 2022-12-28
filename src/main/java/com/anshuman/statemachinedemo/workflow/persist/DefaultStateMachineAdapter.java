@@ -28,7 +28,7 @@ public class DefaultStateMachineAdapter<S, E, T> {
 
     private final StateMachinePersister<S, E, T> stateMachinePersister;
 
-    public StateMachine<S, E> restore(String stateMachineId, T contextObj) throws Exception {
+    public StateMachine<S, E> restore(String stateMachineId, T contextObj) {
         try {
             StateMachine<S, E> stateMachine = stateMachinePersister.restore(create(stateMachineId), contextObj);
             log.debug("Restored stateMachine: {}", StringUtil.stateMachine(stateMachine, false));
@@ -41,7 +41,7 @@ public class DefaultStateMachineAdapter<S, E, T> {
         }
     }
 
-    public void persist(StateMachine<S, E> stateMachine, T contextObj) throws Exception {
+    public void persist(StateMachine<S, E> stateMachine, T contextObj) {
         try {
             stateMachinePersister.persist(stateMachine, contextObj);
             log.debug("Persisted stateMachine: {} for entity: {}", StringUtil.stateMachine(stateMachine, false), contextObj);

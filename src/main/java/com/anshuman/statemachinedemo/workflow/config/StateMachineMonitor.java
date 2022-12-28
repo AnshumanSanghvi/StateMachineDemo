@@ -13,12 +13,12 @@ public class StateMachineMonitor<S, E> extends AbstractStateMachineMonitor<S, E>
 
     @Override
     public void transition(StateMachine<S, E> stateMachine, Transition<S, E> transition, long duration) {
-        log.debug("Transition: {} on stateMachine: {} took {} ms", transition.getName(), stateMachine.getId(), duration);
+        log.trace("Transition: {} on stateMachine: {} took {} ms", transition.getName(), stateMachine.getId(), duration);
     }
 
     @Override
     public void action(StateMachine<S, E> stateMachine, Function<StateContext<S, E>, Mono<Void>> action,
         long duration) {
-        log.debug("Action on stateMachine: {} took {} ms", stateMachine.getId(), duration);
+        log.trace("Action on stateMachine: {} took {} ms", stateMachine.getId(), duration);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 public interface LeaveAppWorkflowInstanceRepository
     extends JpaRepository<LeaveAppWorkFlowInstanceEntity, Long> {
 
+    // TODO: optimize query. wf_type_mst is doing a left outer join on wf_type_dtl
     @Query("SELECT true "
         + "FROM LeaveAppWorkFlowInstanceEntity lawf "
         + "INNER JOIN WorkflowTypeEntity wft "

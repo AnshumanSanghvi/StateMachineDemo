@@ -1,8 +1,27 @@
 package com.anshuman.statemachinedemo.workflow.config;
 
 
-import com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions;
-import com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants;
+import static com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions.closeApprove;
+import static com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions.closeCancel;
+import static com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions.closeReject;
+import static com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions.initiateLeaveAppWorkflow;
+import static com.anshuman.statemachinedemo.workflow.action.LeaveAppStateMachineActions.returnBack;
+import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.*;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.APPROVE;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.CANCEL;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.REJECT;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.REQUEST_CHANGES_IN;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.START;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.SUBMIT;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.TRIGGER_COMPLETE;
+import static com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent.TRIGGER_REVIEW_OF;
+import static com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState.CLOSED;
+import static com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState.COMPLETED;
+import static com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState.CREATED;
+import static com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState.INITIAL;
+import static com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState.SUBMITTED;
+import static com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState.UNDER_PROCESS;
+
 import com.anshuman.statemachinedemo.workflow.guard.LeaveAppStateMachineGuards;
 import com.anshuman.statemachinedemo.workflow.model.enums.event.LeaveAppEvent;
 import com.anshuman.statemachinedemo.workflow.model.enums.state.LeaveAppState;
@@ -29,7 +48,7 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .monitor(new StateMachineMonitor<>())
                 .and()
             .withConfiguration()
-                .machineId(LeaveAppConstants.LEAVE_APP_WF_V1)
+                .machineId(LEAVE_APP_WF_V1)
                 .listener(new StateMachineListener<>());
     }
 
@@ -38,8 +57,8 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
         throws Exception {
         states
             .withStates()
-                .initial(LeaveAppState.INITIAL, context -> LeaveAppStateMachineActions.initiateLeaveAppWorkflow(context.getExtendedState()))
-                .end(LeaveAppState.COMPLETED)
+                .initial(INITIAL, context -> initiateLeaveAppWorkflow(context.getExtendedState()))
+                .end(COMPLETED)
                 .states(EnumSet.allOf(LeaveAppState.class));
     }
 
@@ -48,65 +67,65 @@ public class LeaveAppStateMachineConfig extends EnumStateMachineConfigurerAdapte
         throws Exception {
         transitions
             .withExternal()
-                .name("UserCreatesTheLeaveApplication")
-                .source(LeaveAppState.INITIAL)
-                .event(LeaveAppEvent.START)
-                .target(LeaveAppState.CREATED)
+                .name(CREATE_LEAVE_APP)
+                .source(INITIAL)
+                .event(START)
+                .target(CREATED)
                 .and()
             .withExternal()
-                .name("UserSubmitsTheCreatedTheLeaveApplication")
-                .source(LeaveAppState.CREATED)
-                .event(LeaveAppEvent.SUBMIT)
-                .target(LeaveAppState.SUBMITTED)
+                .name(SUBMIT_CREATED_LEAVE_APP)
+                .source(CREATED)
+                .event(SUBMIT)
+                .target(SUBMITTED)
                 .and()
             .withExternal()
-                .name("SystemTriggersTheSubmittedLeaveApplication")
-                .source(LeaveAppState.SUBMITTED)
-                .event(LeaveAppEvent.TRIGGER_REVIEW_OF)
-                .target(LeaveAppState.UNDER_PROCESS)
+                .name(TRIGGER_LEAVE_APP_REVIEW)
+                .source(SUBMITTED)
+                .event(TRIGGER_REVIEW_OF)
+                .target(UNDER_PROCESS)
                 .and()
             .withExternal()
-                .name("ReviewerRequestsChangesInTheLeaveApplicationUnderReview")
-                .source(LeaveAppState.UNDER_PROCESS)
-                .event(LeaveAppEvent.REQUEST_CHANGES_IN)
-                .target(LeaveAppState.CREATED)
-                .action(context -> LeaveAppStateMachineActions.returnBack(context.getExtendedState()))
+                .name(REQUEST_CHANGES_IN_LEAVE_APP)
+                .source(UNDER_PROCESS)
+                .event(REQUEST_CHANGES_IN)
+                .target(CREATED)
+                .action(context -> returnBack(context.getExtendedState()))
                 .and()
             .withExternal()
-                .name("UserCancelsTheLeaveApplicationUnderReview")
-                .source(LeaveAppState.UNDER_PROCESS)
-                .event(LeaveAppEvent.CANCEL)
-                .target(LeaveAppState.CLOSED)
-                .action(context -> LeaveAppStateMachineActions.closeCancel(context.getExtendedState()))
+                .name(CANCEL_LEAVE_APP)
+                .source(UNDER_PROCESS)
+                .event(CANCEL)
+                .target(CLOSED)
+                .action(context -> closeCancel(context.getExtendedState()))
                 .and()
             .withExternal()
-                .name("ReviewerApprovesTheLeaveApplicationUnderReview")
-                .source(LeaveAppState.UNDER_PROCESS)
-                .event(LeaveAppEvent.APPROVE)
-                .target(LeaveAppState.CLOSED)
-                .action(context -> LeaveAppStateMachineActions.closeApprove(context.getExtendedState()))
+                .name(APPROVE_LEAVE_APP)
+                .source(UNDER_PROCESS)
+                .event(APPROVE)
+                .target(CLOSED)
+                .action(context -> closeApprove(context.getExtendedState()))
                 .and()
             .withExternal()
-                .name("ReviewerRejectsTheLeaveApplicationUnderReview")
-                .source(LeaveAppState.UNDER_PROCESS)
-                .event(LeaveAppEvent.REJECT)
+                .name(REJECT_LEAVE_APP)
+                .source(UNDER_PROCESS)
+                .event(REJECT)
                 .guard(LeaveAppStateMachineGuards::cannotRollBackCanceledApplication)
-                .target(LeaveAppState.CLOSED)
-                .action(context -> LeaveAppStateMachineActions.closeReject(context.getExtendedState()))
+                .target(CLOSED)
+                .action(context -> closeReject(context.getExtendedState()))
                 .and()
             .withExternal()
-                .name("ReviewerRollsBackTheLeaveApplicationUnderReview")
-                .source(LeaveAppState.CLOSED)
+                .name(ROLL_BACK_LEAVE_APP)
+                .source(CLOSED)
                 .event(LeaveAppEvent.ROLL_BACK)
                 .guard(LeaveAppStateMachineGuards::cannotRollBackCanceledApplication)
-                .target(LeaveAppState.UNDER_PROCESS)
+                .target(UNDER_PROCESS)
                 //.action(context -> LeaveAppStateMachineActions.rollBack(context.getExtendedState()))
                 .and()
             .withExternal()
-                .name("SystemCompletesTheLeaveApplication")
-                .source(LeaveAppState.CLOSED)
-                .event(LeaveAppEvent.TRIGGER_COMPLETE)
-                .target(LeaveAppState.COMPLETED);
+                .name(COMPLETE_LEAVE_APP)
+                .source(CLOSED)
+                .event(TRIGGER_COMPLETE)
+                .target(COMPLETED);
     }
 
 

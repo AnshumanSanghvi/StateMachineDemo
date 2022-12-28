@@ -14,7 +14,7 @@ public class StateMachineListener<S, E> extends StateMachineListenerAdapter<S, E
 
     @Override
     public void transition(Transition<S, E> transition) {
-        log.debug("Transitioning: [{}]", StringUtil.transition(transition));
+        log.trace("Transitioning: [{}]", StringUtil.transition(transition));
     }
 
     @Override
@@ -41,7 +41,7 @@ public class StateMachineListener<S, E> extends StateMachineListenerAdapter<S, E
     @Override
     public void stateMachineError(StateMachine<S, E> stateMachine, Exception exception) {
         log.error("Exception encountered on stateMachine {}", StringUtil.stateMachine(stateMachine, false), exception);
-        log.debug("StateMachine Exception additional info: {}", StringUtil.stateMachine(stateMachine, true));
+        log.trace("StateMachine Exception additional info: {}", StringUtil.stateMachine(stateMachine, true));
         throw new StateMachineException(exception);
     }
 
