@@ -5,7 +5,7 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter(autoApply = true)
-public class WorkflowTypeNameConverter  implements AttributeConverter<WorkflowType, String> {
+public class WorkflowTypeNameConverter implements AttributeConverter<WorkflowType, String> {
 
     @Override
     public String convertToDatabaseColumn(WorkflowType attribute) {
