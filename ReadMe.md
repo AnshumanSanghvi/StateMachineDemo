@@ -1,3 +1,23 @@
+# Workflow POC
+
+[TOC]
+
+
+### Parts of the POC:
+
+1. State-Machine configuration example that covers all the requirements in the workflow SRS.
+    - example state machine configuration that allows to enable various features required for workflows.
+2. A working state-machine example that models a leave application workflow.
+   - passing events to a state machine via REST to get desired outcomes. 
+3. Example to Persist and Fetch a workflow's state-machine context to and from a database.
+   - example of saving state-machine context along with an entity.
+   - database schema for managing workflows
+4. A state-machine builder code that makes it easy to create any new workflow.
+   - a builder class that can be called upon for making any required state-machine when creating a new workflow.
+
+
+---
+
 # StateMachine Theory
 
 **Region**: A Region denotes a behavior fragment that may execute concurrently with its orthogonal Regions.
@@ -5,7 +25,7 @@
 ---
 
 **Vertex**: Vertex is an abstract class that captures the common characteristics for a variety of different concrete kinds of nodes in the StateMachine graph
-(States, Pseudostates, or ConnectionPointReferences). A Vertex can be the source and/or target of any number of Transitions.
+(States, Pseudo-states, or ConnectionPointReferences). A Vertex can be the source and/or target of any number of Transitions.
 
 ---
 
@@ -16,31 +36,32 @@ not explicitly defined, but is implied, usually through the name associated with
 
 A **simple** State has no internal Vertices or Transitions. <br>
 A **composite** State contains at least one Region. <br>
-A **submachine** State refers to an entire StateMachine, which is, conceptually, deemed to be “nested” within the State.
+A **sub-machine** State refers to an entire StateMachine, which is, conceptually, deemed to be “nested” within the State.
 
 ---
 
-**PseudoState**: A Pseudostate is an abstraction that encompasses different types of transient Vertices in the StateMachine graph. Pseudostates are
-generally used to chain multiple Transitions into more complex compound transitions. For example, by combining a Transition entering a fork Pseudostate with a
-set of Transitions exiting that Pseudostate, we get a compound Transition that can enter a set of orthogonal Regions.
+**Pseudo-State**: A Pseudo-state is an abstraction that encompasses different types of transient Vertices in the StateMachine graph. Pseudo-states are
+generally used to chain multiple Transitions into more complex compound transitions. For example, by combining a Transition entering a fork Pseudo-state with a
+set of Transitions exiting that Pseudo-state, we get a compound Transition that can enter a set of orthogonal Regions.
 
-**Kinds of PseudoStates**:
+**Kinds of Pseudo-States**:
 
-**join** – This type of Pseudostate serves as a common target Vertex for two or more Transitions originating from Vertices in different orthogonal Regions.
-Transitions terminating on a join Pseudostate cannot have a guard or a trigger. <br>
-**fork** – fork Pseudostates serve to split an incoming Transition into two or more Transitions terminating on Vertices in orthogonal Regions of a composite
-State. The Transitions outgoing from a fork Pseudostate cannot have a guard or a trigger. <br>
-**junction** – This type of Pseudostate is used to connect multiple Transitions into compound paths between States. For example, a junction Pseudostate can be
+**join** – This type of Pseudo-state serves as a common target Vertex for two or more Transitions originating from Vertices in different orthogonal Regions.
+Transitions terminating on a join Pseudo-state cannot have a guard or a trigger. <br>
+**fork** – fork Pseudo-states serve to split an incoming Transition into two or more Transitions terminating on Vertices in orthogonal Regions of a composite
+State. The Transitions outgoing from a fork Pseudo-state cannot have a guard or a trigger. <br>
+**junction** – This type of Pseudo-state is used to connect multiple Transitions into compound paths between States. For example, a junction Pseudo-state can be
 used to merge multiple incoming Transitions into a single outgoing Transition representing a shared continuation path. Or, it can be used to split an
 incoming Transition into multiple outgoing Transition segments with different guard Constraints. <br>
-**choice** – This type of Pseudostate is similar to a junction Pseudostate (see above) and serves similar purposes, with the difference that the guard
-Constraints on all outgoing Transitions are evaluated dynamically, when the compound transition traversal reaches this Pseudostate. Consequently, choice is
+**choice** – This type of Pseudo-state is similar to a junction Pseudo-state (see above) and serves similar purposes, with the difference that the guard
+Constraints on all outgoing Transitions are evaluated dynamically, when the compound transition traversal reaches this Pseudo-state. Consequently, choice is
 used to realize a dynamic conditional branch. It allows splitting of compound transitions into multiple alternative paths such that the decision on which
 path to take may depend on the results of Behavior executions performed in the same compound transition prior to reaching the choice point. If more than one
 guard evaluates to true, one of the corresponding Transitions is selected. <br>
-**terminate** – Entering a terminated Pseudostate implies that the execution of the StateMachine is terminated immediately. <br>
-**history** - A history state is a pseudostate, meaning that a state machine can’t rest in a history state. When a transition that leads to a history state 
-happens, the history state itself doesn’t become active, rather the “most recently visited state” becomes active. It is a way for a compound state to remember (when it exits) which state was active, so that if the compound state ever becomes active again, it can go back to the same active substate, 
+**terminate** – Entering a terminated Pseudo-state implies that the execution of the StateMachine is terminated immediately. <br>
+**history** - A history state is a pseudo-state, meaning that a state machine can’t rest in a history state. When a transition that leads to a history state 
+happens, the history state itself doesn't become active, rather the “most recently visited state” becomes active. It is a way for a compound state to 
+remember (when it exits) which state was active, so that if the compound state ever becomes active again, it can go back to the same active sub-state, 
 instead of blindly following the initial transition. There are two types of history states, deep history states and shallow history states. A deep history remembers the deepest active state(s) while a shallow history only remembers the immediate child’s state.
 
 ---
