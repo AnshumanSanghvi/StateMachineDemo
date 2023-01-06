@@ -16,14 +16,14 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 
-@Getter
-@Setter
-@ToString(callSuper = true)
-@NoArgsConstructor
-@Slf4j
 @Entity
 @Table(name = "wf_inst_mst", schema = "public")
 @Inheritance(strategy = InheritanceType.JOINED)
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString(callSuper = true)
+@Slf4j
 public abstract class WorkflowInstanceEntity extends BaseEntity {
 
     @Column(name = "type_id", nullable = false, updatable = false)

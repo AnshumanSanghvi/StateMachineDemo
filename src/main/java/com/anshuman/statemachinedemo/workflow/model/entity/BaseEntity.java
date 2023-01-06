@@ -15,12 +15,12 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 
+@MappedSuperclass
+@NoArgsConstructor
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
 @Slf4j
-@MappedSuperclass
 public abstract class BaseEntity {
 
     @Id

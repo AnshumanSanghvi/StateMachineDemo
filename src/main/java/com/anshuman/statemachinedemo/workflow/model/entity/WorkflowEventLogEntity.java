@@ -12,6 +12,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,12 +21,14 @@ import lombok.ToString;
 import org.hibernate.Hibernate;
 
 @Entity
+@Table(name = "wf_status_log", schema = "public")
+@NoArgsConstructor
 @Getter
 @Setter
-@ToString(callSuper = true)
-@NoArgsConstructor
-@Table(name = "wf_status_log", schema = "public")
-public class WorkflowEventLogEntity<S, E> {
+@ToString
+@AllArgsConstructor
+@Builder
+public class WorkflowEventLogEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WF_LOG_SEQ")
@@ -72,20 +76,12 @@ public class WorkflowEventLogEntity<S, E> {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        WorkflowEventLogEntity<S, E> that = (WorkflowEventLogEntity<S, E>) o;
+        WorkflowEventLogEntity that = (WorkflowEventLogEntity) o;
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override
     public int hashCode() {
         return getClass().hashCode();
-    }
-
-    public void setEvent(E event) {
-        this.event = event.toString();
-    }
-
-    public void setState(S state) {
-        this.state = state.toString();
     }
 }

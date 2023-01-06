@@ -21,11 +21,11 @@ import org.hibernate.annotations.Where;
 @Entity
 @Table(name = "wf_type_mst", schema = "public")
 @SecondaryTable(name = "wf_type_dtl", schema = "public", pkJoinColumns=@PrimaryKeyJoinColumn(name="id"))
+@Where(clause = "isActive = 1")
+@NoArgsConstructor
 @Getter
 @Setter
 @ToString(callSuper = true)
-@NoArgsConstructor
-@Where(clause = "isActive = 1")
 public class WorkflowTypeEntity extends BaseEntity {
 
     @Column(name = "`name`", nullable = false, length = 64)
@@ -55,7 +55,7 @@ public class WorkflowTypeEntity extends BaseEntity {
     private boolean canAdminApproveWorkflow;
 
     @Column(name = "admin_apprv_role_id", table = "wf_type_dtl")
-    private Long AdminRoleId;
+    private Long adminRoleId;
 
     @Column(name = "total_approvers", table = "wf_type_dtl")
     private int totalApprovers;

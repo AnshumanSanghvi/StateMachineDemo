@@ -20,12 +20,12 @@ import org.hibernate.annotations.Where;
 import org.springframework.statemachine.StateMachineContext;
 
 @Entity
+@Table(name = "leave_wf_inst", schema = "public")
+@Where(clause = "isActive = 1")
 @NoArgsConstructor
 @ToString(callSuper = true)
 @Getter
 @Setter
-@Table(name = "leave_wf_inst", schema = "public")
-@Where(clause = "isActive = 1")
 public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
     implements ContextEntity<LeaveAppState, LeaveAppEvent> {
 
