@@ -4,6 +4,8 @@ import com.anshuman.statemachinedemo.exception.WorkflowException;
 import com.anshuman.statemachinedemo.model.entity.WorkflowEventLogEntity;
 import com.anshuman.statemachinedemo.workflow.data.dto.WorkflowEventLogDTO;
 import com.anshuman.statemachinedemo.workflow.data.enums.WorkflowType;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -40,23 +42,27 @@ public class WorkflowEventLogDAO {
         final String partitionTableName = WorkflowEventLogType.getTableForWorkflowType(wf.getTypeId());
         final String partitionAwareQuery = query.replace(WF_LOG_TABLE_NAME, partitionTableName);
         try {
-            return jdbcTemplate.query(partitionAwareQuery, (rs, rowNum) -> WorkflowEventLogEntity
-                .builder()
-                .id(rs.getLong("id"))
-                .companyId(rs.getLong("company_id"))
-                .branchId(rs.getLong("branch_id"))
-                .typeId(WorkflowType.fromId(rs.getInt("type_id")))
-                .instanceId(rs.getLong("instance_id"))
-                .actionDate(rs.getTimestamp("action_date").toLocalDateTime())
-                .state(rs.getString("state"))
-                .event(rs.getString("event"))
-                .actionBy(rs.getLong("action_by"))
-                .userRole(rs.getShort("user_role"))
-                .completed(rs.getShort("completed"))
-                .build());
+            return jdbcTemplate.query(partitionAwareQuery, (rs, rowNum) -> mapWorkflowEventLogEntityFromResultSet(rs));
         } catch (DataAccessException ex) {
             throw new WorkflowException(ex);
         }
+    }
+
+    private static WorkflowEventLogEntity mapWorkflowEventLogEntityFromResultSet(ResultSet rs) throws SQLException {
+        return WorkflowEventLogEntity
+            .builder()
+            .id(rs.getLong("id"))
+            .companyId(rs.getLong("company_id"))
+            .branchId(rs.getLong("branch_id"))
+            .typeId(WorkflowType.fromId(rs.getInt("type_id")))
+            .instanceId(rs.getLong("instance_id"))
+            .actionDate(rs.getTimestamp("action_date").toLocalDateTime())
+            .state(rs.getString("state"))
+            .event(rs.getString("event"))
+            .actionBy(rs.getLong("action_by"))
+            .userRole(rs.getShort("user_role"))
+            .completed(rs.getShort("completed"))
+            .build();
     }
 
 }

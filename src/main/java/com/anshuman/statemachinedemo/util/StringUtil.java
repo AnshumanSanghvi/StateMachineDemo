@@ -178,19 +178,19 @@ public class StringUtil {
 
         String stateStr = state(stateMachine.getState());
         String idStr = stateMachine.getId();
-        String output = "StateMachine[id: " + idStr + ", currentState: " + stateStr;
+        String output = "StateMachine[id: " + idStr + ",\n currentState: " + stateStr;
 
         if(detailed) {
             String extendedStateStr = extendedState(stateMachine.getExtendedState());
             String uuidStr = stateMachine.getUuid().toString();
             String allStatesStr = stateMachine.getStates().stream().map(StringUtil::state).collect(joining(", "));
             String initialStateStr = StringUtil.state(stateMachine.getInitialState());
-            String transitionsStr = stateMachine.getTransitions().stream().map(StringUtil::transition).collect(joining(", "));
-            output+= ", uuid: " + uuidStr +
-                ", extendedState: " + extendedStateStr +
-                ", initialState: " + initialStateStr +
-                " allStates: {" + allStatesStr + "}" +
-                ", transitions: {" + transitionsStr + "}";
+            String transitionsStr = stateMachine.getTransitions().stream().map(StringUtil::transition).collect(joining(",\n"));
+            output+= ",\n uuid: " + uuidStr +
+                ",\n extendedState: " + extendedStateStr +
+                ",\n initialState: " + initialStateStr +
+                ",\n allStates: {" + allStatesStr + "}" +
+                ",\n transitions: {" + transitionsStr + "}";
         }
 
         return output + "]";
