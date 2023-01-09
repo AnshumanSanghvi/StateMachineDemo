@@ -1,4 +1,4 @@
-package com.anshuman.statemachinedemo.workflow.util;
+package com.anshuman.statemachinedemo.workflow.data.dto;
 
 import java.util.function.Predicate;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import org.springframework.statemachine.region.Region;
 
 @Getter
 @Setter
-public class EventResult<S, E> {
+public class EventResultDTO<S, E> {
 
     private String region;
     private boolean isSubMachine;
@@ -17,20 +17,20 @@ public class EventResult<S, E> {
     private ResultType resultType;
     private S currentState;
 
-    public static final Predicate<EventResult> accepted = result -> result.getResultType().equals(ResultType.ACCEPTED);
+    public static final Predicate<EventResultDTO> accepted = result -> result.getResultType().equals(ResultType.ACCEPTED);
 
-    public EventResult(StateMachineEventResult<S, E> result) {
-        Region<S, E> region = result.getRegion();
-        this.setRegion(region.getUuid().toString() + " (" + region.getId() + ")");
-        this.isSubMachine = region.getState().isSubmachineState();
+    public EventResultDTO(StateMachineEventResult<S, E> result) {
+        Region<S, E> stateMachineRegion = result.getRegion();
+        this.setRegion(stateMachineRegion.getUuid().toString() + " (" + stateMachineRegion.getId() + ")");
+        this.isSubMachine = stateMachineRegion.getState().isSubmachineState();
         this.setEvent(result.getMessage().getPayload());
         this.setResultType(result.getResultType());
-        this.setCurrentState(region.getState().getId());
+        this.setCurrentState(stateMachineRegion.getState().getId());
     }
 
     @Override
     public String toString() {
-        return "EventResult[" +
+        return "EventResultDTO[" +
             "stateMachine: " + this.region +
             ", isSubMachine: " + this.isSubMachine +
             ", event: " + this.event +

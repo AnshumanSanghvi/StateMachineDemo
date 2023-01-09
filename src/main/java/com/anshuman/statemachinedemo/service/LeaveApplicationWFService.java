@@ -9,6 +9,7 @@ import com.anshuman.statemachinedemo.model.persist.DefaultStateMachineAdapter;
 import com.anshuman.statemachinedemo.model.repository.LeaveAppWorkflowInstanceRepository;
 import com.anshuman.statemachinedemo.util.ReactiveHelper;
 import com.anshuman.statemachinedemo.util.StringUtil;
+import com.anshuman.statemachinedemo.workflow.data.dto.EventResultDTO;
 import com.anshuman.statemachinedemo.workflow.event.LeaveAppEvent;
 import com.anshuman.statemachinedemo.workflow.state.LeaveAppState;
 import com.anshuman.statemachinedemo.model.repository.LeaveAppWorkflowInstanceRepository;

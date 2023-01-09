@@ -1,8 +1,10 @@
-package com.anshuman.statemachinedemo.workflow.model.enums;
+package com.anshuman.statemachinedemo.workflow.data.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum WorkflowType {
     LEAVE_APPLICATION(1, "LeaveApplicationWorkflow");
 
@@ -11,11 +13,6 @@ public enum WorkflowType {
     private final String name;
 
     private static final WorkflowType[] WORKFLOW_TYPES = WorkflowType.values();
-
-    WorkflowType(int typeId, String name) {
-        this.typeId = typeId;
-        this.name = name;
-    }
 
     public static WorkflowType fromId(int typeId) {
         for(WorkflowType workflowType : WORKFLOW_TYPES) {
