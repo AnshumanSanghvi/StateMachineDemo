@@ -1,6 +1,7 @@
 package com.anshuman.statemachinedemo.model.repository;
 
 import com.anshuman.statemachinedemo.model.entity.LeaveAppWorkFlowInstanceEntity;
+import com.anshuman.statemachinedemo.model.repository.projection.LAWFProjection;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -36,4 +37,12 @@ public interface LeaveAppWorkflowInstanceRepository
         + "SET lwf.isActive = 0 "
         + "WHERE lwf.id = :id")
     void deleteById(@Param("id") Long id);
+
+
+    @Query(value = " SELECT new com.anshuman.statemachinedemo.model.repository.projection.LAWFProjection( "
+        + " lawf.id, lawf.currentState, lawf.stateMachineContext, lawf.isActive) "
+        + " FROM LeaveAppWorkFlowInstanceEntity lawf "
+        + " WHERE lawf.isActive = 1 "
+        + "     AND lawf.id = :id")
+    Optional<LAWFProjection> findPartialById(@Param("id") Long id);
 }

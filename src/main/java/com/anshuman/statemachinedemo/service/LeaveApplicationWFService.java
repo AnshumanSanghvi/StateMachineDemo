@@ -7,6 +7,7 @@ import com.anshuman.statemachinedemo.exception.WorkflowException;
 import com.anshuman.statemachinedemo.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.statemachinedemo.model.persist.DefaultStateMachineAdapter;
 import com.anshuman.statemachinedemo.model.repository.LeaveAppWorkflowInstanceRepository;
+import com.anshuman.statemachinedemo.model.repository.projection.LAWFProjection;
 import com.anshuman.statemachinedemo.util.ReactiveHelper;
 import com.anshuman.statemachinedemo.util.StringUtil;
 import com.anshuman.statemachinedemo.workflow.data.dto.EventResultDTO;
