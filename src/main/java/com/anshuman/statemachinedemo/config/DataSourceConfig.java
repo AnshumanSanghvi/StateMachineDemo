@@ -28,7 +28,7 @@ public class DataSourceConfig {
     }
 
     @Bean
-    public JdbcTemplate pgJdbcTemplate(DataSource dataSource) {
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 }
