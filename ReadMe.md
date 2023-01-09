@@ -2,7 +2,6 @@
 
 [TOC]
 
-
 ### Parts of the POC:
 
 1. State-Machine configuration example that covers all the requirements in the workflow SRS.
@@ -12,13 +11,18 @@
 3. Example to Persist and Fetch a workflow's state-machine context to and from a database.
    - example of saving state-machine context along with an entity.
    - database schema for managing workflows
+   - workflow event log with partition tables
 4. A state-machine builder code that makes it easy to create any new workflow.
    - a builder class that can be called upon for making any required state-machine when creating a new workflow.
 
 
 ---
 
+<br>
+
 # StateMachine Theory
+
+<br>
 
 **Region**: A Region denotes a behavior fragment that may execute concurrently with its orthogonal Regions.
 
@@ -36,7 +40,7 @@ not explicitly defined, but is implied, usually through the name associated with
 
 A **simple** State has no internal Vertices or Transitions. <br>
 A **composite** State contains at least one Region. <br>
-A **sub-machine** State refers to an entire StateMachine, which is, conceptually, deemed to be “nested” within the State.
+A **submachine** State refers to an entire StateMachine, which is, conceptually, deemed to be “nested” within the State.
 
 ---
 
