@@ -1,7 +1,7 @@
 package com.anshuman.statemachinedemo.workflow.config;
 
-import com.anshuman.statemachinedemo.workflow.exception.StateMachineException;
-import com.anshuman.statemachinedemo.workflow.util.StringUtil;
+import com.anshuman.statemachinedemo.exception.StateMachineException;
+import com.anshuman.statemachinedemo.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.statemachine.StateContext;

@@ -1,7 +1,7 @@
 package com.anshuman.statemachinedemo.workflow.config;
 
 
-import com.anshuman.statemachinedemo.workflow.util.StringUtil;
+import com.anshuman.statemachinedemo.util.StringUtil;
 import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;

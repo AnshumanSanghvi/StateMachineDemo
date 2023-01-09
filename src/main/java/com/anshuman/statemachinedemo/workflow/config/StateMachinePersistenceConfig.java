@@ -1,7 +1,7 @@
 package com.anshuman.statemachinedemo.workflow.config;
 
-import com.anshuman.statemachinedemo.workflow.model.ContextEntity;
-import com.anshuman.statemachinedemo.workflow.persist.DefaultStateMachineAdapter;
+import com.anshuman.statemachinedemo.model.entity.ContextEntity;
+import com.anshuman.statemachinedemo.model.persist.DefaultStateMachineAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,12 +1,12 @@
 package com.anshuman.statemachinedemo.workflow.action;
 
-import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.CLOSED_STATE;
-import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.IS_PARALLEL;
-import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.ONLY_FORWARD_WITH_APPROVAL;
-import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.RETURN_COUNT;
-import static com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants.ROLL_BACK_COUNT;
+import static com.anshuman.statemachinedemo.workflow.data.constant.LeaveAppConstants.CLOSED_STATE;
+import static com.anshuman.statemachinedemo.workflow.data.constant.LeaveAppConstants.IS_PARALLEL;
+import static com.anshuman.statemachinedemo.workflow.data.constant.LeaveAppConstants.ONLY_FORWARD_WITH_APPROVAL;
+import static com.anshuman.statemachinedemo.workflow.data.constant.LeaveAppConstants.RETURN_COUNT;
+import static com.anshuman.statemachinedemo.workflow.data.constant.LeaveAppConstants.ROLL_BACK_COUNT;
 
-import com.anshuman.statemachinedemo.workflow.constant.LeaveAppConstants;
+import com.anshuman.statemachinedemo.workflow.data.constant.LeaveAppConstants;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.statemachine.ExtendedState;
