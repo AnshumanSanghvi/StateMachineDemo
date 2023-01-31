@@ -1,8 +1,13 @@
 logging:
   level:
-    org.springframework: info
-    org.springframework.statemachine.support: info
-    com.anshuman.statemachinedemo: DEBUG
+    com.anshuman.workflow: INFO
+    org.springframework: INFO
+    org.springframework.statemachine: INFO
+    org.springframework.statemachine.support: INFO
+    org.springframework.statemachine.support.AbstractStateMachine: INFO
+    org.springframework.statemachine.support.LifecycleObjectSupport: INFO
+    org.springframework.statemachine.support.ReactiveStateMachineExecutor: INFO
+    org.springframework.statemachine.support.ReactiveLifecycleManager: INFO
 
 spring:
   datasource:

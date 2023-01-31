@@ -5,8 +5,16 @@
 ### Parts of the POC:
 
 1. State-Machine configuration example that covers all the requirements in the workflow SRS.
-    - example state machine configuration that allows to enable various features required for workflows.
+   - ☑️Can have either a serial or parallel approval flow
+   - ☑️Can specify number of reviewers for a workflow type.
+   - Can un-forward a forwarded application in serial flow.
+   - Can have repeated reviewers.
+   - ☑️Can specify the max number of times reviewer can request changes to the submitted application before it gets rejected.
+     - e.g. - (-1: unlimited, 0: never, \>0: upper limit)
+   - Can have an admin approve, reject or cancel a workflow application, bypassing reviewers.
 2. A working state-machine example that models a leave application workflow.
+   - using a statemachine builder as per a workflow-type's requirement
+   - can create a bean from the statemachine created via builder
    - passing events to a state machine via REST to get desired outcomes. 
 3. Example to Persist and Fetch a workflow's state-machine context to and from a database.
    - example of saving state-machine context along with an entity.
