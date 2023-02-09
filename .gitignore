@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 logs
+.jpb
+*.h2.db
 
 ### STS ###
 .apt_generated
@@ -20,3 +22,7 @@ logs
 *.iml
 *.ipr
 
+# Mac
+.DS_Store
+*/.DS_Store
+**/.DS_Store
