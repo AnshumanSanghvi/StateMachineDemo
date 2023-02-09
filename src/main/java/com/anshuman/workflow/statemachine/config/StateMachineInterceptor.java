@@ -16,8 +16,8 @@ import org.springframework.statemachine.transition.Transition;
  * Instead of using a StateMachineListener interface, you can use a StateMachineInterceptor. One conceptual difference is that you can use an interceptor to
  * intercept and stop a current state change, or change its transition logic.
  *
- * @param <S> StateAction Parameter class
- * @param <E> TestEvent Parameter class
+ * @param <S> StateActions Parameter class
+ * @param <E> Event Parameter class
  */
 @Slf4j
 public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapter<S, E> {

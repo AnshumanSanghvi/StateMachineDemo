@@ -20,8 +20,8 @@ public class StateMachinePersistenceConfig {
      * as the object graph is too rich and contains too many dependencies on other Spring context classes.
      * StateMachineContext is a runtime representation of a state machine,
      * that you can use to restore an existing machine into a state represented by a particular StateMachineContext object.
-     * @param <S> Parameter for StateAction class
-     * @param <E> Parameter for TestEvent class
+     * @param <S> Parameter for StateActions class
+     * @param <E> Parameter for Event class
      * @return An instance of the StateMachinePersist interface, responsible for serialization and deserialization of a StateMachineContext
      */
     @Bean
@@ -43,8 +43,8 @@ public class StateMachinePersistenceConfig {
     }
 
     /**
-     * @param <S> Parameter for the StateAction class
-     * @param <E> Parameter for the TestEvent class
+     * @param <S> Parameter for the StateActions class
+     * @param <E> Parameter for the Event class
      * @return The DefaultStateMachinePersister which is an implementation of the StateMachinePersister interface, which is responsible for persisting and
      * restoring a state machine from a persistent storage.
      */
@@ -56,8 +56,8 @@ public class StateMachinePersistenceConfig {
 
     /**
      * @param stateMachineFactory The StateMachineFactory bean
-     * @param <S>                 Parameter for the StateAction class
-     * @param <E>                 Parameter for the TestEvent class
+     * @param <S>                 Parameter for the StateActions class
+     * @param <E>                 Parameter for the Event class
      * @return A bean of the DefaultStateMachineAdapter
      */
     @Bean

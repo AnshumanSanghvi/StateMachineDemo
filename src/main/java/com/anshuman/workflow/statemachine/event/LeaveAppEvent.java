@@ -3,15 +3,17 @@ package com.anshuman.workflow.statemachine.event;
 import lombok.Getter;
 
 public enum LeaveAppEvent {
-    START("Initialize Leave Application"),
-    SUBMIT("Submit Leave Application"),
-    TRIGGER_REVIEW_OF("Request Review of Leave Application"),
-    REQUEST_CHANGES_IN("Request Changes to Submitted Leave Application"),
-    APPROVE("Approve Leave Application"),
-    REJECT("Reject Leave Application"),
-    CANCEL("Cancel Leave Application"),
-    ROLL_BACK("Roll Back Decision on Leave Application"),
-    TRIGGER_COMPLETE("Close Leave Application");
+    E_INITIALIZE("Initialize Leave Application"),
+    E_SUBMIT("Submit Leave Application"),
+    E_TRIGGER_REVIEW_OF("Request Review of Leave Application"),
+    E_REQUEST_CHANGES_IN("Request Changes to Submitted Leave Application"),
+    E_TRIGGER_FLOW_JUNCTION("Transition to the approval flow type junction"),
+    E_FORWARD("Forward Leave Application to the next Approver"),
+    E_APPROVE("Approve Leave Application"),
+    E_REJECT("Reject Leave Application"),
+    E_CANCEL("Cancel Leave Application"),
+    E_ROLL_BACK("Roll Back Decision on Leave Application"),
+    E_TRIGGER_COMPLETE("Close Leave Application");
 
     @Getter
     private final String humanReadableStatus;

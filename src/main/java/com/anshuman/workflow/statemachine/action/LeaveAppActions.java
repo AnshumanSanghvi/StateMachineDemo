@@ -1,11 +1,9 @@
 package com.anshuman.workflow.statemachine.action;
 
-
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.*;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_APPROVE;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_FORWARD;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_TRIGGER_COMPLETE;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_TRIGGER_REVIEW;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_APPROVE;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_COMPLETE;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getBoolean;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getInt;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getMap;
@@ -15,12 +13,12 @@ import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getStr
 
 import com.anshuman.workflow.statemachine.data.Pair;
 import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
-import com.anshuman.workflow.statemachine.event.TestEvent;
+import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
-import com.anshuman.workflow.statemachine.state.TestState;
+import com.anshuman.workflow.statemachine.state.LeaveAppState;
+import com.anshuman.workflow.statemachine.util.EventResultHelper;
 import com.anshuman.workflow.statemachine.util.EventSendHelper;
 import com.anshuman.workflow.statemachine.util.ExtendedStateHelper;
-import com.anshuman.workflow.statemachine.util.ReactiveHelper;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,30 +31,29 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.state.State;
 
 /**
- * Order of execution for transition from A -> B: <br> - two states A and B <br> - state entry and exit action on A <br> - state entry and exit action on B <br>
+ * Order of execution for transition from A -> B: <br>
+ * - two states A and B <br>
+ * - state entry and exit action on A <br>
+ * - state entry and exit action on B <br>
  * - transition action on the A -> B transition <br>
  */
 @Slf4j
-public class TestAction {
+public class LeaveAppActions {
 
-
-    private TestAction() {
+    private LeaveAppActions() {
         // use class statically
     }
 
-    public static class StateAction {
-
-        private StateAction() {
+    /**
+     * State Actions go here
+     */
+    public static class StateActions {
+        
+        private StateActions() {
             // use class statically
         }
 
-        /**
-         * set rollback count, return count, closed state, reviewers count
-         *
-         * @param context   the state context
-         * @param reviewers the number of reviewers
-         */
-        public static void initial(StateContext<TestState, TestEvent> context, int reviewers, Map<Integer, Long> reviewerMap,
+        public static void initial(StateContext<LeaveAppState, LeaveAppEvent> context, int reviewers, Map<Integer, Long> reviewerMap,
             boolean isParallel, int maxChangeRequests, int maxRollBackCount) {
             String stateId = Optional
                 .ofNullable(context.getStateMachine())
@@ -88,29 +85,14 @@ public class TestAction {
                         map.get(KEY_REVIEWERS_MAP));
                 });
         }
-
-        /**
-         * send the trigger review event automatically on entering the submitted state
-         */
-        public static void submittedEntry(StateContext<TestState, TestEvent> context) {
-            log.trace("Executing action: submittedStateEntryAction with currentState: {}", getStateId(context));
-
-            // if the state machine is configured with reviewers, then send a trigger review event
-            if (getInt(context, KEY_REVIEWERS_COUNT) > 0) {
-                var result = context.getStateMachine().sendEvent(ReactiveHelper.toMessageMono(E_TRIGGER_REVIEW)).blockFirst();
-                log.debug("submittedStateEntryAction result: {}", Optional.ofNullable(result)
-                    .map(EventResultDTO::new).map(EventResultDTO::toString).orElse("n/a"));
-            }
-        }
     }
-
-    public static class TransitionAction {
-
-        private TransitionAction() {
+    
+    public static class TransitionActions {
+        private TransitionActions() {
             // use class statically
         }
 
-        public static void forward(StateContext<TestState, TestEvent> context) {
+        public static void forward(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: forwardStateExitAction with currentState: {}", getStateId(context));
 
             // if reviewers can forward the application in any order, then auto-approve.
@@ -123,7 +105,7 @@ public class TestAction {
             }
         }
 
-        private static void manualApproveOnForward(StateContext<TestState, TestEvent> context) {
+        private static void manualApproveOnForward(StateContext<LeaveAppState, LeaveAppEvent> context) {
 
             // get the relevant key matching the forwardBy from the forward Map.
             Pair<Integer, Long> forwardBy = getPair(context, KEY_FORWARDED_BY);
@@ -166,14 +148,14 @@ public class TestAction {
             }
         }
 
-        public static void approve(StateContext<TestState, TestEvent> context) {
+        public static void approve(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: approveTransitionAction with currentState: {}", getStateId(context));
             Map<Object, Object> map = context.getExtendedState().getVariables();
             map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
             log.trace("Setting extended state- closedState: {}", getString(context, KEY_CLOSED_STATE_TYPE));
         }
 
-        public static void requestChanges(StateContext<TestState, TestEvent> context) {
+        public static void requestChanges(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: requestChangesTransitionAction with currentState: {}", getStateId(context));
             Map<Object, Object> map = context.getExtendedState().getVariables();
             map.put(KEY_RETURN_COUNT, getInt(context, KEY_RETURN_COUNT) + 1);
@@ -182,14 +164,14 @@ public class TestAction {
                 getInt(context, KEY_RETURN_COUNT), getInt(context, KEY_FORWARDED_COUNT));
         }
 
-        public static void reject(StateContext<TestState, TestEvent> context) {
+        public static void reject(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: rejectTransitionAction with currentState: {}", getStateId(context));
             Map<Object, Object> map = context.getExtendedState().getVariables();
             map.put(KEY_CLOSED_STATE_TYPE, VAL_REJECTED);
             log.trace("Setting extended state- closedState: {}", getString(context, KEY_CLOSED_STATE_TYPE));
         }
 
-        public static void cancel(StateContext<TestState, TestEvent> context) {
+        public static void cancel(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: cancelTransitionAction with currentState: {}", getStateId(context));
             Map<Object, Object> map = context.getExtendedState().getVariables();
             map.put(KEY_CLOSED_STATE_TYPE, VAL_CANCELED);
@@ -197,19 +179,13 @@ public class TestAction {
             autoTriggerComplete(context);
         }
 
-        public static void autoTriggerComplete(StateContext<TestState, TestEvent> context) {
+        public static void autoTriggerComplete(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: autoTriggerCompleteAction with currentState: {}", getStateId(context));
-            String results = "[" + context
-                .getStateMachine()
-                .sendEvent(EventSendHelper.toMonoMsg(E_TRIGGER_COMPLETE))
-                .toStream()
-                .map(EventResultDTO::new)
-                .map(EventResultDTO::toString)
-                .collect(Collectors.joining(", ")) + "]";
-            log.debug("autoTriggerCompleteAction results: {}", results);
+            var resultFlux = EventSendHelper.sendEvent(context.getStateMachine(), E_TRIGGER_COMPLETE);
+            log.debug("autoTriggerCompleteAction results: {}", "[" + EventResultHelper.toResultDTOString(resultFlux) + "]");
         }
 
-        public static void rollBackApproval(StateContext<TestState, TestEvent> context) {
+        public static void rollBackApproval(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: rollBackTransitionAction with currentState: {}", getStateId(context));
             Map<Object, Object> map = context.getExtendedState().getVariables();
             map.put(KEY_ROLL_BACK_COUNT, getInt(context, KEY_ROLL_BACK_COUNT) + 1);
@@ -228,12 +204,10 @@ public class TestAction {
             log.trace("Setting extended state- rollBackCount: {}", getInt(context, KEY_ROLL_BACK_COUNT));
         }
 
-        public static void triggerApproveEvent(StateContext<TestState, TestEvent> context) {
+        public static void triggerApproveEvent(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: autoApproveTransitionAction with currentState: {}", getStateId(context));
-
-            var result = context
-                .getStateMachine()
-                .sendEvent(ReactiveHelper.toMessageMono(E_APPROVE));
+            var stateMachine = context.getStateMachine();
+            var result = EventSendHelper.sendApproveEvent(stateMachine, E_APPROVE, -1, -1L);
 
             log.debug("autoApproveTransitionAction results: {}", result
                 .toStream()
@@ -242,28 +216,27 @@ public class TestAction {
                 .collect(Collectors.joining(", ")));
         }
 
-        public static void approveInParallelFlow(StateContext<TestState, TestEvent> context) {
+        public static void approveInParallelFlow(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: approveInParallelFlowTransitionAction with currentState: {}", getStateId(context));
             var map = context.getExtendedState().getVariables();
             map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
         }
 
-        public static void forwardChoice(StateContext<TestState, TestEvent> context) {
+        public static void forwardChoice(StateContext<LeaveAppState, LeaveAppEvent> context) {
             var map = context.getExtendedState().getVariables();
             int forwardedCount = (Integer) map.getOrDefault(KEY_FORWARDED_COUNT, 0);
             int reviewerCount = (Integer) map.getOrDefault(KEY_REVIEWERS_COUNT, 0);
             log.info("forwardChoice - forwardedCount: {}, reviewerCount: {}", forwardedCount, reviewerCount);
             if (forwardedCount < reviewerCount) {
-                StateMachine<TestState, TestEvent> sm = context.getStateMachine();
+                StateMachine<LeaveAppState, LeaveAppEvent> sm = context.getStateMachine();
                 EventSendHelper.sendEvents(sm, E_FORWARD);
             } else if (forwardedCount == reviewerCount) {
-                StateMachine<TestState, TestEvent> sm = context.getStateMachine();
+                StateMachine<LeaveAppState, LeaveAppEvent> sm = context.getStateMachine();
                 EventSendHelper.sendEvents(sm, E_APPROVE);
             } else {
                 throw new StateMachineException("forwardCount: " + forwardedCount + " higher than reviewerCount: " + reviewerCount);
             }
         }
-    } // end TransitionAction class
-
+    }
 
 }

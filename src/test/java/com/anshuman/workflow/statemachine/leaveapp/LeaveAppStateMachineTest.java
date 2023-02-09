@@ -1,26 +1,28 @@
-package com.anshuman.workflow.statemachine.test;
+package com.anshuman.workflow.statemachine.leaveapp;
 
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.KEY_CLOSED_STATE_TYPE;
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.KEY_FORWARDED_COUNT;
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.KEY_FORWARDED_MAP;
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.KEY_RETURN_COUNT;
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.KEY_ROLL_BACK_COUNT;
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.VAL_APPROVED;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_INITIALIZE;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_SUBMIT;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_TRIGGER_COMPLETE;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_TRIGGER_FLOW_JUNCTION;
-import static com.anshuman.workflow.statemachine.event.TestEvent.E_TRIGGER_REVIEW;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_CLOSED_STATE_TYPE;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_FORWARDED_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_FORWARDED_MAP;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_RETURN_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_ROLL_BACK_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.VAL_APPROVED;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_INITIALIZE;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_ROLL_BACK;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_SUBMIT;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_COMPLETE;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_FLOW_JUNCTION;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_REVIEW_OF;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getInt;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getMap;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getString;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.anshuman.workflow.statemachine.TestMain;
+import com.anshuman.workflow.statemachine.LeaveAppMain;
 import com.anshuman.workflow.statemachine.data.Pair;
-import com.anshuman.workflow.statemachine.event.TestEvent;
-import com.anshuman.workflow.statemachine.state.TestState;
+import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
+import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import com.anshuman.workflow.statemachine.util.EventSendHelper;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,9 +34,9 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
-class TestStateMachineTest {
+class LeaveAppStateMachineTest {
 
-    private StateMachine<TestState, TestEvent> stateMachine;
+    private StateMachine<LeaveAppState, LeaveAppEvent> stateMachine;
 
     @Test
     void testSerialApproval() {
@@ -47,14 +49,14 @@ class TestStateMachineTest {
         boolean isParallel = false;
         int maxChangeRequests = 3;
         int maxRollBackCount = 3;
-        stateMachine = TestMain.createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+        stateMachine = LeaveAppMain.createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
         // when
-        EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW, E_TRIGGER_FLOW_JUNCTION);
-        EventSendHelper.sendForwardEvent(stateMachine, 1, 234L);
-        EventSendHelper.sendForwardEvent(stateMachine, 2, 123L);
-        EventSendHelper.sendForwardEvent(stateMachine, 3, 235L);
-        EventSendHelper.sendEvent(stateMachine, E_TRIGGER_COMPLETE);
+        EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 2, 123L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 3, 235L).blockLast();
+        EventSendHelper.sendEvent(stateMachine, E_TRIGGER_COMPLETE).blockLast();
 
         // then
         ExtendedState extendedState = stateMachine.getExtendedState();
@@ -82,16 +84,16 @@ class TestStateMachineTest {
         boolean isParallel = false;
         int maxChangeRequests = 3;
         int maxRollBackCount = 3;
-        stateMachine = TestMain.createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+        stateMachine = LeaveAppMain.createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
         // when
-        EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW, E_TRIGGER_FLOW_JUNCTION);
-        EventSendHelper.sendForwardEvent(stateMachine, 1, 234L);
-        EventSendHelper.sendRollBackApprovalEvent(stateMachine, 1, 234L);
-        EventSendHelper.sendForwardEvent(stateMachine, 1, 234L);
-        EventSendHelper.sendForwardEvent(stateMachine, 2, 123L);
-        EventSendHelper.sendForwardEvent(stateMachine, 3, 235L);
-        EventSendHelper.sendEvent(stateMachine, E_TRIGGER_COMPLETE);
+        EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L).blockLast();
+        EventSendHelper.sendRollBackApprovalEvent(stateMachine, E_ROLL_BACK, 1, 234L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 2, 123L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 3, 235L).blockLast();
+        EventSendHelper.sendEvent(stateMachine, E_TRIGGER_COMPLETE).blockLast();
 
         // then
         ExtendedState extendedState = stateMachine.getExtendedState();

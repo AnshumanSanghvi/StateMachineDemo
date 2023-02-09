@@ -13,7 +13,7 @@ public class StateMachineMonitor<S, E> extends AbstractStateMachineMonitor<S, E>
 
     @Override
     public void transition(StateMachine<S, E> stateMachine, Transition<S, E> transition, long duration) {
-        log.trace("TransitionAction: {} on stateMachine: {} took {} ms", transition.getName(), stateMachine.getId(), duration);
+        log.trace("TransitionActions: {} on stateMachine: {} took {} ms", transition.getName(), stateMachine.getId(), duration);
     }
 
     @Override

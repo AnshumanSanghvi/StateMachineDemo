@@ -11,11 +11,13 @@ import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
 import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
-import com.anshuman.workflow.statemachine.util.ReactiveHelper;
+import com.anshuman.workflow.statemachine.util.EventResultHelper;
+import com.anshuman.workflow.statemachine.util.EventSendHelper;
 import com.anshuman.workflow.statemachine.util.StringUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -88,14 +90,20 @@ public class LeaveApplicationWFService {
         // get the state machine for the given entity.
         StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = getStateMachineFromEntity(entity);
 
-        // send the event to the state machine and get the result.
-        List<EventResultDTO<LeaveAppState, LeaveAppEvent>> eventResults = ReactiveHelper.stateMachineHandler(stateMachine, event);
+        // send the event to the state machine
+        var resultFlux = EventSendHelper.sendEvent(stateMachine, event);
+
+        // parse the result
+        List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = EventResultHelper.toResultDTOList(resultFlux);
+
+        // find out if any event wasn't accepted.
+        boolean hasErrors = resultDTOList.stream().anyMatch(Predicate.not(EventResultDTO.accepted));
 
         // throw error if the event is not accepted by the state machine.
-        if (!ReactiveHelper.parseResultToBool(eventResults)) {
-            String eventStr = eventResults
+        if (hasErrors) {
+            String eventStr = resultDTOList
                 .stream()
-                .filter(EventResultDTO.accepted)
+                .filter(Predicate.not(EventResultDTO.accepted))
                 .map(StringUtil::event)
                 .collect(Collectors.joining(", "));
 

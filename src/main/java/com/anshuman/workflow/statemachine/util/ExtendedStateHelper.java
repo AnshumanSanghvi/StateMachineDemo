@@ -1,8 +1,6 @@
 package com.anshuman.workflow.statemachine.util;
 
 import com.anshuman.workflow.statemachine.data.Pair;
-import com.anshuman.workflow.statemachine.event.TestEvent;
-import com.anshuman.workflow.statemachine.state.TestState;
 import java.util.Collections;
 import java.util.Map;
 import org.springframework.statemachine.ExtendedState;
@@ -14,11 +12,11 @@ public class ExtendedStateHelper {
         //use statically
     }
 
-    public static Boolean getBoolean(StateContext<TestState, TestEvent> context, String key) {
+    public static <S, E> Boolean getBoolean(StateContext<S, E> context, String key) {
         return getBoolean(context, key, false);
     }
 
-    public static boolean getBoolean(StateContext<TestState, TestEvent> context, String key, boolean defaultVal) {
+    public static <S, E> boolean getBoolean(StateContext<S, E> context, String key, boolean defaultVal) {
         return getBoolean(context.getExtendedState(), key, defaultVal);
     }
 
@@ -32,11 +30,11 @@ public class ExtendedStateHelper {
      * @param key key for the map
      * @return integer value associated with the key
      */
-    public static Integer getInt(StateContext<TestState, TestEvent> context, String key) {
+    public static <S, E> Integer getInt(StateContext<S, E> context, String key) {
         return getInt(context, key, 0);
     }
 
-    public static Integer getInt(StateContext<TestState, TestEvent> context, String key, int defaultInt) {
+    public static <S, E> Integer getInt(StateContext<S, E> context, String key, int defaultInt) {
         return getInt(context.getExtendedState(), key, defaultInt);
     }
 
@@ -44,7 +42,7 @@ public class ExtendedStateHelper {
         return (Integer) extendedState.getVariables().getOrDefault(key, defaultInt);
     }
 
-    public static Long getLong(StateContext<TestState, TestEvent> context, String key) {
+    public static <S, E> Long getLong(StateContext<S, E> context, String key) {
         return getLong(context.getExtendedState(), key, 0L);
     }
 
@@ -58,11 +56,11 @@ public class ExtendedStateHelper {
      * @param key key for the map
      * @return string value associated with the key
      */
-    public static String getString(StateContext<TestState, TestEvent> context, String key) {
+    public static <S, E> String getString(StateContext<S, E> context, String key) {
         return getString(context, key, "");
     }
 
-    public static String getString(StateContext<TestState, TestEvent> context, String key, String defaultStr) {
+    public static <S, E> String getString(StateContext<S, E> context, String key, String defaultStr) {
         return getString(context.getExtendedState(), key, defaultStr);
     }
 
@@ -74,7 +72,7 @@ public class ExtendedStateHelper {
         return context.getStateMachine().getState().getId();
     }
 
-    public static Pair<Integer, Long> getPair(StateContext<TestState, TestEvent> context, String key) {
+    public static <S, E> Pair<Integer, Long> getPair(StateContext<S, E> context, String key) {
         return getPair(context.getExtendedState(), key, null);
     }
 
@@ -84,12 +82,12 @@ public class ExtendedStateHelper {
     }
 
     @SuppressWarnings("unchecked")
-    public static <V> V getValue(StateContext<TestState, TestEvent> context, String key, V defaultVal) {
+    public static <V, S, E> V getValue(StateContext<S, E> context, String key, V defaultVal) {
         var map = context.getExtendedState().getVariables();
         return (V) map.getOrDefault(key, defaultVal);
     }
 
-    public static <K, V> Map<K, V> getMap(StateContext<TestState, TestEvent> context, String key) {
+    public static <K, V, S, E> Map<K, V> getMap(StateContext<S, E> context, String key) {
         return getMap(context.getExtendedState(), key, Collections.emptyMap());
     }
 

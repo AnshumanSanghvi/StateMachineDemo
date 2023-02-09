@@ -1,6 +1,7 @@
 package com.anshuman.workflow.statemachine.guard;
 
-import static com.anshuman.workflow.statemachine.data.constant.TestConstant.*;
+
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getInt;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getLong;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getMap;
@@ -8,24 +9,22 @@ import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getPai
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getString;
 
 import com.anshuman.workflow.statemachine.data.Pair;
-import com.anshuman.workflow.statemachine.event.TestEvent;
-import com.anshuman.workflow.statemachine.state.TestState;
+import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
+import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.statemachine.StateContext;
 
-// Guards are executed pre-transition ("they guard the transition"),
-// and depending on boolean output, allow or deny the transition to execute.
 @Slf4j
-public class TestGuard {
-
-    private TestGuard(){
-        //use class statically
+public class LeaveAppGuards {
+    
+    private LeaveAppGuards() {
+        // use class statically
     }
 
-    public static boolean rollBackApproval(StateContext<TestState, TestEvent> context) {
+    public static boolean rollBackApproval(StateContext<LeaveAppState, LeaveAppEvent> context) {
         log.info("Executing guard: rollBackCountGuard with currentState: {}", context.getStateMachine().getState().getId());
 
         int maxRollBack = getInt(context, KEY_ROLL_BACK_MAX);
@@ -61,13 +60,13 @@ public class TestGuard {
         return true;
     }
 
-    public static boolean approvalFlowGuard(StateContext<TestState, TestEvent> context) {
+    public static boolean approvalFlowGuard(StateContext<LeaveAppState, LeaveAppEvent> context) {
         log.info("Executing guard: approvalFlowGuard with currentState: {}", context.getStateMachine().getState().getId());
         String approvalFlow = getString(context, KEY_APPROVAL_FLOW_TYPE, VAL_SERIAL);
         return approvalFlow.equalsIgnoreCase(VAL_PARALLEL);
     }
 
-    public static boolean approveInParallel(StateContext<TestState, TestEvent> context, Map<Integer, Long> reviewersMap) {
+    public static boolean approveInParallel(StateContext<LeaveAppState, LeaveAppEvent> context, Map<Integer, Long> reviewersMap) {
         log.info("Executing guard: parallelApprovalGuard with currentState: {}", context.getStateMachine().getState().getId());
 
         var map = context.getExtendedState().getVariables();
@@ -88,7 +87,7 @@ public class TestGuard {
         return true;
     }
 
-    public static boolean requestChanges(StateContext<TestState, TestEvent> context) {
+    public static boolean requestChanges(StateContext<LeaveAppState, LeaveAppEvent> context) {
 
         Long reviewerId = getLong(context,KEY_REQUESTED_CHANGES_BY);
         int returnsSoFar = getInt(context, KEY_RETURN_COUNT);
@@ -117,7 +116,7 @@ public class TestGuard {
         return true;
     }
 
-    public static boolean forward(StateContext<TestState, TestEvent> context) {
+    public static boolean forward(StateContext<LeaveAppState, LeaveAppEvent> context) {
 
         int forwardedCount = getInt(context, KEY_FORWARDED_COUNT);
         int reviewerCount = getInt(context, KEY_REVIEWERS_COUNT);
@@ -190,4 +189,5 @@ public class TestGuard {
 
         return true;
     }
+
 }
