@@ -18,6 +18,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.Where;
 import org.springframework.statemachine.StateMachineContext;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
 
 @TypeDef(
     name = "StateMachineContext",
@@ -42,12 +43,12 @@ public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
     @Convert(converter = StateMachineContextConverter.class)
     @Column(name = "statemachine", columnDefinition = "bytea")
     @ToString.Exclude
-    private StateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext;
+    private DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext;
 
     @Column(name = "is_active")
     private short isActive = 1;
 
-    public void setStateMachineContext(StateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
+    public void setStateMachineContext(DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
         this.setCurrentState(stateMachineContext.getState());
         this.stateMachineContext = stateMachineContext;
     }

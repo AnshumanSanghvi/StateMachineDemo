@@ -10,6 +10,7 @@ import org.springframework.statemachine.StateMachinePersist;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.persist.DefaultStateMachinePersister;
 import org.springframework.statemachine.persist.StateMachinePersister;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
 
 @Configuration
 public class StateMachinePersistenceConfig {
@@ -29,7 +30,8 @@ public class StateMachinePersistenceConfig {
             @SuppressWarnings("RedundantThrows")
             @Override
             public void write(StateMachineContext<S, E> context, ContextEntity<S, E> contextObj) throws Exception {
-                contextObj.setStateMachineContext(context);
+                contextObj.setStateMachineContext(new DefaultStateMachineContext<>(context.getState(), context.getEvent(),
+                    context.getEventHeaders(), context.getExtendedState()));
             }
 
             @SuppressWarnings("RedundantThrows")

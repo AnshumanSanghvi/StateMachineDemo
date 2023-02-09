@@ -1,12 +1,12 @@
 package com.anshuman.workflow.data.model.entity;
 
-import org.springframework.statemachine.StateMachineContext;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
 
 
 public interface ContextEntity<S, E> {
 
-    StateMachineContext<S, E> getStateMachineContext();
+    DefaultStateMachineContext<S, E> getStateMachineContext();
 
-    void setStateMachineContext(StateMachineContext<S, E> context);
+    void setStateMachineContext(DefaultStateMachineContext<S, E> context);
 
 }

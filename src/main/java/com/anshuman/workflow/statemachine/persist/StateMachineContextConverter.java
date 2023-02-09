@@ -13,36 +13,36 @@ import javax.persistence.Converter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.statemachine.StateMachineContext;
 import org.springframework.statemachine.kryo.MessageHeadersSerializer;
 import org.springframework.statemachine.kryo.StateMachineContextSerializer;
 import org.springframework.statemachine.kryo.UUIDSerializer;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
 
 @SuppressWarnings("rawtypes") // StateMachineContext is used without generics.
 @RequiredArgsConstructor
 @Converter(autoApply = true)
 @Slf4j
-public class StateMachineContextConverter implements AttributeConverter<StateMachineContext, byte[]> {
+public class StateMachineContextConverter implements AttributeConverter<DefaultStateMachineContext, byte[]> {
 
     private static final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(() -> {
         Kryo kryo = new Kryo();
-        kryo.addDefaultSerializer(StateMachineContext.class, new StateMachineContextSerializer());
+        kryo.addDefaultSerializer(DefaultStateMachineContext.class, new StateMachineContextSerializer());
         kryo.addDefaultSerializer(MessageHeaders.class, new MessageHeadersSerializer());
         kryo.addDefaultSerializer(UUID.class, new UUIDSerializer());
         return kryo;
     });
 
     @Override
-    public byte[] convertToDatabaseColumn(StateMachineContext attribute) {
+    public byte[] convertToDatabaseColumn(DefaultStateMachineContext attribute) {
         return serialize(attribute);
     }
 
     @Override
-    public StateMachineContext convertToEntityAttribute(byte[] dbData) {
+    public DefaultStateMachineContext convertToEntityAttribute(byte[] dbData) {
         return deserialize(dbData);
     }
 
-    private byte[] serialize(StateMachineContext context) {
+    private byte[] serialize(DefaultStateMachineContext context) {
         if (context == null) {
             throw new StateMachinePersistenceException("Exception encountered when serializing state machine context to byte array",
                 new NullPointerException("StateMachineContext is null"));
@@ -63,7 +63,7 @@ public class StateMachineContextConverter implements AttributeConverter<StateMac
         }
     }
 
-    private StateMachineContext deserialize(byte[] data) {
+    private DefaultStateMachineContext deserialize(byte[] data) {
         if (data == null || data.length == 0) {
             throw new StateMachinePersistenceException("Exception encountered when deserializing byte array to state machine context",
                 new NullPointerException("byteArray is null"));
@@ -73,7 +73,7 @@ public class StateMachineContextConverter implements AttributeConverter<StateMac
 
         try (ByteArrayInputStream in = new ByteArrayInputStream(data)) {
             try (Input input = new Input(in)) {
-                StateMachineContext stateMachineContext = kryo.readObject(input, StateMachineContext.class);
+                DefaultStateMachineContext stateMachineContext = kryo.readObject(input, DefaultStateMachineContext.class);
                 log.debug("StateMachineContext: {}, deserialized from thread local byte array of: {} bytes",
                     stateMachineContext.getId(), data.length);
                 return stateMachineContext;

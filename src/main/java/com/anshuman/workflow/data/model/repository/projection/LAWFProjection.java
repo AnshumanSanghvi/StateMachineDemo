@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.statemachine.StateMachineContext;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
 
 @Setter
 @Getter
@@ -16,10 +16,10 @@ import org.springframework.statemachine.StateMachineContext;
 public class LAWFProjection {
     private Long id;
     private LeaveAppState currentState;
-    private StateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext;
+    private DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext;
     private short isActive;
 
-    public LAWFProjection(Long id, LeaveAppState currentState, StateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
+    public LAWFProjection(Long id, LeaveAppState currentState, DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
         this.id = id;
         this.currentState = currentState;
         this.stateMachineContext = stateMachineContext;
