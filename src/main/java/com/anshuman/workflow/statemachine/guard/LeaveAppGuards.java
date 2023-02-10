@@ -11,6 +11,8 @@ import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getStr
 import com.anshuman.workflow.statemachine.data.Pair;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
+import com.anshuman.workflow.statemachine.util.ExtendedStateHelper;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
@@ -188,6 +190,22 @@ public class LeaveAppGuards {
         }
 
         return true;
+    }
+
+    public static boolean approve(StateContext<LeaveAppState, LeaveAppEvent> context) {
+        int totalReviewers = ExtendedStateHelper.getInt(context, KEY_REVIEWERS_COUNT);
+        int forwardedTimes = ExtendedStateHelper.getInt(context,KEY_FORWARDED_COUNT);
+        boolean forwardedCountMatchesTotalReviewers = totalReviewers == forwardedTimes;
+
+        Map<Integer, Pair<Long, Boolean>> forwardedMap = ExtendedStateHelper.getMap(context, KEY_FORWARDED_MAP);
+        boolean allReviewersHaveApproved = forwardedMap.entrySet().stream().allMatch(entry -> entry.getValue().getSecond());
+
+        Map<Integer, Long> reviewerMap = ExtendedStateHelper.getMap(context, KEY_REVIEWERS_MAP);
+        Pair<Integer, Long> forwardedBy = ExtendedStateHelper.getPair(context, KEY_LAST_FORWARDED_BY);
+        Map.Entry<Integer, Long> finalReviewer = new ArrayList<>(reviewerMap.entrySet()).get(Math.max(totalReviewers - 1, 0));
+        boolean forwarderIsFinalReviewer = new Pair<>(finalReviewer.getKey(), finalReviewer.getValue()).equals(forwardedBy);
+
+        return forwardedCountMatchesTotalReviewers && allReviewersHaveApproved && forwarderIsFinalReviewer;
     }
 
 }
