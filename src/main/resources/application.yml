@@ -21,4 +21,4 @@ spring:
       hibernate.hbm2ddl.extra_physical_table_types: PARTITIONED TABLE
     show-sql: true
   main:
-    lazy-initialization: true
+    lazy-initialization: false
