@@ -18,13 +18,24 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.statemachine.StateMachine;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-public class LeaveAppMain {
+@Component
+@RequiredArgsConstructor
+public class LeaveAppMain implements CommandLineRunner {
 
-    public static void main(String[] args) {
+    private final ApplicationContext applicationContext;
+
+    @Override
+    public void run(String... args) throws Exception {
+        BeanFactory beanFactory = applicationContext.getAutowireCapableBeanFactory();
         int reviewersCount = 3;
         Map<Integer, Long> reviewerMap = new LinkedHashMap<>(reviewersCount);
         reviewerMap.put(1, 234L);
@@ -33,7 +44,8 @@ public class LeaveAppMain {
         boolean isParallel = false;
         int maxChangeRequests = 3;
         int maxRollBackCount = 3;
-        StateMachine<LeaveAppState, LeaveAppEvent> sm = createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+
+        StateMachine<LeaveAppState, LeaveAppEvent> sm = createStateMachine(beanFactory, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
         log.info("result: {}", EventResultHelper.toResultDTOString(EventSendHelper.sendEvents(sm, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF,
             E_TRIGGER_FLOW_JUNCTION)));
@@ -51,12 +63,12 @@ public class LeaveAppMain {
                 .collect(Collectors.joining(", ")));
     }
 
-    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(Map<Integer, Long> reviewerMap, boolean isParallel, int maxChangeRequests,
+    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(BeanFactory beanFactory, Map<Integer, Long> reviewerMap, boolean isParallel, int maxChangeRequests,
         int maxRollBackCount) {
         try {
             int reviewerCount = reviewerMap.size();
             StateMachine<LeaveAppState, LeaveAppEvent> sm = LeaveAppSMBuilder.createStateMachine(LEAVE_APP_WF_V1,
-                reviewerCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+                beanFactory, reviewerCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
             sm.startReactively().block();
             log.info("starting statemachine: {}", sm.getId());
             return sm;

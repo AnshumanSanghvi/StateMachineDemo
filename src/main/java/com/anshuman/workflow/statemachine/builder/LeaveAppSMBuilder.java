@@ -24,6 +24,7 @@ import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineBuilder;
 import org.springframework.statemachine.config.StateMachineBuilder.Builder;
@@ -38,11 +39,12 @@ public class LeaveAppSMBuilder {
         // use class statically
     }
 
-    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(String stateMachineName, int reviewerCount, Map<Integer, Long> reviewerMap,
+    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(String stateMachineName, BeanFactory beanFactory, int reviewerCount,
+        Map<Integer, Long> reviewerMap,
         boolean isParallel, int maxChangeRequests, int maxRollBackCount) throws Exception {
         Builder<LeaveAppState, LeaveAppEvent> builder = StateMachineBuilder.builder();
 
-        createSMConfig(builder, stateMachineName);
+        createSMConfig(builder, beanFactory, stateMachineName);
 
         createSMStateConfig(builder, reviewerCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
@@ -58,11 +60,12 @@ public class LeaveAppSMBuilder {
         return stateMachine;
     }
 
-    private static void createSMConfig(Builder<LeaveAppState, LeaveAppEvent> builder, String stateMachineName) throws Exception {
+    private static void createSMConfig(Builder<LeaveAppState, LeaveAppEvent> builder, BeanFactory beanFactory, String stateMachineName) throws Exception {
         builder
             .configureConfiguration()
             .withConfiguration()
                 .machineId(stateMachineName)
+                .beanFactory(beanFactory)
                 .listener(new StateMachineListener<>())
                 .and()
             .withMonitoring()
@@ -111,7 +114,7 @@ public class LeaveAppSMBuilder {
                 .and()
             .withJunction()
                 .source(S_APPROVAL_JUNCTION)
-                .first(S_PARALLEL_APPROVAL_FLOW, LeaveAppGuards::approvalFlowGuard).last(S_SERIAL_APPROVAL_FLOW)
+                .first(S_PARALLEL_APPROVAL_FLOW, LeaveAppGuards::approvalFlow).last(S_SERIAL_APPROVAL_FLOW)
                 .and();
 
         if (isParallel)
