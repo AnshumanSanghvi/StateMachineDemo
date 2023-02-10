@@ -5,6 +5,7 @@ import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstan
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_FORWARDED_MAP;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_RETURN_COUNT;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_ROLL_BACK_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.VAL_APPROVED;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_INITIALIZE;
@@ -19,13 +20,14 @@ import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getStr
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.anshuman.workflow.statemachine.LeaveAppMain;
 import com.anshuman.workflow.statemachine.data.Pair;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
+import com.anshuman.workflow.statemachine.exception.StateMachineException;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import com.anshuman.workflow.statemachine.util.EventSendHelper;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,9 +36,26 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
+@Slf4j
 class LeaveAppStateMachineTest {
 
     private StateMachine<LeaveAppState, LeaveAppEvent> stateMachine;
+
+    private static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(Map<Integer, Long> reviewerMap, boolean isParallel,
+        int maxChangeRequests,
+        int maxRollBackCount) {
+        try {
+            int reviewerCount = reviewerMap.size();
+            StateMachine<LeaveAppState, LeaveAppEvent> sm = LeaveAppSMBuilder
+                .createStateMachine(LEAVE_APP_WF_V1, reviewerCount, reviewerMap,
+                    isParallel, maxChangeRequests, maxRollBackCount);
+            sm.startReactively().block();
+            log.info("starting statemachine: {}", sm.getId());
+            return sm;
+        } catch (Exception ex) {
+            throw new StateMachineException("Exception encountered in creating state machine", ex);
+        }
+    }
 
     @Test
     void testSerialApproval() {
@@ -49,7 +68,7 @@ class LeaveAppStateMachineTest {
         boolean isParallel = false;
         int maxChangeRequests = 3;
         int maxRollBackCount = 3;
-        stateMachine = LeaveAppMain.createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+        stateMachine = createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
         // when
         EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
@@ -84,7 +103,7 @@ class LeaveAppStateMachineTest {
         boolean isParallel = false;
         int maxChangeRequests = 3;
         int maxRollBackCount = 3;
-        stateMachine = LeaveAppMain.createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+        stateMachine = createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
         // when
         EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();

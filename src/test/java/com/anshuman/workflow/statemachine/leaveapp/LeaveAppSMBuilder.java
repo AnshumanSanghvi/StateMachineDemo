@@ -1,4 +1,4 @@
-package com.anshuman.workflow.statemachine.builder;
+package com.anshuman.workflow.statemachine.leaveapp;
 
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
@@ -24,7 +24,6 @@ import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineBuilder;
 import org.springframework.statemachine.config.StateMachineBuilder.Builder;
@@ -38,12 +37,12 @@ public class LeaveAppSMBuilder {
         // use class statically
     }
 
-    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(String stateMachineName, BeanFactory beanFactory, int reviewerCount,
+    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(String stateMachineName, int reviewerCount,
         Map<Integer, Long> reviewerMap,
         boolean isParallel, int maxChangeRequests, int maxRollBackCount) throws Exception {
         Builder<LeaveAppState, LeaveAppEvent> builder = StateMachineBuilder.builder();
 
-        createSMConfig(builder, beanFactory, stateMachineName);
+        createSMConfig(builder, stateMachineName);
 
         createSMStateConfig(builder, reviewerCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
@@ -59,12 +58,11 @@ public class LeaveAppSMBuilder {
         return stateMachine;
     }
 
-    private static void createSMConfig(Builder<LeaveAppState, LeaveAppEvent> builder, BeanFactory beanFactory, String stateMachineName) throws Exception {
+    private static void createSMConfig(Builder<LeaveAppState, LeaveAppEvent> builder, String stateMachineName) throws Exception {
         builder
             .configureConfiguration()
             .withConfiguration()
                 .machineId(stateMachineName)
-                .beanFactory(beanFactory)
                 .listener(new StateMachineListener<>())
                 .and()
             .withMonitoring()
