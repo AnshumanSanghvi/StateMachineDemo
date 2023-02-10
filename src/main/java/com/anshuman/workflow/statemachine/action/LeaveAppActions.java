@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.statemachine.ExtendedState;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.state.State;
@@ -55,15 +56,21 @@ public class LeaveAppActions {
 
         public static void initial(StateContext<LeaveAppState, LeaveAppEvent> context, int reviewers, Map<Integer, Long> reviewerMap,
             boolean isParallel, int maxChangeRequests, int maxRollBackCount) {
+            initial(context.getStateMachine(), reviewers, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+        }
+
+        public static void initial(StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, int reviewers, Map<Integer, Long> reviewerMap,
+            boolean isParallel, int maxChangeRequests, int maxRollBackCount) {
             String stateId = Optional
-                .ofNullable(context.getStateMachine())
+                .ofNullable(stateMachine)
                 .flatMap(sm -> Optional.ofNullable(sm.getState())
                     .map(State::getId)
                     .map(Object::toString))
                 .orElse("null");
             log.trace("Executing action: initializeStateAction with currentState: {}", stateId);
 
-            Optional.ofNullable(context.getExtendedState())
+            Optional.ofNullable(stateMachine)
+                .map(StateMachine::getExtendedState)
                 .flatMap(exs -> Optional.ofNullable(exs.getVariables()))
                 .ifPresent(map -> {
                     map.put(KEY_ROLL_BACK_MAX, maxRollBackCount);
@@ -78,10 +85,13 @@ public class LeaveAppActions {
                         .collect(Collectors.toMap(Entry::getKey,
                             entry -> new Pair<>(entry.getValue(), false))));
 
+                    ExtendedState extendedState = stateMachine.getExtendedState();
                     log.trace("Setting extended state- rollbackCount: {}, returnCount: {}, closedState: {}, reviewersCount: {}, "
                             + "reviewersList: {}",
-                        getInt(context, KEY_ROLL_BACK_COUNT), getInt(context, KEY_RETURN_COUNT),
-                        getString(context, KEY_CLOSED_STATE_TYPE), getInt(context, KEY_REVIEWERS_COUNT),
+                        getInt(extendedState, KEY_ROLL_BACK_COUNT, 0),
+                        getInt(extendedState, KEY_RETURN_COUNT, 0),
+                        getString(extendedState, KEY_CLOSED_STATE_TYPE, ""),
+                        getInt(extendedState, KEY_REVIEWERS_COUNT, 0),
                         map.get(KEY_REVIEWERS_MAP));
                 });
         }
@@ -108,7 +118,7 @@ public class LeaveAppActions {
         private static void manualApproveOnForward(StateContext<LeaveAppState, LeaveAppEvent> context) {
 
             // get the relevant key matching the forwardBy from the forward Map.
-            Pair<Integer, Long> forwardBy = getPair(context, KEY_FORWARDED_BY);
+            Pair<Integer, Long> forwardBy = getPair(context, KEY_LAST_FORWARDED_BY);
             Map<Integer, Pair<Long, Boolean>> forwardMap = getMap(context, KEY_FORWARDED_MAP);
             Predicate<Entry<Integer, Pair<Long, Boolean>>> reviewerIdPresent = entry -> entry.getValue().getFirst().equals(forwardBy.getSecond());
             Predicate<Entry<Integer, Pair<Long, Boolean>>> orderIdPresent = entry -> entry.getKey().equals(forwardBy.getFirst());
@@ -160,8 +170,10 @@ public class LeaveAppActions {
             Map<Object, Object> map = context.getExtendedState().getVariables();
             map.put(KEY_RETURN_COUNT, getInt(context, KEY_RETURN_COUNT) + 1);
             map.put(KEY_FORWARDED_COUNT, 0);
-            log.trace("Setting extended state- returnCount: {}, forwardCount: {}",
-                getInt(context, KEY_RETURN_COUNT), getInt(context, KEY_FORWARDED_COUNT));
+            map.put(KEY_ROLL_BACK_COUNT, 0);
+            log.trace("Setting extended state- returnCount: {}, forwardCount: {}, rollBackCount: {}",
+                getInt(context, KEY_RETURN_COUNT), getInt(context, KEY_FORWARDED_COUNT),
+                getInt(context, KEY_ROLL_BACK_COUNT));
         }
 
         public static void reject(StateContext<LeaveAppState, LeaveAppEvent> context) {
@@ -182,18 +194,31 @@ public class LeaveAppActions {
         public static void autoTriggerComplete(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: autoTriggerCompleteAction with currentState: {}", getStateId(context));
             var resultFlux = EventSendHelper.sendEvent(context.getStateMachine(), E_TRIGGER_COMPLETE);
-            log.debug("autoTriggerCompleteAction results: {}", "[" + EventResultHelper.toResultDTOString(resultFlux) + "]");
+            String results  = "[" + EventResultHelper.toResultDTOString(resultFlux) + "]";
+            log.debug("autoTriggerCompleteAction results: {}", results);
         }
 
         public static void rollBackApproval(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: rollBackTransitionAction with currentState: {}", getStateId(context));
             Map<Object, Object> map = context.getExtendedState().getVariables();
+            // increment roll back count
             map.put(KEY_ROLL_BACK_COUNT, getInt(context, KEY_ROLL_BACK_COUNT) + 1);
-            // don't let forward count be negative.
+
+            // decrease forward count, don't let forward count be negative.
             map.put(KEY_FORWARDED_COUNT, Math.max((getInt(context, KEY_FORWARDED_COUNT) - 1), 0));
 
+            // reset null state
+            map.put(KEY_CLOSED_STATE_TYPE, null);
+
+            // reset approve by
+            map.put(KEY_APPROVE_BY, null);
+
+            // reset forwarded by
+            Pair<Integer, Long> forwardedBy = ExtendedStateHelper.getPair(context, KEY_LAST_FORWARDED_BY);
+            map.put(KEY_LAST_FORWARDED_BY, null);
+
+            // reset last entry in forwarded Map
             Map<Integer, Pair<Long, Boolean>> forwardedMap = ExtendedStateHelper.getMap(context.getExtendedState(), KEY_FORWARDED_MAP, Collections.emptyMap());
-            Pair<Integer, Long> forwardedBy = ExtendedStateHelper.getPair(context, KEY_FORWARDED_BY);
             forwardedMap.entrySet()
                 .stream()
                 .filter(entry -> entry.getKey().equals(forwardedBy.getFirst()))
@@ -207,7 +232,8 @@ public class LeaveAppActions {
         public static void triggerApproveEvent(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: autoApproveTransitionAction with currentState: {}", getStateId(context));
             var stateMachine = context.getStateMachine();
-            var result = EventSendHelper.sendApproveEvent(stateMachine, E_APPROVE, -1, -1L);
+            Pair<Integer, Long> forwardBy = ExtendedStateHelper.getPair(context, KEY_LAST_FORWARDED_BY);
+            var result = EventSendHelper.sendApproveEvent(stateMachine, E_APPROVE, forwardBy.getFirst(), forwardBy.getSecond());
 
             log.debug("autoApproveTransitionAction results: {}", result
                 .toStream()

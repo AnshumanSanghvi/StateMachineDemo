@@ -31,7 +31,6 @@ import org.springframework.statemachine.config.StateMachineBuilder.Builder;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
 
-
 @Slf4j
 public class LeaveAppSMBuilder {
 

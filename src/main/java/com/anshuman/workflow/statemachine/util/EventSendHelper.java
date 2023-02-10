@@ -1,7 +1,7 @@
 package com.anshuman.workflow.statemachine.util;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_APPROVE_BY;
-import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_FORWARDED_BY;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_LAST_FORWARDED_BY;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_REQUESTED_CHANGES_BY;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_REQUESTED_CHANGE_COMMENT;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_ROLL_BACK_BY;
@@ -25,7 +25,7 @@ public class EventSendHelper {
     public static <S, E> Flux<StateMachineEventResult<S, E>> sendEvent(StateMachine<S, E> sm, E event) {
         try {
             var resultFlux = sm.sendEvent(Mono.just(MessageBuilder.withPayload(event).build()));
-            log.info("result after {} event: {}", event, EventResultHelper.toResultDTOString(resultFlux));
+            log.debug("result after {} event: {}", event, EventResultHelper.toResultDTOString(resultFlux));
             return resultFlux;
         } catch (Exception ex) {
             throw new StateMachineException("Could not send event: " + event + " to the state machine with id: " + sm.getId(), ex);
@@ -66,7 +66,7 @@ public class EventSendHelper {
     public static <S, E> Flux<StateMachineEventResult<S, E>> sendForwardEvent(StateMachine<S, E> sm, E forwardEvent, Integer orderNumber, Long reviewerId) {
         checkNull("Forward", orderNumber, reviewerId);
         var map = sm.getExtendedState().getVariables();
-        map.put(KEY_FORWARDED_BY, new Pair<>(orderNumber, reviewerId));
+        map.put(KEY_LAST_FORWARDED_BY, new Pair<>(orderNumber, reviewerId));
         return sendEvent(sm, forwardEvent);
     }
 

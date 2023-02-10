@@ -49,7 +49,7 @@ public class LeaveAppGuards {
 
         boolean isSerial = getString(context, KEY_APPROVAL_FLOW_TYPE, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
         if (isSerial) {
-            Long forwardBy = getPair(context, KEY_FORWARDED_BY).getSecond();
+            Long forwardBy = getPair(context, KEY_LAST_FORWARDED_BY).getSecond();
             if (forwardBy.longValue() != rollBackBy.longValue()) {
                 log.error("Cannot roll back the application as the roll back reviewerId: {} does not match the forwarded reviewerId: {}",
                     rollBackBy, forwardBy);
@@ -131,7 +131,7 @@ public class LeaveAppGuards {
             return false;
         }
 
-        Pair<Integer, Long> forwardedBy = getPair(context, KEY_FORWARDED_BY);
+        Pair<Integer, Long> forwardedBy = getPair(context, KEY_LAST_FORWARDED_BY);
 
         if (forwardedBy == null || forwardedBy.getSecond() == 0L) {
             log.error("Cannot forward the application as {}", "The forwarding reviewer id is 0 or null");
