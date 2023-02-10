@@ -120,27 +120,19 @@ public class LeaveAppGuards {
 
     public static boolean forward(StateContext<LeaveAppState, LeaveAppEvent> context) {
 
-        int forwardedCount = getInt(context, KEY_FORWARDED_COUNT);
-        int reviewerCount = getInt(context, KEY_REVIEWERS_COUNT);
+        final String errorMsg = "Cannot forward the application as {}";
 
-        if (reviewerCount <= 0) {
-            log.error("Cannot forward the application as {}", "there are no reviewers for the application");
-            return false;
-        }
-
-        if (forwardedCount + 1 > reviewerCount) {
-            log.error("Cannot forward the application as {}", "the application is being forwarded more times than the number of defined reviewers");
+        if (!reviewCountCheck(context, errorMsg)) {
             return false;
         }
 
         Pair<Integer, Long> forwardedBy = getPair(context, KEY_LAST_FORWARDED_BY);
 
         if (forwardedBy == null || forwardedBy.getSecond() == 0L) {
-            log.error("Cannot forward the application as {}", "The forwarding reviewer id is 0 or null");
+            log.error(errorMsg, "The forwarding reviewer id is 0 or null");
             return false;
         }
 
-        Integer forwardingOrder = forwardedBy.getFirst();
         Long forwardingId = forwardedBy.getSecond();
 
         boolean isParallelFlow = getString(context, KEY_APPROVAL_FLOW_TYPE, VAL_SERIAL)
@@ -150,42 +142,66 @@ public class LeaveAppGuards {
         if (isParallelFlow) {
             // only need to check that the forwardingId is present in the reviewersMap in the parallel approval flow.
             if (!reviewersMap.containsValue(forwardingId)) {
-                log.error("Cannot forward the application as {}", "the forwarding userId is not in the reviewers list");
+                log.error(errorMsg, "the forwarding userId is not in the reviewers list");
+                return false;
             }
         } else {
             // need to check both the order of forwarding, and the forwardingId are present
             // in the reviewersMap in the serial approval flow.
-            boolean isOrderNumberAndReviewerIdAbsent = reviewersMap
-                .entrySet()
-                .stream()
-                .noneMatch(entry -> Objects.equals(entry.getKey(), forwardingOrder) &&
-                    Objects.equals(entry.getValue(), forwardingId));
-            if (isOrderNumberAndReviewerIdAbsent) {
-                log.error("Cannot forward the application as {}", "the combination of the forwarding order and the forwarding "
-                    + "userId is not present in the list of reviewers");
+            return forwardIdAndOrderCheck(context, errorMsg);
+        }
+
+        return true;
+    }
+
+    private static boolean reviewCountCheck(StateContext<LeaveAppState, LeaveAppEvent> context, String errorMsg) {
+        int forwardedCount = getInt(context, KEY_FORWARDED_COUNT);
+        int reviewerCount = getInt(context, KEY_REVIEWERS_COUNT);
+
+        if (reviewerCount <= 0) {
+            log.error(errorMsg, "there are no reviewers for the application");
+            return false;
+        }
+
+        if (forwardedCount + 1 > reviewerCount) {
+            log.error(errorMsg, "the application is being forwarded more times than the number of defined reviewers");
+            return false;
+        }
+
+        return true;
+    }
+
+    private static boolean forwardIdAndOrderCheck(StateContext<LeaveAppState, LeaveAppEvent> context, String errorMsg) {
+        Map<Integer, Long> reviewersMap = getMap(context, KEY_REVIEWERS_MAP);
+        Pair<Integer, Long> forwardedBy = getPair(context, KEY_LAST_FORWARDED_BY);
+        Integer forwardingOrder = forwardedBy.getFirst();
+        Long forwardingId = forwardedBy.getSecond();
+
+        boolean isOrderNumberAndReviewerIdAbsent = reviewersMap
+            .entrySet()
+            .stream()
+            .noneMatch(entry -> Objects.equals(entry.getKey(), forwardingOrder) &&
+                Objects.equals(entry.getValue(), forwardingId));
+        if (isOrderNumberAndReviewerIdAbsent) {
+            log.error(errorMsg, "the combination of the forwarding order and the forwarding "
+                + "userId is not present in the list of reviewers");
+            return false;
+        }
+
+        Map<Integer, Pair<Long, Boolean>> forwardMap = getMap(context, KEY_FORWARDED_MAP);
+        LinkedList<Pair<Long, Boolean>> list = new LinkedList<>(forwardMap.values());
+        int upperLimit = list.indexOf(new Pair<>(forwardedBy.getSecond(), false));
+
+        if (upperLimit < 0) {
+            log.error(errorMsg, "no eligible reviewer found to forward the application");
+            return false;
+        }
+
+        if (upperLimit > 0) {
+            boolean forwardOrderMaintained = list.subList(0, upperLimit).stream().allMatch(Pair::getSecond);
+            if (!forwardOrderMaintained) {
+                log.error(errorMsg, "previous reviewers have not forwarded the application");
                 return false;
-            }
-
-            Map<Integer, Pair<Long, Boolean>> forwardMap = getMap(context, KEY_FORWARDED_MAP);
-            LinkedList<Pair<Long, Boolean>> list = new LinkedList<>(forwardMap.values());
-
-            int upperLimit = list.indexOf(new Pair<>(forwardedBy.getSecond(), false));
-
-            if (upperLimit < 0) {
-                log.error("Cannot forward the application as {}", "no eligible reviewer found to forward the application");
-                return false;
-            }
-
-            if (upperLimit > 0) {
-
-                boolean forwardOrderMaintained = list.subList(0, upperLimit)
-                    .stream()
-                    .allMatch(Pair::getSecond);
-
-                if (!forwardOrderMaintained) {
-                    log.error("Cannot forward the application as {}", "previous reviewers have not forwarded the application");
-                    return false;
-                }
             }
         }
 

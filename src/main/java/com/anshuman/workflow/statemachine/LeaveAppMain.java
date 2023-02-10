@@ -12,10 +12,8 @@ import static com.anshuman.workflow.statemachine.util.EventSendHelper.sendForwar
 
 import com.anshuman.workflow.data.model.entity.ContextEntity;
 import com.anshuman.workflow.statemachine.action.LeaveAppActions;
-import com.anshuman.workflow.statemachine.builder.LeaveAppSMBuilder;
 import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
-import com.anshuman.workflow.statemachine.exception.StateMachineException;
 import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import java.util.ArrayList;
@@ -26,7 +24,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
@@ -72,22 +69,6 @@ public class LeaveAppMain implements CommandLineRunner {
                 .sorted(Comparator.comparing(entry -> (String) entry.getKey()))
                 .map(entry -> entry.getKey() + " : " + entry.getValue())
                 .collect(Collectors.joining(", ")));
-    }
-
-    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(BeanFactory beanFactory, Map<Integer, Long> reviewerMap, boolean isParallel,
-        int maxChangeRequests,
-        int maxRollBackCount) {
-        try {
-            int reviewerCount = reviewerMap.size();
-            StateMachine<LeaveAppState, LeaveAppEvent> sm = LeaveAppSMBuilder
-                .createStateMachine(LEAVE_APP_WF_V1, beanFactory, reviewerCount, reviewerMap,
-                    isParallel, maxChangeRequests, maxRollBackCount);
-            sm.startReactively().block();
-            log.info("starting statemachine: {}", sm.getId());
-            return sm;
-        } catch (Exception ex) {
-            throw new StateMachineException("Exception encountered in creating state machine", ex);
-        }
     }
 
 }

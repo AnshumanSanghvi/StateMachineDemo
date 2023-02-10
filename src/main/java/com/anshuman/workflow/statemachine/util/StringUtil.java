@@ -56,7 +56,7 @@ public class StringUtil {
             .orElse("null");
     }
 
-    public static <S, E> String event(E event) {
+    public static <E> String event(E event) {
         return Optional.ofNullable(event)
             .map(E::toString)
             .orElse("null");

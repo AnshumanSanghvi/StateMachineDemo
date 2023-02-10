@@ -22,7 +22,7 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 @RequiredArgsConstructor
 @Converter(autoApply = true)
 @Slf4j
-public class StateMachineContextConverter implements AttributeConverter<DefaultStateMachineContext, byte[]> {
+public class StateMachineContextConverter implements AttributeConverter<DefaultStateMachineContext, byte[]>, AutoCloseable {
 
     private static final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(() -> {
         Kryo kryo = new Kryo();
@@ -31,6 +31,11 @@ public class StateMachineContextConverter implements AttributeConverter<DefaultS
         kryo.addDefaultSerializer(UUID.class, new UUIDSerializer());
         return kryo;
     });
+
+    @Override
+    public void close() {
+        kryoThreadLocal.remove();
+    }
 
     @Override
     public byte[] convertToDatabaseColumn(DefaultStateMachineContext attribute) {

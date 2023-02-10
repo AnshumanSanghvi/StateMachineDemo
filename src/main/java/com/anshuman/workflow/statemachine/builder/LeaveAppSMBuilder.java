@@ -119,7 +119,7 @@ public class LeaveAppSMBuilder {
         if (isParallel)
             createSMParallelApprovalTransition(configureTransitions, reviewersMap);
         else
-            createSMSerialApprovalTransition(configureTransitions, reviewersMap);
+            createSMSerialApprovalTransition(configureTransitions);
 
         configureTransitions
             .withExternal()
@@ -156,7 +156,7 @@ public class LeaveAppSMBuilder {
                 .and();
     }
 
-    private static void createSMSerialApprovalTransition(StateMachineTransitionConfigurer<LeaveAppState, LeaveAppEvent> configureTransitions, Map<Integer, Long> reviewersMap)
+    private static void createSMSerialApprovalTransition(StateMachineTransitionConfigurer<LeaveAppState, LeaveAppEvent> configureTransitions)
         throws Exception {
 
         configureTransitions.withInternal()

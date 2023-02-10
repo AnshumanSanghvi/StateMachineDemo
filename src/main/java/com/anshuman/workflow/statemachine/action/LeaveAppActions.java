@@ -2,7 +2,6 @@ package com.anshuman.workflow.statemachine.action;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_APPROVE;
-import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_COMPLETE;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getBoolean;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getInt;
@@ -107,7 +106,7 @@ public class LeaveAppActions {
             log.trace("Executing action: forwardStateExitAction with currentState: {}", getStateId(context));
 
             // if reviewers can forward the application in any order, then auto-approve.
-            if (getBoolean(context, KEY_ANY_APPROVE)) {
+            if (Boolean.TRUE.equals(getBoolean(context, KEY_ANY_APPROVE))) {
                 triggerApproveEvent(context);
             }
             // else record the forward event by the reviewer, keeping their order intact.
@@ -247,22 +246,6 @@ public class LeaveAppActions {
             log.trace("Executing action: approveInParallelFlowTransitionAction with currentState: {}", getStateId(context));
             var map = context.getExtendedState().getVariables();
             map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
-        }
-
-        public static void forwardChoice(StateContext<LeaveAppState, LeaveAppEvent> context) {
-            var map = context.getExtendedState().getVariables();
-            int forwardedCount = (Integer) map.getOrDefault(KEY_FORWARDED_COUNT, 0);
-            int reviewerCount = (Integer) map.getOrDefault(KEY_REVIEWERS_COUNT, 0);
-            log.info("forwardChoice - forwardedCount: {}, reviewerCount: {}", forwardedCount, reviewerCount);
-            if (forwardedCount < reviewerCount) {
-                StateMachine<LeaveAppState, LeaveAppEvent> sm = context.getStateMachine();
-                EventSendHelper.sendEvents(sm, E_FORWARD);
-            } else if (forwardedCount == reviewerCount) {
-                StateMachine<LeaveAppState, LeaveAppEvent> sm = context.getStateMachine();
-                EventSendHelper.sendEvents(sm, E_APPROVE);
-            } else {
-                throw new StateMachineException("forwardCount: " + forwardedCount + " higher than reviewerCount: " + reviewerCount);
-            }
         }
     }
 
