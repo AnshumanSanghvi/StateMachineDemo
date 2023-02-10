@@ -1,5 +1,6 @@
 package com.anshuman.workflow.data.model.entity;
 
+import com.anshuman.workflow.data.enums.LeaveType;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.persist.StateMachineContextConverter;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
@@ -39,6 +40,10 @@ public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
 
     @Column(name = "is_active")
     private short isActive = 1;
+
+    @Column(name = "leave_type")
+    @Enumerated(EnumType.STRING)
+    private LeaveType leaveType;
 
     public void setStateMachineContext(DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
         this.setCurrentState(stateMachineContext.getState());
