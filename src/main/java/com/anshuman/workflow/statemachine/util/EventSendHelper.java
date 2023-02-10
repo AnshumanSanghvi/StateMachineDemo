@@ -24,9 +24,7 @@ public class EventSendHelper {
 
     public static <S, E> Flux<StateMachineEventResult<S, E>> sendEvent(StateMachine<S, E> sm, E event) {
         try {
-            var resultFlux = sm.sendEvent(Mono.just(MessageBuilder.withPayload(event).build()));
-            log.debug("result after {} event: {}", event, EventResultHelper.toResultDTOString(resultFlux));
-            return resultFlux;
+            return sm.sendEvent(Mono.just(MessageBuilder.withPayload(event).build()));
         } catch (Exception ex) {
             throw new StateMachineException("Could not send event: " + event + " to the state machine with id: " + sm.getId(), ex);
         }
