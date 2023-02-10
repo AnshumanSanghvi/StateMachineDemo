@@ -20,10 +20,11 @@ public class EventResultHelper {
 
     public static <S, E> Flux<EventResultDTO<S, E>> toResultDTOFlux(Flux<StateMachineEventResult<S, E>> resultFlux) {
         return resultFlux
+            .map(EventResultDTO::new)
             .doOnError(ex -> {
                 throw new StateMachineException("Error parsing the results in the state machine.", ex);
             })
-            .map(EventResultDTO::new);
+            .onErrorStop();
     }
 
     public static <S, E> List<EventResultDTO<S, E>> toResultDTOList(Flux<StateMachineEventResult<S, E>> resultFlux) {
