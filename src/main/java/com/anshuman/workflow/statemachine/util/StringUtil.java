@@ -150,14 +150,14 @@ public class StringUtil {
             .map(State::getId)
             .map(Object::toString)
             .filter(Predicate.not(String::isEmpty))
-            .map(s -> "{source state: " + s + (transition.getSource().isSubmachineState() ? ", isSubMachine: true":"") + "}")
+            .map(s -> "{source state: " + s + (transition.getSource().isSubmachineState() ? ", isSubMachine: true" : "") + "}")
             .orElse("");
 
         String targetState = Optional.ofNullable(transition.getTarget())
             .map(State::getId)
             .map(Object::toString)
             .filter(Predicate.not(String::isEmpty))
-            .map(s -> "{target state: " + s + (transition.getTarget().isSubmachineState() ? ", isSubMachine: true":"") + "}")
+            .map(s -> "{target state: " + s + (transition.getTarget().isSubmachineState() ? ", isSubMachine: true" : "") + "}")
             .orElse("");
 
         String event = Optional.ofNullable(transition.getTrigger())
@@ -186,13 +186,13 @@ public class StringUtil {
         String idStr = stateMachine.getId();
         String output = "StateMachine[id: " + idStr + ",\n currentState: " + stateStr;
 
-        if(detailed) {
+        if (detailed) {
             String extendedStateStr = extendedState(stateMachine.getExtendedState());
             String uuidStr = stateMachine.getUuid().toString();
             String allStatesStr = stateMachine.getStates().stream().map(StringUtil::state).collect(joining(", "));
             String initialStateStr = StringUtil.state(stateMachine.getInitialState());
             String transitionsStr = stateMachine.getTransitions().stream().map(StringUtil::transition).collect(joining(",\n"));
-            output+= ",\n uuid: " + uuidStr +
+            output += ",\n uuid: " + uuidStr +
                 ",\n extendedState: " + extendedStateStr +
                 ",\n initialState: " + initialStateStr +
                 ",\n allStates: {" + allStatesStr + "}" +

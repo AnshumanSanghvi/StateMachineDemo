@@ -20,7 +20,7 @@ import org.hibernate.annotations.Where;
 
 @Entity
 @Table(name = "wf_type_mst", schema = "public")
-@SecondaryTable(name = "wf_type_dtl", schema = "public", pkJoinColumns=@PrimaryKeyJoinColumn(name="id"))
+@SecondaryTable(name = "wf_type_dtl", schema = "public", pkJoinColumns = @PrimaryKeyJoinColumn(name = "id"))
 @Where(clause = "isActive = 1")
 @NoArgsConstructor
 @Getter

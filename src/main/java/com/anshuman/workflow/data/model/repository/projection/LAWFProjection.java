@@ -14,6 +14,7 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 @ToString
 @AllArgsConstructor
 public class LAWFProjection {
+
     private Long id;
     private LeaveAppState currentState;
     private DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext;
@@ -34,7 +35,5 @@ public class LAWFProjection {
         entity.setIsActive(projection.getIsActive());
         return entity;
     }
-
-
 
 }

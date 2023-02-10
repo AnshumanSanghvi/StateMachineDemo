@@ -1,8 +1,7 @@
 package com.anshuman.workflow.exception;
 
 /**
- * Use this exception at service layer or higher. For state machine related exceptions,
- * use StateMachineException
+ * Use this exception at service layer or higher. For state machine related exceptions, use StateMachineException
  */
 public class WorkflowException extends RuntimeException {
 

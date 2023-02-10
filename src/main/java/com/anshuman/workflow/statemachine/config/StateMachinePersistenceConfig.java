@@ -16,10 +16,10 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 public class StateMachinePersistenceConfig {
 
     /**
-     * You cannot persist a StateMachine by using normal java serialization,
-     * as the object graph is too rich and contains too many dependencies on other Spring context classes.
-     * StateMachineContext is a runtime representation of a state machine,
-     * that you can use to restore an existing machine into a state represented by a particular StateMachineContext object.
+     * You cannot persist a StateMachine by using normal java serialization, as the object graph is too rich and contains too many dependencies on other Spring
+     * context classes. StateMachineContext is a runtime representation of a state machine, that you can use to restore an existing machine into a state
+     * represented by a particular StateMachineContext object.
+     *
      * @param <S> Parameter for StateActions class
      * @param <E> Parameter for Event class
      * @return An instance of the StateMachinePersist interface, responsible for serialization and deserialization of a StateMachineContext

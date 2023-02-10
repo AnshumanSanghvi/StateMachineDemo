@@ -43,7 +43,7 @@ public class WorkflowEventLogEntity {
     @Column(name = "branch_id", nullable = false, updatable = false)
     private Long branchId;
 
-    @Column(name= "type_id", nullable = false, updatable = false)
+    @Column(name = "type_id", nullable = false, updatable = false)
     @Convert(converter = WorkflowTypeIdConverter.class)
     private WorkflowType typeId;
 

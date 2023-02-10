@@ -49,7 +49,7 @@ public class LeaveAppActions {
      * State Actions go here
      */
     public static class StateActions {
-        
+
         private StateActions() {
             // use class statically
         }
@@ -96,8 +96,9 @@ public class LeaveAppActions {
                 });
         }
     }
-    
+
     public static class TransitionActions {
+
         private TransitionActions() {
             // use class statically
         }
@@ -194,7 +195,7 @@ public class LeaveAppActions {
         public static void autoTriggerComplete(StateContext<LeaveAppState, LeaveAppEvent> context) {
             log.trace("Executing action: autoTriggerCompleteAction with currentState: {}", getStateId(context));
             var resultFlux = EventSendHelper.sendEvent(context.getStateMachine(), E_TRIGGER_COMPLETE);
-            String results  = "[" + EventResultHelper.toResultDTOString(resultFlux) + "]";
+            String results = "[" + EventResultHelper.toResultDTOString(resultFlux) + "]";
             log.debug("autoTriggerCompleteAction results: {}", results);
         }
 

@@ -12,8 +12,7 @@ import org.springframework.statemachine.persist.StateMachinePersister;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This is a wrapper class over the DefaultStateMachinePersister.
- * We use its methods to persist or restore a state machine context from and to a state machine.
+ * This is a wrapper class over the DefaultStateMachinePersister. We use its methods to persist or restore a state machine context from and to a state machine.
  *
  * @param <S> Parameter for the StateActions class
  * @param <E> Parameter for the Event class

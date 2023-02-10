@@ -26,8 +26,9 @@ public class ExtendedStateHelper {
 
     /**
      * Get the integer value for the given key from the extended state map. Default to 0 if not found.
+     *
      * @param context state context
-     * @param key key for the map
+     * @param key     key for the map
      * @return integer value associated with the key
      */
     public static <S, E> Integer getInt(StateContext<S, E> context, String key) {
@@ -52,8 +53,9 @@ public class ExtendedStateHelper {
 
     /**
      * Get the string value for the given key from the extended state map. Default to empty string if not found.
+     *
      * @param context state context
-     * @param key key for the map
+     * @param key     key for the map
      * @return string value associated with the key
      */
     public static <S, E> String getString(StateContext<S, E> context, String key) {

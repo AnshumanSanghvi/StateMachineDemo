@@ -34,7 +34,7 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
     }
 
     @Override
-    public void preStateChange(State<S, E> state, Message<E> message,Transition<S, E> transition,
+    public void preStateChange(State<S, E> state, Message<E> message, Transition<S, E> transition,
         StateMachine<S, E> stateMachine, StateMachine<S, E> rootStateMachine) {
         logMessageHeaders(message);
         log.trace("preStateChange: [stateMachine: {}, current state: {}, event to be passed: {}, transition: {name: {}, source state: {}, target state: {}}]",
@@ -44,7 +44,7 @@ public class StateMachineInterceptor<S, E> extends StateMachineInterceptorAdapte
             Optional.ofNullable(transition).map(Transition::getName).filter(Predicate.not(String::isEmpty)).orElse("null"),
             Optional.ofNullable(transition).map(Transition::getSource).map(State::getId).map(S::toString).orElse("null"),
             Optional.ofNullable(transition).map(Transition::getTarget).map(State::getId).map(S::toString).orElse("null")
-            );
+        );
     }
 
     @Override

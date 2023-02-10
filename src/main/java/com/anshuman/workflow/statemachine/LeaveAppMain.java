@@ -74,7 +74,8 @@ public class LeaveAppMain implements CommandLineRunner {
                 .collect(Collectors.joining(", ")));
     }
 
-    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(BeanFactory beanFactory, Map<Integer, Long> reviewerMap, boolean isParallel, int maxChangeRequests,
+    public static StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(BeanFactory beanFactory, Map<Integer, Long> reviewerMap, boolean isParallel,
+        int maxChangeRequests,
         int maxRollBackCount) {
         try {
             int reviewerCount = reviewerMap.size();

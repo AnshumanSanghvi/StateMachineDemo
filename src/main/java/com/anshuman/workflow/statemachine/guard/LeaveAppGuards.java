@@ -21,7 +21,7 @@ import org.springframework.statemachine.StateContext;
 
 @Slf4j
 public class LeaveAppGuards {
-    
+
     private LeaveAppGuards() {
         // use class statically
     }
@@ -42,7 +42,7 @@ public class LeaveAppGuards {
             return false;
         }
 
-        var reviewerMap = getMap(context,KEY_REVIEWERS_MAP);
+        var reviewerMap = getMap(context, KEY_REVIEWERS_MAP);
         Long rollBackBy = getPair(context, KEY_ROLL_BACK_BY).getSecond();
         if (!reviewerMap.containsValue(rollBackBy)) {
             log.error("Cannot roll back the application as the reviewer id: {} is not present in the reviewersMap: {}",
@@ -74,7 +74,7 @@ public class LeaveAppGuards {
         var map = context.getExtendedState().getVariables();
         Long approvingUserId = getLong(context, KEY_APPROVE_BY);
 
-        if(approvingUserId == null || approvingUserId == 0) {
+        if (approvingUserId == null || approvingUserId == 0) {
             map.remove(KEY_APPROVE_BY);
             log.error("Cannot approve the statemachine as the approving userId is null or 0");
             return false;
@@ -91,7 +91,7 @@ public class LeaveAppGuards {
 
     public static boolean requestChanges(StateContext<LeaveAppState, LeaveAppEvent> context) {
 
-        Long reviewerId = getLong(context,KEY_REQUESTED_CHANGES_BY);
+        Long reviewerId = getLong(context, KEY_REQUESTED_CHANGES_BY);
         int returnsSoFar = getInt(context, KEY_RETURN_COUNT);
         int maxAllowedReturns = getInt(context, KEY_MAX_CHANGE_REQUESTS, 1000);
         String requestedChangeComment = getString(context, KEY_REQUESTED_CHANGE_COMMENT);
@@ -141,7 +141,7 @@ public class LeaveAppGuards {
         }
 
         Integer forwardingOrder = forwardedBy.getFirst();
-        Long forwardingId  = forwardedBy.getSecond();
+        Long forwardingId = forwardedBy.getSecond();
 
         boolean isParallelFlow = getString(context, KEY_APPROVAL_FLOW_TYPE, VAL_SERIAL)
             .equalsIgnoreCase(VAL_PARALLEL);
@@ -194,7 +194,7 @@ public class LeaveAppGuards {
 
     public static boolean approve(StateContext<LeaveAppState, LeaveAppEvent> context) {
         int totalReviewers = ExtendedStateHelper.getInt(context, KEY_REVIEWERS_COUNT);
-        int forwardedTimes = ExtendedStateHelper.getInt(context,KEY_FORWARDED_COUNT);
+        int forwardedTimes = ExtendedStateHelper.getInt(context, KEY_FORWARDED_COUNT);
         boolean forwardedCountMatchesTotalReviewers = totalReviewers == forwardedTimes;
 
         Map<Integer, Pair<Long, Boolean>> forwardedMap = ExtendedStateHelper.getMap(context, KEY_FORWARDED_MAP);

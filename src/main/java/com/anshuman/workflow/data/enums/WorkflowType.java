@@ -15,7 +15,7 @@ public enum WorkflowType {
     private static final WorkflowType[] WORKFLOW_TYPES = WorkflowType.values();
 
     public static WorkflowType fromId(int typeId) {
-        for(WorkflowType workflowType : WORKFLOW_TYPES) {
+        for (WorkflowType workflowType : WORKFLOW_TYPES) {
             if (workflowType.getTypeId() == typeId) {
                 return workflowType;
             }
@@ -24,7 +24,7 @@ public enum WorkflowType {
     }
 
     public static WorkflowType fromName(String name) {
-        for(WorkflowType workflowType : WORKFLOW_TYPES) {
+        for (WorkflowType workflowType : WORKFLOW_TYPES) {
             if (workflowType.getName().equalsIgnoreCase(name)) {
                 return workflowType;
             }

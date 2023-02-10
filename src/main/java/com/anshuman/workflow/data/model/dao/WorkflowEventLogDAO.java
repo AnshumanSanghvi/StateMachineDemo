@@ -74,7 +74,7 @@ enum WorkflowEventLogType {
 
     private final String table;
 
-    private static final WorkflowEventLogType[] values  = WorkflowEventLogType.values();
+    private static final WorkflowEventLogType[] values = WorkflowEventLogType.values();
 
     WorkflowEventLogType(WorkflowType workflowType, String table) {
         this.workflowType = workflowType;
