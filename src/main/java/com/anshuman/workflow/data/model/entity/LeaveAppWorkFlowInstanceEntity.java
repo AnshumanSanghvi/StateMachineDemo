@@ -15,16 +15,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.Where;
-import org.springframework.statemachine.StateMachineContext;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 
-@TypeDef(
-    name = "StateMachineContext",
-    defaultForType = StateMachineContext.class,
-    typeClass = StateMachineContext.class
-)
 @Entity
 @Table(name = "leave_wf_inst", schema = "public")
 @Where(clause = "isActive = 1")
@@ -36,7 +29,6 @@ public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
     implements ContextEntity<LeaveAppState, LeaveAppEvent> {
 
     @Enumerated(EnumType.STRING)
-    @Setter
     @Column(name = "current_state")
     private LeaveAppState currentState;
 

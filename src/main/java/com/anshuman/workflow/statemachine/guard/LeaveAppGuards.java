@@ -60,7 +60,7 @@ public class LeaveAppGuards {
         return true;
     }
 
-    public static boolean approvalFlowGuard(StateContext<LeaveAppState, LeaveAppEvent> context) {
+    public static boolean approvalFlow(StateContext<LeaveAppState, LeaveAppEvent> context) {
         log.info("Executing guard: approvalFlowGuard with currentState: {}", context.getStateMachine().getState().getId());
         String approvalFlow = getString(context, KEY_APPROVAL_FLOW_TYPE, VAL_SERIAL);
         return approvalFlow.equalsIgnoreCase(VAL_PARALLEL);
