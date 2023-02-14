@@ -10,7 +10,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Builder
 @Getter
-public class WorkflowEventLogDTO {
+public class WorkflowEventLogDto {
 
     private Long id;
 
@@ -34,7 +34,7 @@ public class WorkflowEventLogDTO {
 
     private Short completed;
 
-    public static WorkflowEventLogEntity toEntity(WorkflowEventLogDTO dto) {
+    public static WorkflowEventLogEntity toEntity(WorkflowEventLogDto dto) {
         return WorkflowEventLogEntity.builder()
             .id(dto.getId())
             .companyId(dto.getCompanyId())

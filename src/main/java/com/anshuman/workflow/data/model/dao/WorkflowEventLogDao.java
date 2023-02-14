@@ -1,6 +1,6 @@
 package com.anshuman.workflow.data.model.dao;
 
-import com.anshuman.workflow.data.dto.WorkflowEventLogDTO;
+import com.anshuman.workflow.data.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.WorkflowEventLogEntity;
 import com.anshuman.workflow.exception.WorkflowException;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class WorkflowEventLogDAO {
+public class WorkflowEventLogDao {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -25,7 +25,7 @@ public class WorkflowEventLogDAO {
     public static final String LEAVE_APP_WF_TABLE_NAME = "leaveapp_wf_status_log";
 
 
-    public List<WorkflowEventLogEntity> getWorkflowEventLogByType(WorkflowEventLogDTO wf) {
+    public List<WorkflowEventLogEntity> getWorkflowEventLogByType(WorkflowEventLogDto wf) {
         String query = "SELECT * " +
             " FROM wf_status_log " +
             " WHERE type_id = " + wf.getTypeId().getTypeId() + " " +
@@ -68,7 +68,7 @@ public class WorkflowEventLogDAO {
 }
 
 enum WorkflowEventLogType {
-    LEAVE_APP(WorkflowType.LEAVE_APPLICATION, WorkflowEventLogDAO.LEAVE_APP_WF_TABLE_NAME);
+    LEAVE_APP(WorkflowType.LEAVE_APPLICATION, WorkflowEventLogDao.LEAVE_APP_WF_TABLE_NAME);
 
     private final WorkflowType workflowType;
 

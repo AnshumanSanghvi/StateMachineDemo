@@ -1,6 +1,6 @@
 package com.anshuman.workflow.service;
 
-import com.anshuman.workflow.data.dto.WorkflowEventLogDTO;
+import com.anshuman.workflow.data.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.workflow.data.model.repository.LeaveAppWorkflowInstanceRepository;
 import com.anshuman.workflow.data.model.repository.projection.LAWFProjection;
@@ -116,7 +116,7 @@ public class LeaveApplicationWFService {
         saveStateMachineToEntity(stateMachine, entity);
 
         // log the event asynchronously once it is successfully processed by the statemachine.
-        var wfEventLogDto = WorkflowEventLogDTO.builder().companyId(entity.getCompanyId())
+        var wfEventLogDto = WorkflowEventLogDto.builder().companyId(entity.getCompanyId())
             .branchId(entity.getBranchId()).typeId(entity.getTypeId()).instanceId(entity.getId())
             .state(stateMachine.getState().getId().toString()).event(event.toString())
             .actionDate(LocalDateTime.now()).completed((short) (stateMachine.isComplete() ? 1 : 0))

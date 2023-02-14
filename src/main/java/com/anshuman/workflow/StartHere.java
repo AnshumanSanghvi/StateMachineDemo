@@ -1,4 +1,4 @@
-package com.anshuman.workflow.statemachine;
+package com.anshuman.workflow;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
@@ -10,12 +10,15 @@ import static com.anshuman.workflow.statemachine.util.EventResultHelper.toResult
 import static com.anshuman.workflow.statemachine.util.EventSendHelper.sendEvent;
 import static com.anshuman.workflow.statemachine.util.EventSendHelper.sendForwardEvent;
 
+import com.anshuman.workflow.data.dto.WorkflowTypeDto;
 import com.anshuman.workflow.data.model.entity.ContextEntity;
+import com.anshuman.workflow.service.WorkflowTypeService;
 import com.anshuman.workflow.statemachine.action.LeaveAppActions;
 import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -31,12 +34,28 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LeaveAppMain implements CommandLineRunner {
+public class StartHere implements CommandLineRunner {
 
     private final DefaultStateMachineAdapter<LeaveAppState, LeaveAppEvent, ContextEntity<LeaveAppState, LeaveAppEvent>> stateMachineAdapter;
+    private final WorkflowTypeService workflowTypeService;
 
     @Override
     public void run(String... args) throws Exception {
+        //leaveAppStateMachine();
+        createWorkflowType();
+    }
+
+    public void createWorkflowType() {
+        var dto = new WorkflowTypeDto(1L, 1, LocalDateTime.now(),
+            null, null, LocalDateTime.now(),
+            1, (short) 1, null, false, false,
+            true, true, List.of(-1L, 0L),
+            3, 3);
+        var wftype = workflowTypeService.createWorkflowType(WorkflowTypeDto.toEntity(dto));
+        log.info("workflow type created: {}", wftype);
+    }
+
+    public void leaveAppStateMachine() {
         StateMachine<LeaveAppState, LeaveAppEvent> sm = stateMachineAdapter.create(LEAVE_APP_WF_V1);
 
         int reviewersCount = 3;
