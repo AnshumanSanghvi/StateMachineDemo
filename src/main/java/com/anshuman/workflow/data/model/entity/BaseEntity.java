@@ -31,7 +31,7 @@ public abstract class BaseEntity {
     private Long companyId;
 
     @Column(name = "branch_id", nullable = false, updatable = false)
-    private Long branchId;
+    private Integer branchId;
 
     @Column(name = "create_date", updatable = false)
     private LocalDateTime createdDate;

@@ -53,7 +53,7 @@ public class WorkflowEventLogDAO {
             .builder()
             .id(rs.getLong("id"))
             .companyId(rs.getLong("company_id"))
-            .branchId(rs.getLong("branch_id"))
+            .branchId(rs.getInt("branch_id"))
             .typeId(WorkflowType.fromId(rs.getInt("type_id")))
             .instanceId(rs.getLong("instance_id"))
             .actionDate(rs.getTimestamp("action_date").toLocalDateTime())

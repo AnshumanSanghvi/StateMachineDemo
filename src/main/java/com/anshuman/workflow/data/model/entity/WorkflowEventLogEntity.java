@@ -33,7 +33,7 @@ public class WorkflowEventLogEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WF_LOG_SEQ")
     // Equivalent of: CREATE SEQUENCE IF NOT EXISTS WF_LOG_SEQ AS BIGINT INCREMENT BY 1 CACHE 50 NO CYCLE OWNED BY wf_status_log.id
-    @SequenceGenerator(name = "WF_LOG_SEQ", allocationSize = 30)
+    @SequenceGenerator(name = "WF_LOG_SEQ", allocationSize = 1)
     @Column(nullable = false, unique = true, updatable = false)
     private Long id;
 
@@ -41,7 +41,7 @@ public class WorkflowEventLogEntity {
     private Long companyId;
 
     @Column(name = "branch_id", nullable = false, updatable = false)
-    private Long branchId;
+    private Integer branchId;
 
     @Column(name = "type_id", nullable = false, updatable = false)
     @Convert(converter = WorkflowTypeIdConverter.class)

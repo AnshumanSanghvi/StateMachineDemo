@@ -16,7 +16,7 @@ public class WorkflowEventLogDTO {
 
     private Long companyId;
 
-    private Long branchId;
+    private Integer branchId;
 
     private WorkflowType typeId;
 
