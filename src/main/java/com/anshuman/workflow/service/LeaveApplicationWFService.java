@@ -1,11 +1,14 @@
 package com.anshuman.workflow.service;
 
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
+
 import com.anshuman.workflow.data.dto.WorkflowEventLogDto;
+import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.workflow.data.model.repository.LeaveAppWorkflowInstanceRepository;
+import com.anshuman.workflow.data.model.repository.WorkflowTypeRepository;
 import com.anshuman.workflow.data.model.repository.projection.LAWFProjection;
 import com.anshuman.workflow.exception.WorkflowException;
-import com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants;
 import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
@@ -14,6 +17,7 @@ import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import com.anshuman.workflow.statemachine.util.EventResultHelper;
 import com.anshuman.workflow.statemachine.util.EventSendHelper;
 import com.anshuman.workflow.statemachine.util.StringUtil;
+import com.anshuman.workflow.statemachine.util.WFPropsToSMExtStateHelper;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -36,15 +40,24 @@ public class LeaveApplicationWFService {
 
     private final LeaveAppWorkflowInstanceRepository leaveAppRepository;
 
+    private final WorkflowTypeRepository workflowTypeRepository;
+
     private final WorkflowEventLogService workflowEventLogService;
 
     @Transactional
     public LeaveAppWorkFlowInstanceEntity createLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityDoesNotExist(entity);
-        stateMachineAdapter.persist(stateMachineAdapter.create(LeaveAppSMConstants.LEAVE_APP_WF_V1), entity);
+        saveStateMachineForCreatedLeaveApplication(entity);
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
         return savedEntity;
+    }
+
+    private void saveStateMachineForCreatedLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
+        var stateMachine = stateMachineAdapter.create(LEAVE_APP_WF_V1);
+        var properties = workflowTypeRepository.getPropertiesByTypeId(WorkflowType.LEAVE_APPLICATION);
+        WFPropsToSMExtStateHelper.setExtendedStateProperties(stateMachine, properties);
+        stateMachineAdapter.persist(stateMachine, entity);
     }
 
     public LeaveAppWorkFlowInstanceEntity getLeaveApplicationById(@NotNull Long id) {
@@ -134,7 +147,7 @@ public class LeaveApplicationWFService {
 
     private StateMachine<LeaveAppState, LeaveAppEvent> getStateMachineFromEntity(LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityHasStateMachineContext(entity);
-        StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = stateMachineAdapter.restore(LeaveAppSMConstants.LEAVE_APP_WF_V1, entity);
+        StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = stateMachineAdapter.restore(LEAVE_APP_WF_V1, entity);
         log.debug("entity id: {}, current state: {}, stateMachine current state: {}", entity.getId(),
             entity.getCurrentState(), stateMachine.getState().getId());
         return stateMachine;

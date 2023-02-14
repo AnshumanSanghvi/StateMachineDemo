@@ -1,6 +1,7 @@
 package com.anshuman.workflow.data.model.repository;
 
 import com.anshuman.workflow.data.enums.WorkflowType;
+import com.anshuman.workflow.data.model.entity.WorkflowProperties;
 import com.anshuman.workflow.data.model.entity.WorkflowTypeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,6 +18,12 @@ public interface WorkflowTypeRepository extends JpaRepository<WorkflowTypeEntity
         + "WHERE wf.typeId = :workflowType "
         + "     AND wf.isActive = 1")
     Boolean existsByTypeId(@Param("workflowType") WorkflowType workflowType);
+
+    @Query("SELECT wf.workflowProperties "
+        + "FROM WorkflowTypeEntity wf "
+        + "WHERE wf.typeId = :workflowType "
+        + "     AND wf.isActive = 1")
+    WorkflowProperties getPropertiesByTypeId(@Param("workflowType") WorkflowType workflowType);
 
     @Modifying
     @Query("UPDATE WorkflowTypeEntity wft "
