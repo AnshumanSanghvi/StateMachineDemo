@@ -58,8 +58,8 @@ public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        WorkflowTypeEntity that = (WorkflowTypeEntity) o;
-        return super.getId() != null && Objects.equals(super.getId(), that.getId());
+        LeaveAppWorkFlowInstanceEntity that = (LeaveAppWorkFlowInstanceEntity) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override

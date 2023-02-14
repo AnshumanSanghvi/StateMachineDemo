@@ -3,12 +3,7 @@ package com.anshuman.workflow.data.model.entity;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.converter.WorkflowTypeIdConverter;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Table;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,6 +21,12 @@ import org.hibernate.Hibernate;
 @Slf4j
 public abstract class WorkflowInstanceEntity extends BaseEntity {
 
+    @Id
+    @Column(nullable = false, unique = true, updatable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WF_INST_SEQ")
+    @SequenceGenerator(name = "WF_INST_SEQ", allocationSize = 1)
+    private Long id;
+
     @Column(name = "type_id", nullable = false, updatable = false)
     @Convert(converter = WorkflowTypeIdConverter.class)
     private WorkflowType typeId;
@@ -40,13 +41,13 @@ public abstract class WorkflowInstanceEntity extends BaseEntity {
     private Long deletedByUserId;
 
     @Column(name = "roll_back_count")
-    private int timesRolledBackCount;
+    private short timesRolledBackCount;
 
     @Column(name = "return_count")
-    private int timesReturnedCount;
+    private short timesReturnedCount;
 
     @Column(name = "version")
-    private int workflowVersion;
+    private short workflowVersion;
 
     @Override
     public boolean equals(Object o) {
@@ -56,8 +57,8 @@ public abstract class WorkflowInstanceEntity extends BaseEntity {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        WorkflowTypeEntity that = (WorkflowTypeEntity) o;
-        return super.getId() != null && Objects.equals(super.getId(), that.getId());
+        WorkflowInstanceEntity that = (WorkflowInstanceEntity) o;
+        return this.getId() != null && Objects.equals(this.getId(), that.getId());
     }
 
     @Override

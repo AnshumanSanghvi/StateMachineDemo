@@ -6,12 +6,7 @@ import com.anshuman.workflow.data.model.converter.WorkflowTypeNameConverter;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Table;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,6 +23,12 @@ import org.hibernate.annotations.TypeDef;
 @Setter
 @ToString(callSuper = true)
 public class WorkflowTypeEntity extends BaseEntity {
+
+    @Id
+    @Column(nullable = false, unique = true, updatable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WF_TYPE_SEQ")
+    @SequenceGenerator(name = "WF_TYPE_SEQ", allocationSize = 1)
+    private Long id;
 
     @Column(name = "`name`", nullable = false, length = 64)
     @Convert(converter = WorkflowTypeNameConverter.class)
@@ -61,7 +62,7 @@ public class WorkflowTypeEntity extends BaseEntity {
             return false;
         }
         WorkflowTypeEntity that = (WorkflowTypeEntity) o;
-        return super.getId() != null && Objects.equals(super.getId(), that.getId());
+        return this.getId() != null && Objects.equals(this.getId(), that.getId());
     }
 
     @Override
