@@ -3,25 +3,26 @@ package com.anshuman.workflow.data.model.entity;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.converter.WorkflowTypeIdConverter;
 import com.anshuman.workflow.data.model.converter.WorkflowTypeNameConverter;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.SecondaryTable;
+import javax.persistence.FetchType;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 @Entity
 @Table(name = "wf_type_mst", schema = "public")
-@SecondaryTable(name = "wf_type_dtl", schema = "public", pkJoinColumns = @PrimaryKeyJoinColumn(name = "id"))
-@Where(clause = "isActive = 1")
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @NoArgsConstructor
 @Getter
 @Setter
@@ -45,20 +46,11 @@ public class WorkflowTypeEntity extends BaseEntity {
     @Column(name = "update_by")
     private Long updateByUserId;
 
-    @Column(name = "repeat_apprvrs", table = "wf_type_dtl")
-    private boolean hasRepeatableApprovers;
-
-    @Column(name = "max_chng_req_limit", table = "wf_type_dtl")
-    private int maximumChangeRequestThreshold;
-
-    @Column(name = "can_admin_apprv", table = "wf_type_dtl")
-    private boolean canAdminApproveWorkflow;
-
-    @Column(name = "admin_apprv_role_id", table = "wf_type_dtl")
-    private Long adminRoleId;
-
-    @Column(name = "total_approvers", table = "wf_type_dtl")
-    private int totalApprovers;
+    @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb", name = "properties")
+    @Basic(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private WorkflowProperties workflowProperties;
 
     @Override
     public boolean equals(Object o) {

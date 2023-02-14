@@ -61,6 +61,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <!-- for datatype jsonb support -->
+        <dependency>
+            <groupId>com.vladmihalcea</groupId>
+            <artifactId>hibernate-types-55</artifactId>
+            <version>2.21.1</version>
+        </dependency>
+
 
         <!-- annotation based validation -->
         <dependency>
@@ -135,6 +142,23 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <!-- Hibernate needs a Maven plugin to work with lazy attributes properly. -->
+            <plugin>
+                <groupId>org.hibernate.orm.tooling</groupId>
+                <artifactId>hibernate-enhance-maven-plugin</artifactId>
+                <version>6.1.7.Final</version>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <failOnError>true</failOnError>
+                            <enableLazyInitialization>true</enableLazyInitialization>
+                        </configuration>
+                        <goals>
+                            <goal>enhance</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
