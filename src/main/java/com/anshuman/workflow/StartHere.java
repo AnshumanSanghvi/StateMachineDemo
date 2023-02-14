@@ -50,7 +50,7 @@ public class StartHere implements CommandLineRunner {
             null, null, LocalDateTime.now(),
             1, (short) 1, null, false, false,
             true, true, List.of(-1L, 0L),
-            3, 3);
+            3, 3, Map.of(1, 234L, 2, 123L, 3, 235L));
         var wftype = workflowTypeService.createWorkflowType(WorkflowTypeDto.toEntity(dto));
         log.info("workflow type created: {}", wftype);
     }

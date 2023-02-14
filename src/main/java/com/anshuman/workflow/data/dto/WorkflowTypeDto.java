@@ -5,6 +5,7 @@ import com.anshuman.workflow.data.model.entity.WorkflowProperties;
 import com.anshuman.workflow.data.model.entity.WorkflowTypeEntity;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import lombok.Value;
 
 @Value
@@ -31,6 +32,7 @@ public class WorkflowTypeDto {
     List<Long> adminRoleIds;
     Integer maximumChangeRequestThreshold;
     Integer maximumRollbackApprovalThreshold;
+    Map<Integer, Long> reviewerMap;
 
     public static WorkflowTypeEntity toEntity(WorkflowTypeDto dto) {
         WorkflowTypeEntity entity = new WorkflowTypeEntity();
@@ -57,6 +59,7 @@ public class WorkflowTypeDto {
         if (dto.adminRoleIds != null) properties.setAdminRoleIds(dto.adminRoleIds);
         if (dto.maximumChangeRequestThreshold != null) properties.setMaximumChangeRequestThreshold(dto.maximumChangeRequestThreshold);
         if (dto.maximumRollbackApprovalThreshold != null) properties.setMaximumRollbackApprovalThreshold(dto.maximumRollbackApprovalThreshold);
+        properties.setReviewerMap(dto.reviewerMap);
 
         entity.setWorkflowProperties(properties);
 
