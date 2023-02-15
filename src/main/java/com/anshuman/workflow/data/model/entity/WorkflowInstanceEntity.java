@@ -2,6 +2,9 @@ package com.anshuman.workflow.data.model.entity;
 
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.converter.WorkflowTypeIdConverter;
+import com.anshuman.workflow.statemachine.data.Pair;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import java.util.List;
 import java.util.Objects;
 import javax.persistence.*;
 import lombok.Getter;
@@ -10,10 +13,13 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 @Entity
 @Table(name = "wf_inst_mst", schema = "public")
 @Inheritance(strategy = InheritanceType.JOINED)
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @NoArgsConstructor
 @Getter
 @Setter
@@ -48,6 +54,11 @@ public abstract class WorkflowInstanceEntity extends BaseEntity {
 
     @Column(name = "version")
     private short workflowVersion;
+
+    @Column(columnDefinition = "jsonb", name = "reviewers")
+    @Type(type = "jsonb")
+    @Basic(fetch = FetchType.EAGER)
+    private List<Pair<Integer, Long>> reviewers;
 
     @Override
     public boolean equals(Object o) {
