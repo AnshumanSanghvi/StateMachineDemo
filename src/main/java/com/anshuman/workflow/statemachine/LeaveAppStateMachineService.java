@@ -50,7 +50,7 @@ public class LeaveAppStateMachineService {
         WFPropsToSMExtStateHelper.setExtendedStateProperties(stateMachine, properties, reviewers);
 
         // save the state machine
-        saveStateMachineToEntity(stateMachine, entity);
+        saveStateMachineToEntity(stateMachine, entity, false);
     }
 
     public void passEventsToEntityStateMachine(LeaveAppWorkFlowInstanceEntity entity, LeaveAppEvent event) {
@@ -81,7 +81,7 @@ public class LeaveAppStateMachineService {
         }
 
         // save the state machine context once event is accepted.
-        saveStateMachineToEntity(stateMachine, entity);
+        saveStateMachineToEntity(stateMachine, entity, true);
 
         // log the event asynchronously once it is successfully processed by the statemachine.
         var wfEventLogDto = WorkflowEventLogDto.builder()
@@ -100,8 +100,8 @@ public class LeaveAppStateMachineService {
     }
 
     private void saveStateMachineToEntity(@NotNull StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
-        @NotNull LeaveAppWorkFlowInstanceEntity entity) {
-        validateThatEntityHasStateMachineContext(entity);
+        @NotNull LeaveAppWorkFlowInstanceEntity entity, boolean validate) {
+        if(validate) validateThatEntityHasStateMachineContext(entity);
         stateMachineAdapter.persist(stateMachine, entity);
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
     }
