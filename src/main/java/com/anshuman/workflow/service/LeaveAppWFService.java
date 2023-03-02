@@ -2,10 +2,10 @@ package com.anshuman.workflow.service;
 
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.workflow.data.model.repository.LeaveAppWorkflowInstanceRepository;
-import com.anshuman.workflow.data.model.repository.projection.LAWFProjection;
 import com.anshuman.workflow.exception.WorkflowException;
 import com.anshuman.workflow.statemachine.LeaveAppStateMachineService;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -37,16 +37,15 @@ public class LeaveAppWFService {
 
     /* READ */
     public LeaveAppWorkFlowInstanceEntity getLeaveApplicationById(@NotNull Long id) {
-        return leaveAppRepository.findPartialById(id)
-            .map(lawf -> {
-                LeaveAppWorkFlowInstanceEntity entity = LAWFProjection.toEntity(lawf);
-                log.debug("found entity: {}", entity);
-                return entity;
-            })
+        return leaveAppRepository.findById(id)
             .orElseGet(() -> {
                 log.warn("No entity found with id: {}", id);
                 return null;
             });
+    }
+
+    public List<LeaveAppWorkFlowInstanceEntity> getAll() {
+        return leaveAppRepository.findAll();
     }
 
     public boolean existsById(Long id) {
