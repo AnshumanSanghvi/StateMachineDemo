@@ -103,6 +103,7 @@ public class LeaveAppStateMachineService {
         @NotNull LeaveAppWorkFlowInstanceEntity entity, boolean validate) {
         if(validate) validateThatEntityHasStateMachineContext(entity);
         stateMachineAdapter.persist(stateMachine, entity);
+        entity.setCurrentState(stateMachine.getState().getId());
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
     }
 
