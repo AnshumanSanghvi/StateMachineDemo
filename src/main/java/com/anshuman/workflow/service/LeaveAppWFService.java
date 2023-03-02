@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
-public class LeaveApplicationWFService {
+public class LeaveAppWFService {
 
     private final LeaveAppStateMachineService leaveAppStateMachineService;
 
