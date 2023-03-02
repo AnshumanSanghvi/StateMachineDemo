@@ -15,7 +15,16 @@ spring:
     url: jdbc:postgresql://localhost:5432/workflow?logUnclosedConnections=true&currentSchema=public&reWriteBatchedInserts=true
     username: anshuman
     password: anshuman
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-ignored-properties: false
+      fail-on-unknown-properties: false
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
   jpa:
+    generate-ddl: true
     hibernate:
       ddl-auto: none
     open-in-view: false
