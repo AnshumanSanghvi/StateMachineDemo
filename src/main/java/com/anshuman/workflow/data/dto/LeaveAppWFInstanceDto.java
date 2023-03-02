@@ -2,14 +2,21 @@ package com.anshuman.workflow.data.dto;
 
 import com.anshuman.workflow.data.enums.LeaveType;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@Data
+@NoArgsConstructor
 public class LeaveAppWFInstanceDto {
 
+    public LeaveAppWFInstanceDto(WorkflowInstanceDto wfInstDto, Integer leaveType) {
+        this.wfInstDto = wfInstDto;
+        this.leaveType = leaveType;
+    }
+
     WorkflowInstanceDto wfInstDto;
-    short isActive = 1;
-    int leaveType;
+    Short isActive = 1;
+    Integer leaveType;
 
     public static LeaveAppWorkFlowInstanceEntity toEntity(LeaveAppWFInstanceDto dto) {
 

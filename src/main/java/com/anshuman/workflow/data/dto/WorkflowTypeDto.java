@@ -4,9 +4,13 @@ import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.WorkflowProperties;
 import com.anshuman.workflow.data.model.entity.WorkflowTypeEntity;
 import java.time.LocalDateTime;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class WorkflowTypeDto {
 
     // base entity
@@ -14,7 +18,7 @@ public class WorkflowTypeDto {
 
     // workflow type
     LocalDateTime withEffectFromDate;
-    int workflowTypeId;
+    Integer workflowTypeId;
     Short isActive;
     Long updateByUserId;
 

@@ -2,9 +2,13 @@ package com.anshuman.workflow.data.dto;
 
 import com.anshuman.workflow.data.model.entity.WorkflowProperties;
 import java.util.List;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class WorkflowPropertiesDto {
 
     // workflow properties

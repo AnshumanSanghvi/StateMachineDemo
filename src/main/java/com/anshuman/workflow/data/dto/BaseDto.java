@@ -1,9 +1,13 @@
 package com.anshuman.workflow.data.dto;
 
 import java.time.LocalDateTime;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class BaseDto {
 
     // base entity
