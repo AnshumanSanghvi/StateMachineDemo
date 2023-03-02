@@ -40,4 +40,13 @@ public class WorkflowTypeService {
     public List<WorkflowTypeEntity> getAll() {
         return workflowTypeRepository.findAll();
     }
+
+    public WorkflowTypeEntity findByTypeId(WorkflowType workflowType) {
+        return workflowTypeRepository.findByTypeId(workflowType).orElse(null);
+    }
+
+    @Transactional
+    public void deleteByTypeId(WorkflowType workflowType) {
+        workflowTypeRepository.deleteByTypeId(workflowType);
+    }
 }
