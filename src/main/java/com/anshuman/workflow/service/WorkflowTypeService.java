@@ -4,6 +4,7 @@ import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.WorkflowTypeEntity;
 import com.anshuman.workflow.data.model.repository.WorkflowTypeRepository;
 import com.anshuman.workflow.exception.WorkflowException;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,9 @@ public class WorkflowTypeService {
     private void validateThatWorkflowTypeDoesNotExist(WorkflowType workflowType) {
         if(existsByTypeId(workflowType))
             throw new WorkflowException("Cannot create new statemachine type, there already exists a type for the given type id");
+    }
+
+    public List<WorkflowTypeEntity> getAll() {
+        return workflowTypeRepository.findAll();
     }
 }
