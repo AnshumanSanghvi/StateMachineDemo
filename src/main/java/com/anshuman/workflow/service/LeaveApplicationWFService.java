@@ -56,7 +56,7 @@ public class LeaveApplicationWFService {
 
     /* UPDATE */
     public LeaveAppWorkFlowInstanceEntity updateLeaveApplication(@NotNull Long id, LeaveAppEvent event) {
-        LeaveAppWorkFlowInstanceEntity entity = getLeaveApplicationById(id);
+        LeaveAppWorkFlowInstanceEntity entity = leaveAppRepository.getReferenceById(id);
         return updateLeaveApplication(entity, event);
     }
 
