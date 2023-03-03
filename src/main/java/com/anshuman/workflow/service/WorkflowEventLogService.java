@@ -1,9 +1,9 @@
 package com.anshuman.workflow.service;
 
-import com.anshuman.workflow.data.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.data.model.dao.WorkflowEventLogDao;
 import com.anshuman.workflow.data.model.entity.WorkflowEventLogEntity;
 import com.anshuman.workflow.data.model.repository.WorkflowEventLogRepository;
+import com.anshuman.workflow.resource.dto.WorkflowEventLogDto;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,7 @@ public class WorkflowEventLogService {
 
     @Transactional
     public void logEvent(WorkflowEventLogDto workflowEventLogDTO) {
+        log.debug("Attempting to log workflow event" );
         CompletableFuture.supplyAsync(() -> {
             var savedWorkflowEventLog = workflowEventLogRepository.save(WorkflowEventLogDto.toEntity(workflowEventLogDTO));
             log.debug("saved workflowEventLogEntity: {}", savedWorkflowEventLog);

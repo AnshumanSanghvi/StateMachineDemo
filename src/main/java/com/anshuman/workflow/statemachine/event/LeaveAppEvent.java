@@ -25,8 +25,8 @@ public enum LeaveAppEvent {
     }
 
     public static LeaveAppEvent getByName(String name) {
-        for(LeaveAppEvent e : values) {
-            if(e.name().equalsIgnoreCase(name))
+        for (LeaveAppEvent e : values) {
+            if (e.name().equalsIgnoreCase(name))
                 return e;
         }
         throw new IllegalArgumentException("No event with the given name found");

@@ -1,4 +1,4 @@
-package com.anshuman.workflow.data.dto;
+package com.anshuman.workflow.resource.dto;
 
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.WorkflowEventLogEntity;

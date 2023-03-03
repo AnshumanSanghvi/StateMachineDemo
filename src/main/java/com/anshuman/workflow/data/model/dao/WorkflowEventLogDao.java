@@ -1,9 +1,9 @@
 package com.anshuman.workflow.data.model.dao;
 
-import com.anshuman.workflow.data.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.WorkflowEventLogEntity;
 import com.anshuman.workflow.exception.WorkflowException;
+import com.anshuman.workflow.resource.dto.WorkflowEventLogDto;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;

@@ -2,11 +2,11 @@ package com.anshuman.workflow.statemachine;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
 
-import com.anshuman.workflow.data.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.data.enums.WorkFlowTypeStateMachine;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.workflow.data.model.repository.WorkflowTypeRepository;
+import com.anshuman.workflow.resource.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.service.WorkflowEventLogService;
 import com.anshuman.workflow.statemachine.data.Pair;
 import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
@@ -19,6 +19,7 @@ import com.anshuman.workflow.statemachine.util.EventSendHelper;
 import com.anshuman.workflow.statemachine.util.StringUtil;
 import com.anshuman.workflow.statemachine.util.WFPropsToSMExtStateHelper;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -45,7 +46,7 @@ public class LeaveAppStateMachineService {
         // get the state machine associated with the given workflow type as per required state machine version.
         var stateMachine = getStateMachineFromWFType(entity.getTypeId(), "v1");
 
-        if(stateMachine == null) {
+        if (stateMachine == null) {
             throw new StateMachineException("StateMachine was not created");
         }
 
@@ -82,9 +83,11 @@ public class LeaveAppStateMachineService {
                 .map(StringUtil::event)
                 .collect(Collectors.joining(", "));
 
-            throw new StateMachineException("Did not persist the state machine context to the database, "
+            log.error("Did not persist the state machine context to the database, "
                 + "as the following passed event: [" + eventStr + "]" +
                 " were not accepted by the statemachine of the LeaveApp with id: " + entity.getId());
+
+            return Collections.emptyList();
         }
 
         // save the state machine context once event is accepted.
@@ -97,9 +100,8 @@ public class LeaveAppStateMachineService {
     @Transactional
     public void saveStateMachineToEntity(@NotNull StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
         @NotNull LeaveAppWorkFlowInstanceEntity entity, boolean validate) {
-        if(validate) validateThatEntityHasStateMachineContext(entity);
+        if (validate) validateThatEntityHasStateMachineContext(entity);
         stateMachineAdapter.persist(stateMachine, entity);
-        entity.setCurrentState(stateMachine.getState().getId());
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
     }
 
@@ -112,7 +114,7 @@ public class LeaveAppStateMachineService {
     private StateMachine<LeaveAppState, LeaveAppEvent> getStateMachineFromEntity(LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityHasStateMachineContext(entity);
         StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = stateMachineAdapter.restore(LEAVE_APP_WF_V1, entity);
-        log.debug("entity id: {}, current state: {}, stateMachine current state: {}", entity.getId(),
+        log.debug("Restored statemachine for entity id: {}, current state: {}, stateMachine current state: {}", entity.getId(),
             entity.getCurrentState(), stateMachine.getState().getId());
         return stateMachine;
     }

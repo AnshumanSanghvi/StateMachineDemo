@@ -1,6 +1,6 @@
 logging:
   level:
-    com.anshuman.workflow: INFO
+    com.anshuman.workflow: DEBUG
     org.springframework: INFO
     org.springframework.statemachine: INFO
     org.springframework.statemachine.support: INFO

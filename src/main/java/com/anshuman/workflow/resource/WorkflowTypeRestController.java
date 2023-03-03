@@ -1,8 +1,8 @@
 package com.anshuman.workflow.resource;
 
-import com.anshuman.workflow.data.dto.WorkflowTypeDto;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.WorkflowTypeEntity;
+import com.anshuman.workflow.resource.dto.WorkflowTypeDto;
 import com.anshuman.workflow.service.WorkflowTypeService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

@@ -57,7 +57,7 @@ public class WFPropsToSMExtStateHelper {
     private static <K, V> Map<K, V> pairListToMap(List<Pair<K, V>> pairList) {
         return pairList
             .stream()
-            .collect(toMap(Pair::getFirst,Pair::getSecond));
+            .collect(toMap(Pair::getFirst, Pair::getSecond));
     }
 
 }

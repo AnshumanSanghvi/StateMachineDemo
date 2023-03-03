@@ -32,6 +32,7 @@ public class DefaultStateMachineAdapter<S, E, T> {
             StateMachine<S, E> stateMachine = stateMachinePersister.restore(create(stateMachineId), contextObj);
             log.debug("Restored stateMachine: {}", StringUtil.stateMachine(stateMachine, false));
             log.trace("Restored stateMachine with details: {}", StringUtil.stateMachine(stateMachine, true));
+            stateMachine.startReactively().block();
             return stateMachine;
         } catch (Exception e) {
             String errMsg = "Could not restore a state machine from the database, for a statemachine with id: " +

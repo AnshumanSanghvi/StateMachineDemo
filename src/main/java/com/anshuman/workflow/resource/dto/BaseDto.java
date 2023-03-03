@@ -1,4 +1,4 @@
-package com.anshuman.workflow.data.dto;
+package com.anshuman.workflow.resource.dto;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
