@@ -50,10 +50,10 @@ public class WorkflowEventLogEntity {
     @Column(name = "instance_id", nullable = false, updatable = false)
     private Long instanceId;
 
-    @Column(name = "state", nullable = false, updatable = false)
+    @Column(name = "state", nullable = false, updatable = false, length = 100)
     private String state;
 
-    @Column(name = "event", nullable = false, updatable = false)
+    @Column(name = "event", nullable = false, updatable = false, length = 100)
     private String event;
 
     @Column(name = "action_date", nullable = false, updatable = false)

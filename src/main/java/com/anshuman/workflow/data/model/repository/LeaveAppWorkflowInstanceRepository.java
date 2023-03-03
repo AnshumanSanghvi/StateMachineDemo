@@ -1,7 +1,7 @@
 package com.anshuman.workflow.data.model.repository;
 
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
-import com.anshuman.workflow.data.model.repository.projection.LAWFProjection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -35,15 +35,14 @@ public interface LeaveAppWorkflowInstanceRepository
 
     @Modifying
     @Query("UPDATE LeaveAppWorkFlowInstanceEntity lwf "
-        + "SET lwf.isActive = 0 "
+        + "SET lwf.isActive = 0, "
+        + "lwf.deletedDate = NOW()"
         + "WHERE lwf.id = :id")
     void deleteById(@Param("id") Long id);
 
 
-    @Query(value = " SELECT new com.anshuman.workflow.data.model.repository.projection.LAWFProjection( "
-        + " lawf.id, lawf.currentState, lawf.stateMachineContext, lawf.isActive) "
+    @Query(value = " SELECT lawf "
         + " FROM LeaveAppWorkFlowInstanceEntity lawf "
-        + " WHERE lawf.isActive = 1 "
-        + "     AND lawf.id = :id")
-    Optional<LAWFProjection> findPartialById(@Param("id") Long id);
+        + " WHERE lawf.isActive = 1 ")
+    List<LeaveAppWorkFlowInstanceEntity> findAll();
 }
