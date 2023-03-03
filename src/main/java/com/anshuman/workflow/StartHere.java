@@ -1,5 +1,6 @@
 package com.anshuman.workflow;
 
+import static com.anshuman.workflow.data.enums.WorkflowType.LEAVE_APPLICATION;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_INITIALIZE;
@@ -10,14 +11,15 @@ import static com.anshuman.workflow.statemachine.util.EventResultHelper.toResult
 import static com.anshuman.workflow.statemachine.util.EventSendHelper.sendEvent;
 import static com.anshuman.workflow.statemachine.util.EventSendHelper.sendForwardEvent;
 
-import com.anshuman.workflow.data.dto.BaseDto;
-import com.anshuman.workflow.data.dto.LeaveAppWFInstanceDto;
-import com.anshuman.workflow.data.dto.WorkflowInstanceDto;
-import com.anshuman.workflow.data.dto.WorkflowPropertiesDto;
-import com.anshuman.workflow.data.dto.WorkflowTypeDto;
-import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.ContextEntity;
-import com.anshuman.workflow.service.LeaveApplicationWFService;
+import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
+import com.anshuman.workflow.resource.dto.BaseDto;
+import com.anshuman.workflow.resource.dto.LeaveAppWFInstanceDto;
+import com.anshuman.workflow.resource.dto.PassEventDto;
+import com.anshuman.workflow.resource.dto.WorkflowInstanceDto;
+import com.anshuman.workflow.resource.dto.WorkflowPropertiesDto;
+import com.anshuman.workflow.resource.dto.WorkflowTypeDto;
+import com.anshuman.workflow.service.LeaveAppWFService;
 import com.anshuman.workflow.service.WorkflowTypeService;
 import com.anshuman.workflow.statemachine.action.LeaveAppActions;
 import com.anshuman.workflow.statemachine.data.Pair;
@@ -25,6 +27,8 @@ import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,27 +49,43 @@ public class StartHere implements CommandLineRunner {
 
     private final DefaultStateMachineAdapter<LeaveAppState, LeaveAppEvent, ContextEntity<LeaveAppState, LeaveAppEvent>> stateMachineAdapter;
     private final WorkflowTypeService workflowTypeService;
-    private final LeaveApplicationWFService leaveApplicationWFService;
+    private final ObjectMapper mapper;
+    private final LeaveAppWFService leaveAppWFService;
 
     @Override
     public void run(String... args) throws Exception {
-        leaveAppWorkflow();
-        //leaveAppStateMachine();
-        //createWorkflowType();
+//        createWorkflowType();
+//        var entity = createLeaveApplication();
+//        passEvent();
+//        leaveAppStateMachine();
     }
 
-    private void leaveAppWorkflow() {
+    private LeaveAppWorkFlowInstanceEntity createLeaveApplication() throws JsonProcessingException {
         var baseDto = new BaseDto(1L, 1, LocalDateTime.now(), null, null);
         List<Pair<Integer, Long>> reviewerPairList = List.of(new Pair<>(1, 234L), new Pair<>(2, 123L), new Pair<>(3, 235L));
-        var wfInstDto = new WorkflowInstanceDto(baseDto, WorkflowType.LEAVE_APPLICATION, 1L,null, null, (short) 0, (short) 0, (short) 1, reviewerPairList);
+        var wfInstDto = new WorkflowInstanceDto(baseDto, LEAVE_APPLICATION, 1L, null, null, (short) 1, reviewerPairList);
         LeaveAppWFInstanceDto dto = new LeaveAppWFInstanceDto(wfInstDto, 1);
-        var entity = leaveApplicationWFService.createLeaveApplication(LeaveAppWFInstanceDto.toEntity(dto));
-        leaveApplicationWFService.updateLeaveApplication(entity, E_INITIALIZE);
+        System.out.println(mapper.writeValueAsString(dto));
+        return leaveAppWFService.createLeaveApplication(LeaveAppWFInstanceDto.toEntity(dto));
     }
-    public void createWorkflowType() {
+
+    private void passEvent() throws JsonProcessingException {
+        PassEventDto eventDto = PassEventDto.builder()
+            .event(E_SUBMIT.name())
+            .orderNo(1)
+            .comment("")
+            .workflowType(LEAVE_APPLICATION)
+            .workflowInstance(9L)
+            .build();
+        System.out.println("eventDto: " + mapper.writeValueAsString(eventDto));
+        leaveAppWFService.passEvent(eventDto);
+    }
+
+    public void createWorkflowType() throws JsonProcessingException {
         var baseDto = new BaseDto(1L, 1, LocalDateTime.now(), null, null);
-        var wfPropDto = new WorkflowPropertiesDto(false, false, true, true, List.of(0L),3, 3);
-        var dto = new WorkflowTypeDto(baseDto,  LocalDateTime.now(), 1, (short) 1, 1L, wfPropDto);
+        var wfPropDto = new WorkflowPropertiesDto(false, false, true, true, List.of(0L), 3, 3);
+        var dto = new WorkflowTypeDto(baseDto, LocalDateTime.now(), 1, (short) 1, 1L, wfPropDto);
+        System.out.println(mapper.writeValueAsString(dto));
         var wfType = workflowTypeService.createWorkflowType(WorkflowTypeDto.toEntity(dto));
         log.info("workflow type created: {}", wfType);
     }
