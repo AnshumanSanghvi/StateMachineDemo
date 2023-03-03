@@ -3,8 +3,12 @@ package com.anshuman.workflow.service;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.workflow.data.model.repository.LeaveAppWorkflowInstanceRepository;
 import com.anshuman.workflow.exception.WorkflowException;
+import com.anshuman.workflow.resource.dto.EventResponseDto;
+import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.statemachine.LeaveAppStateMachineService;
+import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
+import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
@@ -55,16 +59,17 @@ public class LeaveAppWFService {
 
 
     /* UPDATE */
-    public LeaveAppWorkFlowInstanceEntity updateLeaveApplication(@NotNull Long id, LeaveAppEvent event) {
-        LeaveAppWorkFlowInstanceEntity entity = leaveAppRepository.getReferenceById(id);
-        return updateLeaveApplication(entity, event);
+    public List<EventResponseDto> passEvent(PassEventDto eventDto) {
+        LeaveAppWorkFlowInstanceEntity entity = getLeaveApplicationById(eventDto.getWorkflowInstance());
+        if (entity == null)
+            return null;
+        List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = leaveAppStateMachineService.passEventsToEntityStateMachine(entity, eventDto);
+        updateLeaveApplication(entity);
+        return EventResponseDto.fromEventResults(entity.getId(), entity.getTypeId(), resultDTOList);
     }
 
     @Transactional
-    public LeaveAppWorkFlowInstanceEntity updateLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity, LeaveAppEvent event) {
-        if (event != null) {
-            leaveAppStateMachineService.passEventsToEntityStateMachine(entity, event);
-        }
+    public LeaveAppWorkFlowInstanceEntity updateLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         LeaveAppWorkFlowInstanceEntity updatedEntity = leaveAppRepository.save(entity);
         log.debug("Updated Entity: {}", updatedEntity);
         return updatedEntity;

@@ -1,10 +1,12 @@
 package com.anshuman.workflow.resource;
 
-import com.anshuman.workflow.data.dto.LeaveAppWFInstanceDto;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
+import com.anshuman.workflow.resource.dto.EventResponseDto;
+import com.anshuman.workflow.resource.dto.LeaveAppWFInstanceDto;
+import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.service.LeaveAppWFService;
-import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,10 +42,10 @@ public class LeaveAppWFRestController {
         return leaveAppWFService.getAll();
     }
 
-    @PostMapping("/{id}/{event}")
-    public @ResponseBody LeaveAppWorkFlowInstanceEntity sendEvent(@PathVariable("id") Long id, @PathVariable("event") String event) {
-        log.debug("update leaveAppWfEntity with id: {} by passing event: {}", id, event);
-        return leaveAppWFService.updateLeaveApplication(id, LeaveAppEvent.getByName(event));
+    @PostMapping("/event")
+    public @ResponseBody List<EventResponseDto> sendEvent(@NotNull @RequestBody PassEventDto eventDto) {
+        log.debug("update leaveAppWfEntity with event: {}", eventDto);
+        return leaveAppWFService.passEvent(eventDto);
     }
 
     @DeleteMapping("/{id}")

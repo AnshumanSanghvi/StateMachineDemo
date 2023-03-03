@@ -6,6 +6,7 @@ import com.anshuman.workflow.data.enums.WorkFlowTypeStateMachine;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.workflow.data.model.repository.WorkflowTypeRepository;
+import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.resource.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.service.WorkflowEventLogService;
 import com.anshuman.workflow.statemachine.data.Pair;
@@ -61,13 +62,24 @@ public class LeaveAppStateMachineService {
         return stateMachine;
     }
 
-    public void passEventsToEntityStateMachine(LeaveAppWorkFlowInstanceEntity entity, LeaveAppEvent event) {
+    public List<EventResultDTO<LeaveAppState, LeaveAppEvent>> passEventsToEntityStateMachine(LeaveAppWorkFlowInstanceEntity entity, PassEventDto eventDto) {
 
         // get the state machine for the given entity.
         StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = getStateMachineFromEntity(entity);
 
+        LeaveAppEvent event = LeaveAppEvent.getByName(eventDto.getEvent());
+        Long actionBy = eventDto.getActionBy();
+        Integer order = eventDto.getOrderNo();
+        String comment = eventDto.getComment();
+
         // send the event to the state machine
-        var resultFlux = EventSendHelper.sendEvent(stateMachine, event);
+        var resultFlux = switch (event) {
+            case E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION,
+                E_APPROVE, E_REJECT, E_CANCEL, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
+            case E_REQUEST_CHANGES_IN -> EventSendHelper.sendRequestChangesEvent(stateMachine, event, order, actionBy, comment);
+            case E_FORWARD -> EventSendHelper.sendForwardEvent(stateMachine, event, order, actionBy);
+            case E_ROLL_BACK -> EventSendHelper.sendRollBackApprovalEvent(stateMachine, event, order, actionBy);
+        };
 
         // parse the result
         List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = EventResultHelper.toResultDTOList(resultFlux);
@@ -95,6 +107,8 @@ public class LeaveAppStateMachineService {
 
         // log the event asynchronously once it is successfully processed by the statemachine.
         writeToLog(entity, stateMachine, event);
+
+        return resultDTOList;
     }
 
     @Transactional
