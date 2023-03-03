@@ -20,6 +20,7 @@ import com.anshuman.workflow.statemachine.util.StringUtil;
 import com.anshuman.workflow.statemachine.util.WFPropsToSMExtStateHelper;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
@@ -40,9 +41,13 @@ public class LeaveAppStateMachineService {
     private final WorkflowTypeRepository workflowTypeRepository;
     private final WorkflowEventLogService workflowEventLogService;
 
-    public void saveStateMachineForCreatedLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
+    public StateMachine<LeaveAppState, LeaveAppEvent> saveStateMachineForCreatedLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         // get the state machine associated with the given workflow type as per required state machine version.
         var stateMachine = getStateMachineFromWFType(entity.getTypeId(), "v1");
+
+        if(stateMachine == null) {
+            throw new StateMachineException("StateMachine was not created");
+        }
 
         // set the state machine extended state from the workflow type and workflow instance
         List<Pair<Integer, Long>> reviewers = entity.getReviewers();
@@ -51,6 +56,8 @@ public class LeaveAppStateMachineService {
 
         // save the state machine
         saveStateMachineToEntity(stateMachine, entity, false);
+
+        return stateMachine;
     }
 
     public void passEventsToEntityStateMachine(LeaveAppWorkFlowInstanceEntity entity, LeaveAppEvent event) {
@@ -84,22 +91,11 @@ public class LeaveAppStateMachineService {
         saveStateMachineToEntity(stateMachine, entity, true);
 
         // log the event asynchronously once it is successfully processed by the statemachine.
-        var wfEventLogDto = WorkflowEventLogDto.builder()
-            .companyId(entity.getCompanyId())
-            .branchId(entity.getBranchId())
-            .typeId(entity.getTypeId())
-            .instanceId(entity.getId())
-            .state(stateMachine.getState().getId().toString())
-            .event(event.toString())
-            .actionDate(LocalDateTime.now())
-            .completed((short) (stateMachine.isComplete() ? 1 : 0))
-            .actionBy(0L)
-            .userRole((short) 0)
-            .build();
-        workflowEventLogService.logEvent(wfEventLogDto);
+        writeToLog(entity, stateMachine, event);
     }
 
-    private void saveStateMachineToEntity(@NotNull StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
+    @Transactional
+    public void saveStateMachineToEntity(@NotNull StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
         @NotNull LeaveAppWorkFlowInstanceEntity entity, boolean validate) {
         if(validate) validateThatEntityHasStateMachineContext(entity);
         stateMachineAdapter.persist(stateMachine, entity);
@@ -130,6 +126,23 @@ public class LeaveAppStateMachineService {
             .map(Pair::getSecond)
             .map(stateMachineAdapter::create)
             .orElse(null);
+    }
+
+    public void writeToLog(LeaveAppWorkFlowInstanceEntity entity, StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, LeaveAppEvent event) {
+        // log the event asynchronously once it is successfully processed by the statemachine.
+        var wfEventLogDto = WorkflowEventLogDto.builder()
+            .companyId(entity.getCompanyId())
+            .branchId(entity.getBranchId())
+            .typeId(entity.getTypeId())
+            .instanceId(entity.getId())
+            .state(stateMachine.getState().getId().toString())
+            .event(Optional.ofNullable(event).map(LeaveAppEvent::name).orElse(null))
+            .actionDate(LocalDateTime.now())
+            .completed((short) (stateMachine.isComplete() ? 1 : 0))
+            .actionBy(entity.getCreatedByUserId())
+            .userRole((short) 0)
+            .build();
+        workflowEventLogService.logEvent(wfEventLogDto);
     }
 
 }
