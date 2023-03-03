@@ -28,9 +28,10 @@ public class LeaveAppWFService {
     @Transactional
     public LeaveAppWorkFlowInstanceEntity createLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityDoesNotExist(entity);
-        leaveAppStateMachineService.saveStateMachineForCreatedLeaveApplication(entity);
+        var stateMachine = leaveAppStateMachineService.saveStateMachineForCreatedLeaveApplication(entity);
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
+        leaveAppStateMachineService.writeToLog(entity, stateMachine, null);
         return savedEntity;
     }
 
