@@ -4,8 +4,8 @@ import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.converter.WorkflowTypeIdConverter;
 import com.anshuman.workflow.statemachine.data.Pair;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -58,7 +58,7 @@ public abstract class WorkflowInstanceEntity extends BaseEntity {
     @Column(columnDefinition = "jsonb", name = "reviewers")
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.EAGER)
-    private List<Pair<Integer, Long>> reviewers;
+    private List<Pair<Integer, Long>> reviewers = Collections.emptyList();
 
     @Override
     public boolean equals(Object o) {
@@ -68,13 +68,48 @@ public abstract class WorkflowInstanceEntity extends BaseEntity {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        WorkflowInstanceEntity that = (WorkflowInstanceEntity) o;
-        return this.getId() != null && Objects.equals(this.getId(), that.getId());
+        if (!(o instanceof WorkflowInstanceEntity that)) {
+            return false;
+        }
+        if (getTimesRolledBackCount() != that.getTimesRolledBackCount()) {
+            return false;
+        }
+        if (getTimesReturnedCount() != that.getTimesReturnedCount()) {
+            return false;
+        }
+        if (getWorkflowVersion() != that.getWorkflowVersion()) {
+            return false;
+        }
+        if (getId() != null && !getId().equals(that.getId())) {
+            return false;
+        }
+        if (getCreatedByUserId() != null && !getCreatedByUserId().equals(that.getCreatedByUserId())) {
+            return false;
+        }
+        if (getUpdatedByUserId() != null && !getUpdatedByUserId().equals(that.getUpdatedByUserId())) {
+            return false;
+        }
+        if (getDeletedByUserId() != null && !getDeletedByUserId().equals(that.getDeletedByUserId())) {
+            return false;
+        }
+        if (getReviewers() != null && !getReviewers().equals(that.getReviewers())) {
+            return false;
+        }
+
+        return getTypeId() != that.getTypeId();
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        int result = getTypeId().hashCode();
+        if (getId() != null) result = 31 * result + getId().hashCode();
+        if(getCreatedByUserId() != null) result = 31 * result + getCreatedByUserId().hashCode();
+        if(getUpdatedByUserId() != null) result = 31 * result + getUpdatedByUserId().hashCode();
+        if(getDeletedByUserId() != null) result = 31 * result + getDeletedByUserId().hashCode();
+        result = 31 * result + (int) getTimesRolledBackCount();
+        result = 31 * result + (int) getTimesReturnedCount();
+        result = 31 * result + (int) getWorkflowVersion();
+        result = 31 * result + getReviewers().hashCode();
+        return result;
     }
-
 }

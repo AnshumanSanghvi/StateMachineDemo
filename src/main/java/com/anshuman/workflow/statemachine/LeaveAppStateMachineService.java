@@ -2,9 +2,9 @@ package com.anshuman.workflow.statemachine;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
 
-import com.anshuman.workflow.data.enums.WorkFlowTypeStateMachine;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
+import com.anshuman.workflow.data.model.entity.WorkflowProperties;
 import com.anshuman.workflow.data.model.repository.WorkflowTypeRepository;
 import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.resource.dto.WorkflowEventLogDto;
@@ -53,19 +53,15 @@ public class LeaveAppStateMachineService {
 
         // set the state machine extended state from the workflow type and workflow instance
         List<Pair<Integer, Long>> reviewers = entity.getReviewers();
-        var properties = workflowTypeRepository.getPropertiesByTypeId(entity.getTypeId());
+        var properties = getWorkFlowPropertiesByType(entity.getTypeId());
         WFPropsToSMExtStateHelper.setExtendedStateProperties(stateMachine, properties, reviewers);
-
-        // save the state machine
-        saveStateMachineToEntity(stateMachine, entity, false);
 
         return stateMachine;
     }
 
-    public List<EventResultDTO<LeaveAppState, LeaveAppEvent>> passEventsToEntityStateMachine(LeaveAppWorkFlowInstanceEntity entity, PassEventDto eventDto) {
-
-        // get the state machine for the given entity.
-        StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = getStateMachineFromEntity(entity);
+    public Pair<StateMachine<LeaveAppState, LeaveAppEvent>, List<EventResultDTO<LeaveAppState, LeaveAppEvent>>> passEventsToStateMachine(Long entityId,
+        StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
+        PassEventDto eventDto) {
 
         LeaveAppEvent event = LeaveAppEvent.getByName(eventDto.getEvent());
         Long actionBy = eventDto.getActionBy();
@@ -80,6 +76,7 @@ public class LeaveAppStateMachineService {
             case E_FORWARD -> EventSendHelper.sendForwardEvent(stateMachine, event, order, actionBy);
             case E_ROLL_BACK -> EventSendHelper.sendRollBackApprovalEvent(stateMachine, event, order, actionBy);
         };
+        log.debug("After passing event: {}, resultFlux is: {}", event, resultFlux);
 
         // parse the result
         List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = EventResultHelper.toResultDTOList(resultFlux);
@@ -97,26 +94,25 @@ public class LeaveAppStateMachineService {
 
             log.error("Did not persist the state machine context to the database, "
                 + "as the following passed event: [" + eventStr + "]" +
-                " were not accepted by the statemachine of the LeaveApp with id: " + entity.getId());
+                " were not accepted by the statemachine of the LeaveApp with id: " + entityId);
 
-            return Collections.emptyList();
+            return new Pair<>(stateMachine, Collections.emptyList());
         }
 
-        // save the state machine context once event is accepted.
-        saveStateMachineToEntity(stateMachine, entity, true);
-
-        // log the event asynchronously once it is successfully processed by the statemachine.
-        writeToLog(entity, stateMachine, event);
-
-        return resultDTOList;
+        return new Pair<>(stateMachine, resultDTOList);
     }
 
     @Transactional
     public void saveStateMachineToEntity(@NotNull StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
-        @NotNull LeaveAppWorkFlowInstanceEntity entity, boolean validate) {
+        @NotNull LeaveAppWorkFlowInstanceEntity entity, LeaveAppEvent event, boolean validate) {
         if (validate) validateThatEntityHasStateMachineContext(entity);
+        // TODO: FIX: this is where event is still initialize
+        stateMachine.stopReactively().block();
         stateMachineAdapter.persist(stateMachine, entity);
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
+
+        // log the event asynchronously once it is successfully processed by the statemachine.
+        writeToLog(entity, stateMachine, event);
     }
 
     private static void validateThatEntityHasStateMachineContext(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
@@ -125,11 +121,11 @@ public class LeaveAppStateMachineService {
         }
     }
 
-    private StateMachine<LeaveAppState, LeaveAppEvent> getStateMachineFromEntity(LeaveAppWorkFlowInstanceEntity entity) {
+    public StateMachine<LeaveAppState, LeaveAppEvent> getStateMachineFromEntity(LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityHasStateMachineContext(entity);
         StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = stateMachineAdapter.restore(LEAVE_APP_WF_V1, entity);
-        log.debug("Restored statemachine for entity id: {}, current state: {}, stateMachine current state: {}", entity.getId(),
-            entity.getCurrentState(), stateMachine.getState().getId());
+        log.debug("For entity with id: {} and currentState: {}, Restored statemachine with id: {} and current state: {}",
+            entity.getId(), entity.getCurrentState(), stateMachine.getId(), stateMachine.getState().getId());
         return stateMachine;
     }
 
@@ -159,6 +155,12 @@ public class LeaveAppStateMachineService {
             .userRole((short) 0)
             .build();
         workflowEventLogService.logEvent(wfEventLogDto);
+    }
+
+    public WorkflowProperties getWorkFlowPropertiesByType(WorkflowType workflowType) {
+        var properties = workflowTypeRepository.getPropertiesByTypeId(workflowType);
+        log.debug("Retrieved workflow properties: {} from workflowType: {}", properties, workflowType);
+        return  properties;
     }
 
 }

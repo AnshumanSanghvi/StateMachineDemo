@@ -6,9 +6,7 @@ import com.anshuman.workflow.exception.WorkflowException;
 import com.anshuman.workflow.resource.dto.EventResponseDto;
 import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.statemachine.LeaveAppStateMachineService;
-import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
-import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -33,9 +31,13 @@ public class LeaveAppWFService {
     @Transactional
     public LeaveAppWorkFlowInstanceEntity createLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityDoesNotExist(entity);
-        var stateMachine = leaveAppStateMachineService.saveStateMachineForCreatedLeaveApplication(entity);
+
+        var stateMachine = leaveAppStateMachineService.createStateMachine(entity);
+        leaveAppStateMachineService.saveStateMachineToEntity(stateMachine, entity, null, false);
+
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
+
         leaveAppStateMachineService.writeToLog(entity, stateMachine, null);
         return savedEntity;
     }
@@ -62,12 +64,23 @@ public class LeaveAppWFService {
     /* UPDATE */
     public List<EventResponseDto> passEvent(PassEventDto eventDto) {
         LeaveAppWorkFlowInstanceEntity entity = getLeaveApplicationById(eventDto.getWorkflowInstance());
-        if (entity == null)
+        if (entity == null) {
+            log.warn("returning empty results as entity was null");
             return Collections.emptyList();
+        }
 
-        List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = leaveAppStateMachineService.passEventsToEntityStateMachine(entity, eventDto);
-        if (resultDTOList.isEmpty())
+        var stateMachine = leaveAppStateMachineService.getStateMachineFromEntity(entity);
+
+        var result = leaveAppStateMachineService.passEventsToStateMachine(entity.getId(), stateMachine,
+            eventDto);
+        var resultDTOList = result.getSecond();
+        if (resultDTOList.isEmpty()) {
+            log.warn("the statemachine returned empty results.");
             return Collections.emptyList();
+        }
+
+        stateMachine = result.getFirst();
+        leaveAppStateMachineService.saveStateMachineToEntity(stateMachine, entity, LeaveAppEvent.getByName(eventDto.getEvent()), true);
 
         updateLeaveApplication(entity);
 
