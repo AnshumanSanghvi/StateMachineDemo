@@ -9,6 +9,7 @@ import com.anshuman.workflow.statemachine.LeaveAppStateMachineService;
 import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
@@ -62,9 +63,14 @@ public class LeaveAppWFService {
     public List<EventResponseDto> passEvent(PassEventDto eventDto) {
         LeaveAppWorkFlowInstanceEntity entity = getLeaveApplicationById(eventDto.getWorkflowInstance());
         if (entity == null)
-            return null;
+            return Collections.emptyList();
+
         List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = leaveAppStateMachineService.passEventsToEntityStateMachine(entity, eventDto);
+        if (resultDTOList.isEmpty())
+            return Collections.emptyList();
+
         updateLeaveApplication(entity);
+
         return EventResponseDto.fromEventResults(entity.getId(), entity.getTypeId(), resultDTOList);
     }
 
