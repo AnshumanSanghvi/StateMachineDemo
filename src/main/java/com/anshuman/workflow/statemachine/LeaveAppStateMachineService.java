@@ -35,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
 // TODO: generalize this class for all state machines
 public class LeaveAppStateMachineService {
 
@@ -43,6 +42,7 @@ public class LeaveAppStateMachineService {
     private final WorkflowTypeRepository workflowTypeRepository;
     private final WorkflowEventLogService workflowEventLogService;
 
+    @Transactional(readOnly = true)
     public StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         // create statemachine as per the entity's statemachine id.
         var stateMachine = stateMachineAdapter.create(entity.getStateMachineId());
@@ -59,7 +59,8 @@ public class LeaveAppStateMachineService {
         return stateMachine;
     }
 
-    public Pair<StateMachine<LeaveAppState, LeaveAppEvent>, List<EventResultDTO<LeaveAppState, LeaveAppEvent>>> passEventsToStateMachine(Long entityId,
+    @Transactional
+    public Pair<StateMachine<LeaveAppState, LeaveAppEvent>, List<EventResultDTO<LeaveAppState, LeaveAppEvent>>> passEvent(Long entityId,
         StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, PassEventDto eventDto) {
 
         LeaveAppEvent event = LeaveAppEvent.getByName(eventDto.getEvent());
@@ -105,8 +106,6 @@ public class LeaveAppStateMachineService {
     public void saveStateMachineToEntity(@NotNull StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
         @NotNull LeaveAppWorkFlowInstanceEntity entity, LeaveAppEvent event, boolean validate) {
         if (validate) validateThatEntityHasStateMachineContext(entity);
-        // TODO: FIX: this is where event is still initialize
-        stateMachine.stopReactively().block();
         stateMachineAdapter.persist(stateMachine, entity);
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
 
@@ -120,11 +119,12 @@ public class LeaveAppStateMachineService {
         }
     }
 
+    @Transactional(readOnly = true)
     public StateMachine<LeaveAppState, LeaveAppEvent> getStateMachineFromEntity(LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityHasStateMachineContext(entity);
         StateMachine<LeaveAppState, LeaveAppEvent> stateMachine = stateMachineAdapter.restore(LEAVE_APP_WF_V1, entity);
-        log.debug("For entity with id: {} and currentState: {}, Restored statemachine with id: {} and current state: {}",
-            entity.getId(), entity.getCurrentState(), stateMachine.getId(), stateMachine.getState().getId());
+        log.debug("For entity with id: {} and currentState: {}, Restored statemachine: {}",
+            entity.getId(), entity.getCurrentState(), StringUtil.stateMachine(stateMachine, false));
         return stateMachine;
     }
 
@@ -145,6 +145,7 @@ public class LeaveAppStateMachineService {
         workflowEventLogService.logEvent(wfEventLogDto);
     }
 
+    @Transactional(readOnly = true)
     public WorkflowProperties getWorkFlowPropertiesByType(WorkflowType workflowType) {
         var properties = workflowTypeRepository.getPropertiesByTypeId(workflowType);
         log.debug("Retrieved workflow properties: {} from workflowType: {}", properties, workflowType);

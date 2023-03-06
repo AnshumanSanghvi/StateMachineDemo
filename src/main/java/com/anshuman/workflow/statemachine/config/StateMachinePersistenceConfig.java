@@ -2,7 +2,6 @@ package com.anshuman.workflow.statemachine.config;
 
 import com.anshuman.workflow.data.model.entity.ContextEntity;
 import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
-import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +30,14 @@ public class StateMachinePersistenceConfig {
             @SuppressWarnings("RedundantThrows")
             @Override
             public void write(StateMachineContext<S, E> context, ContextEntity<S, E> contextObj) throws Exception {
-                var stateMachineContext = new DefaultStateMachineContext<>(context.getState(), context.getEvent(),
-                    context.getEventHeaders(), context.getExtendedState(), Collections.emptyMap(), context.getId());
+                var children = context.getChilds();
+                S state = context.getState();
+                E event = context.getEvent();
+                var eventHeaders = context.getEventHeaders();
+                var extendedState = context.getExtendedState();
+                var historyStates = context.getHistoryStates();
+                String id = context.getId();
+                var stateMachineContext = new DefaultStateMachineContext<>(children, state, event, eventHeaders, extendedState, historyStates, id);
                 contextObj.setStateMachineContext(stateMachineContext);
             }
 
