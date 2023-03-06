@@ -72,17 +72,17 @@ public class LeaveAppStateMachineService {
         // send the event to the state machine
         var resultFlux = switch (event) {
             case E_INITIALIZE, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION,
-                E_REJECT, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
+                E_REJECT, E_CANCEL, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
             case E_SUBMIT -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_REVIEW_OF);
-            case E_CANCEL, E_APPROVE -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_COMPLETE);
+            case E_APPROVE -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_COMPLETE);
             case E_REQUEST_CHANGES_IN -> EventSendHelper.sendRequestChangesEvent(stateMachine, event, order, actionBy, comment);
             case E_FORWARD -> EventSendHelper.sendForwardEvent(stateMachine, event, order, actionBy, comment);
             case E_ROLL_BACK -> EventSendHelper.sendRollBackApprovalEvent(stateMachine, event, order, actionBy);
         };
-        log.debug("After passing event: {}, resultFlux is: {}", event, resultFlux);
 
         // parse the result
         List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = EventResultHelper.toResultDTOList(resultFlux);
+        log.debug("After passing event: {}, resultFlux is: {}", event, resultDTOList);
 
         // find out if any event wasn't accepted.
         boolean hasErrors = resultDTOList.stream().anyMatch(Predicate.not(EventResultDTO.accepted));

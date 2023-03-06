@@ -184,7 +184,7 @@ public class StringUtil {
 
         String stateStr = state(stateMachine.getState());
         String idStr = stateMachine.getId();
-        String output = "StateMachine[id: " + idStr + ",\n currentState: " + stateStr;
+        String output = "StateMachine[id: " + idStr + ", currentState: " + stateStr;
 
         if (detailed) {
             String extendedStateStr = extendedState(stateMachine.getExtendedState());
