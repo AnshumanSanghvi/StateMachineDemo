@@ -47,7 +47,7 @@ public class LeaveAppWFService {
             throw new WorkflowException("Could not save LeaveApplication", new StateMachineException("StateMachine did not accept initialize event"));
         }
 
-        leaveAppStateMachineService.saveStateMachineToEntity(result.getFirst(), entity, LeaveAppEvent.E_INITIALIZE, false);
+        leaveAppStateMachineService.saveStateMachineToEntity(result.getFirst(), entity, eventDto, false);
 
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
@@ -96,7 +96,7 @@ public class LeaveAppWFService {
         }
 
         stateMachine = result.getFirst();
-        leaveAppStateMachineService.saveStateMachineToEntity(stateMachine, entity, LeaveAppEvent.getByName(eventDto.getEvent()), true);
+        leaveAppStateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto, true);
 
         updateLeaveApplication(eventDto, stateMachine, entity);
 

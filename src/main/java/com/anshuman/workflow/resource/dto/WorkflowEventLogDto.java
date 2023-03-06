@@ -34,6 +34,8 @@ public class WorkflowEventLogDto {
 
     private Short completed;
 
+    private String comment;
+
     public static WorkflowEventLogEntity toEntity(WorkflowEventLogDto dto) {
         return WorkflowEventLogEntity.builder()
             .id(dto.getId())

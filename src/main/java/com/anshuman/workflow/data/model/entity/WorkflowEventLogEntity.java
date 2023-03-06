@@ -68,6 +68,9 @@ public class WorkflowEventLogEntity {
     @Column(name = "completed", nullable = false, updatable = false)
     private short completed;
 
+    @Column(name = "comment", length = 1024)
+    private String comment;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

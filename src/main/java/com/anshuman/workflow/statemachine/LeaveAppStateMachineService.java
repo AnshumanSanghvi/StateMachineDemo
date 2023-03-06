@@ -1,6 +1,8 @@
 package com.anshuman.workflow.statemachine;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_COMPLETE;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_REVIEW_OF;
 
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
@@ -22,7 +24,6 @@ import com.anshuman.workflow.statemachine.util.WFPropsToSMExtStateHelper;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
@@ -70,10 +71,12 @@ public class LeaveAppStateMachineService {
 
         // send the event to the state machine
         var resultFlux = switch (event) {
-            case E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION,
-                E_APPROVE, E_REJECT, E_CANCEL, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
+            case E_INITIALIZE, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION,
+                E_REJECT, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
+            case E_SUBMIT -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_REVIEW_OF);
+            case E_CANCEL, E_APPROVE -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_COMPLETE);
             case E_REQUEST_CHANGES_IN -> EventSendHelper.sendRequestChangesEvent(stateMachine, event, order, actionBy, comment);
-            case E_FORWARD -> EventSendHelper.sendForwardEvent(stateMachine, event, order, actionBy);
+            case E_FORWARD -> EventSendHelper.sendForwardEvent(stateMachine, event, order, actionBy, comment);
             case E_ROLL_BACK -> EventSendHelper.sendRollBackApprovalEvent(stateMachine, event, order, actionBy);
         };
         log.debug("After passing event: {}, resultFlux is: {}", event, resultFlux);
@@ -104,13 +107,13 @@ public class LeaveAppStateMachineService {
 
     @Transactional
     public void saveStateMachineToEntity(@NotNull StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
-        @NotNull LeaveAppWorkFlowInstanceEntity entity, LeaveAppEvent event, boolean validate) {
+        @NotNull LeaveAppWorkFlowInstanceEntity entity, PassEventDto eventDto, boolean validate) {
         if (validate) validateThatEntityHasStateMachineContext(entity);
         stateMachineAdapter.persist(stateMachine, entity);
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
 
         // log the event asynchronously once it is successfully processed by the statemachine.
-        writeToLog(entity, stateMachine, event);
+        writeToLog(entity, stateMachine, eventDto);
     }
 
     private static void validateThatEntityHasStateMachineContext(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
@@ -128,7 +131,7 @@ public class LeaveAppStateMachineService {
         return stateMachine;
     }
 
-    public void writeToLog(LeaveAppWorkFlowInstanceEntity entity, StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, LeaveAppEvent event) {
+    public void writeToLog(LeaveAppWorkFlowInstanceEntity entity, StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, PassEventDto eventDto) {
         // log the event asynchronously once it is successfully processed by the statemachine.
         var wfEventLogDto = WorkflowEventLogDto.builder()
             .companyId(entity.getCompanyId())
@@ -136,11 +139,12 @@ public class LeaveAppStateMachineService {
             .typeId(entity.getTypeId())
             .instanceId(entity.getId())
             .state(stateMachine.getState().getId().toString())
-            .event(Optional.ofNullable(event).map(LeaveAppEvent::name).orElse(null))
+            .event(eventDto.getEvent())
             .actionDate(LocalDateTime.now())
             .completed((short) (stateMachine.isComplete() ? 1 : 0))
-            .actionBy(entity.getCreatedByUserId())
+            .actionBy(eventDto.getActionBy())
             .userRole((short) 0)
+            .comment(eventDto.getComment())
             .build();
         workflowEventLogService.logEvent(wfEventLogDto);
     }

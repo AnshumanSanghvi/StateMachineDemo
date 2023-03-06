@@ -20,6 +20,7 @@ public class LeaveAppSMConstants {
     public static final String KEY_MAX_CHANGE_REQUESTS = "MAX_CHANGE_REQUESTS";
     public static final String KEY_REQUESTED_CHANGES_BY = "REQUESTED_CHANGES_BY";
     public static final String KEY_REQUESTED_CHANGE_COMMENT = "REQUESTED_CHANGE";
+    public static final String KEY_FORWARDED_COMMENT = "FORWARDED_COMMENT";
     public static final String KEY_RETURN_COUNT = "RETURN_COUNT";
     public static final String KEY_REVIEWERS_COUNT = "REVIEWERS_COUNT";
     public static final String KEY_REVIEWERS_MAP = "REVIEWERS_MAP";
