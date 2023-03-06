@@ -49,6 +49,7 @@ public class WorkflowEventLogDto {
             .actionBy(dto.getActionBy())
             .userRole(dto.getUserRole())
             .completed(dto.getCompleted())
+            .comment(dto.getComment())
             .build();
     }
 

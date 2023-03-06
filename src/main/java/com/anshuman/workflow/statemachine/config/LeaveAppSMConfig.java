@@ -74,6 +74,7 @@ public class LeaveAppSMConfig extends EnumStateMachineConfigurerAdapter<LeaveApp
                 .source(S_SUBMITTED)
                 .event(E_TRIGGER_REVIEW_OF)
                 .target(S_UNDER_PROCESS)
+                .action(TransitionActions::autoTriggerReview)
                 .and();
 
         // cancel
@@ -117,7 +118,7 @@ public class LeaveAppSMConfig extends EnumStateMachineConfigurerAdapter<LeaveApp
                 .name(TX_REVIEWER_REQUESTS_CHANGES_FROM_USER_IN_SERIAL_FLOW)
                 .source(S_UNDER_PROCESS)
                 .event(E_REQUEST_CHANGES_IN)
-                .target(S_SUBMITTED)
+                .target(S_CREATED)
                 .action(TransitionActions::requestChanges)
                 .and();
 
@@ -133,11 +134,10 @@ public class LeaveAppSMConfig extends EnumStateMachineConfigurerAdapter<LeaveApp
 
         // roll back approval
         transitions
-            .withExternal()
+            .withInternal()
                 .name(TX_REVIEWER_ROLLS_BACK_APPROVAL_IN_SERIAL_FLOW)
                 .source(S_UNDER_PROCESS)
                 .event(E_ROLL_BACK)
-                .target(S_UNDER_PROCESS)
                 .guard(LeaveAppGuards::rollBackApproval)
                 .action(TransitionActions::rollBackApproval)
                 .and()

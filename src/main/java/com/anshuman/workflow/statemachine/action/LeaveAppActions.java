@@ -3,6 +3,7 @@ package com.anshuman.workflow.statemachine.action;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_APPROVE;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_COMPLETE;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_REVIEW_OF;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getBoolean;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getInt;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getMap;
@@ -208,14 +209,14 @@ public class LeaveAppActions {
             map.put(KEY_FORWARDED_COUNT, Math.max((getInt(context, KEY_FORWARDED_COUNT) - 1), 0));
 
             // reset null state
-            map.put(KEY_CLOSED_STATE_TYPE, null);
+            map.put(KEY_CLOSED_STATE_TYPE, "");
 
             // reset approve by
-            map.put(KEY_APPROVE_BY, null);
+            map.put(KEY_APPROVE_BY, 0);
 
             // reset forwarded by
             Pair<Integer, Long> forwardedBy = ExtendedStateHelper.getPair(context, KEY_LAST_FORWARDED_BY);
-            map.put(KEY_LAST_FORWARDED_BY, null);
+            map.put(KEY_LAST_FORWARDED_BY, 0);
 
             // reset last entry in forwarded Map
             Map<Integer, Pair<Long, Boolean>> forwardedMap = ExtendedStateHelper.getMap(context.getExtendedState(), KEY_FORWARDED_MAP, Collections.emptyMap());
@@ -246,6 +247,14 @@ public class LeaveAppActions {
             log.trace("Executing action: approveInParallelFlowTransitionAction with currentState: {}", getStateId(context));
             var map = context.getExtendedState().getVariables();
             map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
+        }
+
+        public static void autoTriggerReview(StateContext<LeaveAppState, LeaveAppEvent> context) {
+            log.trace("Executing action: autoTriggerReview with currentState: {}", getStateId(context));
+            var stateMachine = context.getStateMachine();
+            var resultFlux = EventSendHelper.sendEvent(stateMachine, E_TRIGGER_REVIEW_OF);
+            String results = EventResultHelper.toResultDTOString(resultFlux);
+            log.info("Automatically sent event: {} to stateMachine with id: {}, with result: {}", E_TRIGGER_REVIEW_OF, stateMachine.getId(), results);
         }
     }
 
