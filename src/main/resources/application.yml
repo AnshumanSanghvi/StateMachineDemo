@@ -24,7 +24,7 @@ spring:
       write-dates-as-timestamps: false
       indent-output: true
   jpa:
-    generate-ddl: true
+    generate-ddl: false
     hibernate:
       ddl-auto: none
     open-in-view: false

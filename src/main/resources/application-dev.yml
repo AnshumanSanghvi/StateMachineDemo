@@ -3,11 +3,11 @@ logging:
     com.anshuman.workflow: DEBUG
     org.springframework: INFO
     org.springframework.statemachine: DEBUG
-    org.springframework.statemachine.support: INFO
-    org.springframework.statemachine.support.AbstractStateMachine: INFO
-    org.springframework.statemachine.support.LifecycleObjectSupport: INFO
-    org.springframework.statemachine.support.ReactiveStateMachineExecutor: INFO
-    org.springframework.statemachine.support.ReactiveLifecycleManager: INFO
+    org.springframework.statemachine.support: DEBUG
+    org.springframework.statemachine.support.AbstractStateMachine: DEBUG
+    org.springframework.statemachine.support.LifecycleObjectSupport: DEBUG
+    org.springframework.statemachine.support.ReactiveStateMachineExecutor: DEBUG
+    org.springframework.statemachine.support.ReactiveLifecycleManager: DEBUG
 
 spring:
   datasource:
