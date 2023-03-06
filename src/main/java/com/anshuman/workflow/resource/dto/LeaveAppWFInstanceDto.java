@@ -1,7 +1,10 @@
 package com.anshuman.workflow.resource.dto;
 
 import com.anshuman.workflow.data.enums.LeaveType;
+import com.anshuman.workflow.data.enums.WorkFlowTypeStateMachine;
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
+import com.anshuman.workflow.statemachine.data.Pair;
+import java.util.Comparator;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,6 +28,14 @@ public class LeaveAppWFInstanceDto {
         // leave app workflow instance
         leaveAppWFEntity.setLeaveType(LeaveType.fromNumber(dto.getLeaveType()));
         leaveAppWFEntity.setIsActive(dto.getIsActive());
+
+        // set the latest version stateMachineId
+        WorkFlowTypeStateMachine.LEAVE_APPLICATION_STATE_MACHINES
+            .getStateMachineIds()
+            .stream()
+            .max(Comparator.comparing(Pair::getFirst))
+            .map(Pair::getSecond)
+            .ifPresent(leaveAppWFEntity::setStateMachineId);
 
         // workflow instance
         var wfInstDto = dto.getWfInstDto();

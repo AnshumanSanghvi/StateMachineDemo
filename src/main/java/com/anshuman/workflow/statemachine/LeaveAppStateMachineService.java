@@ -43,9 +43,9 @@ public class LeaveAppStateMachineService {
     private final WorkflowTypeRepository workflowTypeRepository;
     private final WorkflowEventLogService workflowEventLogService;
 
-    public StateMachine<LeaveAppState, LeaveAppEvent> saveStateMachineForCreatedLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
-        // get the state machine associated with the given workflow type as per required state machine version.
-        var stateMachine = getStateMachineFromWFType(entity.getTypeId(), "v1");
+    public StateMachine<LeaveAppState, LeaveAppEvent> createStateMachine(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
+        // create statemachine as per the entity's statemachine id.
+        var stateMachine = stateMachineAdapter.create(entity.getStateMachineId());
 
         if (stateMachine == null) {
             throw new StateMachineException("StateMachine was not created");
@@ -127,17 +127,6 @@ public class LeaveAppStateMachineService {
         log.debug("For entity with id: {} and currentState: {}, Restored statemachine with id: {} and current state: {}",
             entity.getId(), entity.getCurrentState(), stateMachine.getId(), stateMachine.getState().getId());
         return stateMachine;
-    }
-
-    private StateMachine<LeaveAppState, LeaveAppEvent> getStateMachineFromWFType(WorkflowType workflowType, String version) {
-        // get the state machine associated with the given workflow type as per required state machine version.
-        return WorkFlowTypeStateMachine.getStateMachineIds(workflowType)
-            .stream()
-            .filter(pair -> pair.getFirst().equalsIgnoreCase(version))
-            .findFirst()
-            .map(Pair::getSecond)
-            .map(stateMachineAdapter::create)
-            .orElse(null);
     }
 
     public void writeToLog(LeaveAppWorkFlowInstanceEntity entity, StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, LeaveAppEvent event) {

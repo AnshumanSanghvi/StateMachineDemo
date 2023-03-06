@@ -2,6 +2,7 @@ package com.anshuman.workflow.statemachine.config;
 
 import com.anshuman.workflow.data.model.entity.ContextEntity;
 import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +31,9 @@ public class StateMachinePersistenceConfig {
             @SuppressWarnings("RedundantThrows")
             @Override
             public void write(StateMachineContext<S, E> context, ContextEntity<S, E> contextObj) throws Exception {
-                contextObj.setStateMachineContext(new DefaultStateMachineContext<>(context.getState(), context.getEvent(),
-                    context.getEventHeaders(), context.getExtendedState()));
+                var stateMachineContext = new DefaultStateMachineContext<>(context.getState(), context.getEvent(),
+                    context.getEventHeaders(), context.getExtendedState(), Collections.emptyMap(), context.getId());
+                contextObj.setStateMachineContext(stateMachineContext);
             }
 
             @SuppressWarnings("RedundantThrows")

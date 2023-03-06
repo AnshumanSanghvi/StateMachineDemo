@@ -44,6 +44,9 @@ public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
     @Enumerated(EnumType.STRING)
     private LeaveType leaveType;
 
+    @Column(name = "statemachine_id", nullable = false, length = 100)
+    private String stateMachineId;
+
     public void setStateMachineContext(DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
         this.setCurrentState(stateMachineContext.getState());
         this.stateMachineContext = stateMachineContext;
