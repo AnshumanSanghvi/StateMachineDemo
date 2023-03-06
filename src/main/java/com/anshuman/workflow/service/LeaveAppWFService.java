@@ -7,6 +7,7 @@ import com.anshuman.workflow.resource.dto.EventResponseDto;
 import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.statemachine.LeaveAppStateMachineService;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
+import com.anshuman.workflow.statemachine.exception.StateMachineException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -33,12 +34,19 @@ public class LeaveAppWFService {
         validateThatEntityDoesNotExist(entity);
 
         var stateMachine = leaveAppStateMachineService.createStateMachine(entity);
-        leaveAppStateMachineService.saveStateMachineToEntity(stateMachine, entity, null, false);
+
+        var eventDto = PassEventDto.builder().event(LeaveAppEvent.E_INITIALIZE.name()).actionBy(entity.getCreatedByUserId()).build();
+        var result = leaveAppStateMachineService.passEventsToStateMachine(null, stateMachine, eventDto);
+
+        if (result.getSecond().isEmpty()) {
+            throw new WorkflowException("Could not save LeaveApplication", new StateMachineException("StateMachine did not accept initialize event"));
+        }
+
+        leaveAppStateMachineService.saveStateMachineToEntity(result.getFirst(), entity, LeaveAppEvent.E_INITIALIZE, false);
 
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
 
-        leaveAppStateMachineService.writeToLog(entity, stateMachine, null);
         return savedEntity;
     }
 

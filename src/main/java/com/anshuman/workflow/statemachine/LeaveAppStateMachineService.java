@@ -60,8 +60,7 @@ public class LeaveAppStateMachineService {
     }
 
     public Pair<StateMachine<LeaveAppState, LeaveAppEvent>, List<EventResultDTO<LeaveAppState, LeaveAppEvent>>> passEventsToStateMachine(Long entityId,
-        StateMachine<LeaveAppState, LeaveAppEvent> stateMachine,
-        PassEventDto eventDto) {
+        StateMachine<LeaveAppState, LeaveAppEvent> stateMachine, PassEventDto eventDto) {
 
         LeaveAppEvent event = LeaveAppEvent.getByName(eventDto.getEvent());
         Long actionBy = eventDto.getActionBy();
