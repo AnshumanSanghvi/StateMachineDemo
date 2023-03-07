@@ -3,6 +3,7 @@ package com.anshuman.workflow.resource.dto;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.statemachine.data.Pair;
 import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,7 +26,7 @@ public class WorkflowInstanceDto {
     BaseDto baseDto;
 
     // workflow instance entity
-    WorkflowType typeId;
+    @NotNull WorkflowType typeId;
     Long createdByUserId;
     Long updatedByUserId;
     Long deletedByUserId;

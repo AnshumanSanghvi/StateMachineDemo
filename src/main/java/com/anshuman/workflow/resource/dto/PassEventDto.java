@@ -1,6 +1,7 @@
 package com.anshuman.workflow.resource.dto;
 
 import com.anshuman.workflow.data.enums.WorkflowType;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,9 +14,9 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class PassEventDto {
     WorkflowType workflowType;
-    Long workflowInstance;
-    String event;
-    Long actionBy;
+    @NotNull Long workflowInstance;
+    @NotNull String event;
+    @NotNull Long actionBy;
     @Nullable Integer orderNo;
     @Nullable String comment;
 }

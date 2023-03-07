@@ -23,7 +23,7 @@
         <snake-yaml.version>1.33</snake-yaml.version>
         <kryo.version>5.4.0</kryo.version>
         <postgres.version>42.5.3</postgres.version>
-        <hibernate.validator.version>8.0.0.Final</hibernate.validator.version>
+        <hibernate.validator.version>6.2.5.Final</hibernate.validator.version>
         <hibernate-types.version>2.21.1</hibernate-types.version>
         <aspectj.version>1.9.19</aspectj.version>
     </properties>

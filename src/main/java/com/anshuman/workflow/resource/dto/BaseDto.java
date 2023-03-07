@@ -1,6 +1,7 @@
 package com.anshuman.workflow.resource.dto;
 
 import java.time.LocalDateTime;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,8 @@ import lombok.NoArgsConstructor;
 public class BaseDto {
 
     // base entity
-    Long companyId;
-    Integer branchId;
+    @NotNull Long companyId;
+    @NotNull Integer branchId;
     LocalDateTime createDate;
     LocalDateTime updateDate;
     LocalDateTime deleteDate;

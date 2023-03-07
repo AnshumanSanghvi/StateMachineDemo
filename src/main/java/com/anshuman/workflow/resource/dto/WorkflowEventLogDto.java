@@ -3,6 +3,7 @@ package com.anshuman.workflow.resource.dto;
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.data.model.entity.WorkflowEventLogEntity;
 import java.time.LocalDateTime;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,11 +17,11 @@ public class WorkflowEventLogDto {
 
     private Long id;
 
-    private Long companyId;
+    @NotNull private Long companyId;
 
-    private Integer branchId;
+    @NotNull private Integer branchId;
 
-    private Integer typeId;
+    @NotNull private Integer typeId;
 
     private Long instanceId;
 

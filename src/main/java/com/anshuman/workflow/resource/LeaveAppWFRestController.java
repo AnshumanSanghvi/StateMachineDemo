@@ -6,10 +6,12 @@ import com.anshuman.workflow.resource.dto.LeaveAppWFInstanceDto;
 import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.service.LeaveAppWFService;
 import java.util.List;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,13 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("wf/leave")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class LeaveAppWFRestController {
 
     private final LeaveAppWFService leaveAppWFService;
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody LeaveAppWorkFlowInstanceEntity createLeaveAppWFInstance(@RequestBody LeaveAppWFInstanceDto dto) {
+    public @ResponseBody LeaveAppWorkFlowInstanceEntity createLeaveAppWFInstance(@RequestBody @Valid LeaveAppWFInstanceDto dto) {
         log.debug("create leaveAppWfEntity from dto: {}", dto);
         return leaveAppWFService.createLeaveApplication(LeaveAppWFInstanceDto.toEntity(dto));
     }
@@ -46,7 +49,7 @@ public class LeaveAppWFRestController {
     }
 
     @PostMapping("/event")
-    public @ResponseBody List<EventResponseDto> sendEvent(@NotNull @RequestBody PassEventDto eventDto) {
+    public @ResponseBody List<EventResponseDto> sendEvent(@NotNull @RequestBody @Valid PassEventDto eventDto) {
         log.debug("update leaveAppWfEntity with event: {}", eventDto);
         return leaveAppWFService.passEvent(eventDto);
     }
