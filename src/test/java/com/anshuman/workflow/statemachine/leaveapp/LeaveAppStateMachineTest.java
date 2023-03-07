@@ -72,9 +72,9 @@ class LeaveAppStateMachineTest {
 
         // when
         EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
-        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L).blockLast();
-        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 2, 123L).blockLast();
-        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 3, 235L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L, "").blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 2, 123L, "").blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 3, 235L, "").blockLast();
         EventSendHelper.sendEvent(stateMachine, E_TRIGGER_COMPLETE).blockLast();
 
         // then
@@ -107,11 +107,11 @@ class LeaveAppStateMachineTest {
 
         // when
         EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
-        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L, "").blockLast();
         EventSendHelper.sendRollBackApprovalEvent(stateMachine, E_ROLL_BACK, 1, 234L).blockLast();
-        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L).blockLast();
-        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 2, 123L).blockLast();
-        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 3, 235L).blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L, "").blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 2, 123L, "").blockLast();
+        EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 3, 235L, "").blockLast();
         EventSendHelper.sendEvent(stateMachine, E_TRIGGER_COMPLETE).blockLast();
 
         // then
