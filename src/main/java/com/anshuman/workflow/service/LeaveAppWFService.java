@@ -8,7 +8,7 @@ import com.anshuman.workflow.data.model.repository.LeaveAppWorkflowInstanceRepos
 import com.anshuman.workflow.exception.WorkflowException;
 import com.anshuman.workflow.resource.dto.EventResponseDto;
 import com.anshuman.workflow.resource.dto.PassEventDto;
-import com.anshuman.workflow.statemachine.LeaveAppStateMachineService;
+import com.anshuman.workflow.statemachine.StateMachineService;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class LeaveAppWFService {
 
-    private final LeaveAppStateMachineService leaveAppStateMachineService;
+    private final StateMachineService<LeaveAppState, LeaveAppEvent, LeaveAppWorkFlowInstanceEntity> stateMachineService;
 
     private final LeaveAppWorkflowInstanceRepository leaveAppRepository;
 
@@ -38,16 +38,16 @@ public class LeaveAppWFService {
     public LeaveAppWorkFlowInstanceEntity createLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityDoesNotExist(entity);
 
-        var stateMachine = leaveAppStateMachineService.createStateMachine(entity);
+        var stateMachine = stateMachineService.createStateMachine(entity);
 
         var eventDto = PassEventDto.builder().event(LeaveAppEvent.E_INITIALIZE.name()).actionBy(entity.getCreatedByUserId()).build();
-        var result = leaveAppStateMachineService.passEvent(null, stateMachine, eventDto);
+        var result = LeaveAppEvent.passEvent( stateMachine, eventDto);
 
         if (result.getSecond().isEmpty()) {
             throw new WorkflowException("Could not save LeaveApplication", new StateMachineException("StateMachine did not accept initialize event"));
         }
 
-        leaveAppStateMachineService.saveStateMachineToEntity(result.getFirst(), entity, eventDto, false);
+        stateMachineService.saveStateMachineToEntity(result.getFirst(), entity, eventDto, false);
 
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
@@ -86,9 +86,9 @@ public class LeaveAppWFService {
             return Collections.emptyList();
         }
 
-        var stateMachine = leaveAppStateMachineService.getStateMachineFromEntity(entity);
+        var stateMachine = stateMachineService.getStateMachineFromEntity(entity);
 
-        var result = leaveAppStateMachineService.passEvent(entity.getId(), stateMachine, eventDto);
+        var result = LeaveAppEvent.passEvent( stateMachine, eventDto);
         var resultDTOList = result.getSecond();
         if (resultDTOList.isEmpty()) {
             log.warn("the statemachine returned empty results.");
@@ -96,7 +96,7 @@ public class LeaveAppWFService {
         }
 
         stateMachine = result.getFirst();
-        leaveAppStateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto, true);
+        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto, true);
 
         updateLeaveApplication(eventDto, stateMachine, entity);
 

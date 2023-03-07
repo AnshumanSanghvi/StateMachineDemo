@@ -71,9 +71,9 @@ public class EventSendHelper {
         return sendEvent(sm, forwardEvent);
     }
 
-    private static void checkNull(String eventName, Integer orderNumber, Long reviewerId) {
-        if (reviewerId == null)
-            throw new StateMachineException(new NullPointerException(eventName + " Event - reviewerId cannot be null"));
+    private static void checkNull(String eventName, Integer orderNumber, Long actionBy) {
+        if (actionBy == null)
+            throw new StateMachineException(new NullPointerException(eventName + " Event - actionBy cannot be null"));
         if (orderNumber == null)
             throw new StateMachineException(new NullPointerException(eventName + " Event - orderNumber cannot be null"));
     }

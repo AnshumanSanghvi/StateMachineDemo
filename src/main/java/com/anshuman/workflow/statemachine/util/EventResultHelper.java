@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.statemachine.StateMachineEventResult;
@@ -44,6 +45,38 @@ public class EventResultHelper {
             .flatMap(Collection::stream)
             .map(EventResultDTO::toString)
             .collect(Collectors.joining(",\n")) + "]";
+    }
+
+    public static <S, E> List<EventResultDTO<S, E>> processResultFlux(Flux<StateMachineEventResult<S, E>> resultFlux) {
+        // parse the result
+        List<EventResultDTO<S, E>> resultDTOList = EventResultHelper.toResultDTOList(resultFlux);
+        log.debug("resultFlux is: {}", resultDTOList);
+
+        // empty result
+        if (resultDTOList == null || resultDTOList.isEmpty()) {
+            log.warn("state machine event result was empty" );
+            return Collections.emptyList();
+        }
+
+        // find out if any event wasn't accepted.
+        boolean hasErrors = resultDTOList.stream().anyMatch(Predicate.not(EventResultDTO.accepted));
+
+        // throw error if the event is not accepted by the state machine.
+        if (hasErrors) {
+            String eventStr = resultDTOList
+                .stream()
+                .filter(Predicate.not(EventResultDTO.accepted))
+                .map(StringUtil::event)
+                .collect(Collectors.joining(", "));
+
+            log.error("Did not persist the state machine context to the database, "
+                + "as the following passed event: [" + eventStr + "]" +
+                " were not accepted by the statemachine ");
+
+            return Collections.emptyList();
+        }
+
+        return resultDTOList;
     }
 
 }

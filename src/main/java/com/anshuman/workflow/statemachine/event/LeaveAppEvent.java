@@ -1,7 +1,17 @@
 package com.anshuman.workflow.statemachine.event;
 
+import com.anshuman.workflow.resource.dto.PassEventDto;
+import com.anshuman.workflow.statemachine.data.Pair;
+import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
+import com.anshuman.workflow.statemachine.state.LeaveAppState;
+import com.anshuman.workflow.statemachine.util.EventResultHelper;
+import com.anshuman.workflow.statemachine.util.EventSendHelper;
+import java.util.List;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.statemachine.StateMachine;
 
+@Slf4j
 public enum LeaveAppEvent {
     E_INITIALIZE("Initialize Leave Application"),
     E_SUBMIT("Submit Leave Application"),
@@ -30,6 +40,32 @@ public enum LeaveAppEvent {
                 return e;
         }
         throw new IllegalArgumentException("No event with the given name found");
+    }
+
+    public static Pair<StateMachine<LeaveAppState, LeaveAppEvent>, List<EventResultDTO<LeaveAppState, LeaveAppEvent>>> passEvent(StateMachine<LeaveAppState,
+        LeaveAppEvent> stateMachine,
+        PassEventDto eventDto) {
+
+        LeaveAppEvent event = LeaveAppEvent.getByName(eventDto.getEvent());
+        Long actionBy = eventDto.getActionBy();
+        Integer order = eventDto.getOrderNo();
+        String comment = eventDto.getComment();
+
+        // send the event to the state machine
+        var resultFlux = switch (event) {
+            case E_INITIALIZE, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION,
+                E_REJECT, E_CANCEL, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
+            case E_SUBMIT -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_REVIEW_OF);
+            case E_APPROVE -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_COMPLETE);
+            case E_REQUEST_CHANGES_IN -> EventSendHelper.sendRequestChangesEvent(stateMachine, event, order, actionBy, comment);
+            case E_FORWARD -> EventSendHelper.sendForwardEvent(stateMachine, event, order, actionBy, comment);
+            case E_ROLL_BACK -> EventSendHelper.sendRollBackApprovalEvent(stateMachine, event, order, actionBy);
+        };
+
+        // parse the result
+        List<EventResultDTO<LeaveAppState, LeaveAppEvent>> resultDTOList = EventResultHelper.processResultFlux(resultFlux);
+        log.debug("After passing event: {}, resultFlux is: {}", event, resultDTOList);
+        return new Pair<>(stateMachine, resultDTOList);
     }
 
 }
