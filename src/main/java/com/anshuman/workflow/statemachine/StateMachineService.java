@@ -15,6 +15,7 @@ import com.anshuman.workflow.statemachine.util.StringUtil;
 import com.anshuman.workflow.statemachine.util.WFPropsToSMExtStateHelper;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,11 +35,8 @@ public class StateMachineService<S, E, T extends ContextEntity<S, E>> {
     @Transactional(readOnly = true)
     public StateMachine<S, E> createStateMachine(@NotNull T entity) {
         // create statemachine as per the entity's statemachine id.
-        var stateMachine = stateMachineAdapter.create(entity.getStateMachineId());
-
-        if (stateMachine == null) {
-            throw new StateMachineException("StateMachine was not created");
-        }
+        var stateMachine = Optional.ofNullable(stateMachineAdapter.create(entity.getStateMachineId()))
+            .orElseThrow(() -> new StateMachineException("StateMachine was not created"));
 
         // set the state machine extended state from the workflow type and workflow instance
         List<Pair<Integer, Long>> reviewers = entity.getReviewers();
@@ -49,10 +47,7 @@ public class StateMachineService<S, E, T extends ContextEntity<S, E>> {
     }
 
     @Transactional
-    public void saveStateMachineToEntity(@NotNull StateMachine<S, E> stateMachine, @NotNull T entity, PassEventDto eventDto, boolean validate) {
-        if (validate) {
-            validateThatEntityHasStateMachineContext(entity);
-        }
+    public void saveStateMachineToEntity(@NotNull StateMachine<S, E> stateMachine, @NotNull T entity, PassEventDto eventDto) {
         stateMachineAdapter.persist(stateMachine, entity);
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
 
@@ -60,15 +55,8 @@ public class StateMachineService<S, E, T extends ContextEntity<S, E>> {
         writeToLog(entity, stateMachine, eventDto);
     }
 
-    private void validateThatEntityHasStateMachineContext(@NotNull T entity) {
-        if (entity.getStateMachineContext() == null) {
-            throw new StateMachineException("No state machine context found for the entity");
-        }
-    }
-
     @Transactional(readOnly = true)
     public StateMachine<S, E> getStateMachineFromEntity(T entity) {
-        validateThatEntityHasStateMachineContext(entity);
         StateMachine<S, E> stateMachine = stateMachineAdapter.restore(entity.getStateMachineId(), entity);
         log.debug("For entity with id: {} and currentState: {}, Restored statemachine: {}",
             entity.getId(), entity.getCurrentState(), StringUtil.stateMachine(stateMachine, false));

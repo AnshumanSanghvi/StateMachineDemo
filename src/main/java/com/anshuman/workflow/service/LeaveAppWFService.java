@@ -2,6 +2,7 @@ package com.anshuman.workflow.service;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_RETURN_COUNT;
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_ROLL_BACK_COUNT;
+import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_INITIALIZE;
 
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.anshuman.workflow.data.model.repository.LeaveAppWorkflowInstanceRepository;
@@ -9,6 +10,7 @@ import com.anshuman.workflow.exception.WorkflowException;
 import com.anshuman.workflow.resource.dto.EventResponseDto;
 import com.anshuman.workflow.resource.dto.PassEventDto;
 import com.anshuman.workflow.statemachine.StateMachineService;
+import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
@@ -40,14 +42,16 @@ public class LeaveAppWFService {
 
         var stateMachine = stateMachineService.createStateMachine(entity);
 
-        var eventDto = PassEventDto.builder().event(LeaveAppEvent.E_INITIALIZE.name()).actionBy(entity.getCreatedByUserId()).build();
+        var eventDto = PassEventDto.builder().event(E_INITIALIZE.name()).actionBy(entity.getCreatedByUserId()).build();
         var result = LeaveAppEvent.passEvent( stateMachine, eventDto);
 
-        if (result.getSecond().isEmpty()) {
-            throw new WorkflowException("Could not save LeaveApplication", new StateMachineException("StateMachine did not accept initialize event"));
+        List<EventResultDTO<LeaveAppState, LeaveAppEvent>> results = result.getSecond();
+        if (results.isEmpty()) {
+            throw new WorkflowException("Could not save LeaveApplication entity", new StateMachineException("StateMachine did not accept initialize event"));
         }
 
-        stateMachineService.saveStateMachineToEntity(result.getFirst(), entity, eventDto, false);
+        stateMachine = result.getFirst();
+        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto);
 
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
@@ -96,9 +100,10 @@ public class LeaveAppWFService {
         }
 
         stateMachine = result.getFirst();
-        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto, true);
+        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto);
 
-        updateLeaveApplication(eventDto, stateMachine, entity);
+        var updatedEntity = updateLeaveApplication(eventDto, stateMachine, entity);
+        log.debug("updated entity: {}",updatedEntity);
 
         return EventResponseDto.fromEventResults(entity.getId(), entity.getTypeId(), resultDTOList);
     }
