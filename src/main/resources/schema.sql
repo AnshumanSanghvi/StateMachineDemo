@@ -40,8 +40,8 @@ CREATE TABLE public.wf_status_log (
     type_id int4 NOT NULL,
     user_role int2 NOT NULL,
     "comment" varchar(1024) NULL,
-    CONSTRAINT wf_status_log_pkey PRIMARY KEY (id)
-);
+    CONSTRAINT wf_status_log_pkey PRIMARY KEY (id, type_id)
+) PARTITION BY LIST(type_id);
 
 CREATE TABLE public.wf_type_mst (
     id int8 NOT NULL,
@@ -59,9 +59,11 @@ CREATE TABLE public.wf_type_mst (
     CONSTRAINT wf_type_mst_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE public.leaveapp_wf_status_log PARTITION OF public.wf_status_log FOR VALUES IN (1);
+
 CREATE INDEX leave_wf_inst_leave_type_idx ON public.leave_wf_inst (leave_type);
 
-CREATE INDEX wf_inst_mst_type_id_idx ON public.wf_inst_mst (company_id, branch_id, type_id, "version");
+CREATE INDEX wf_inst_mst_type_id_idx ON public.wf_inst_mst (company_id, branch_id, type_id);
 CREATE INDEX wf_inst_mst_company_id_idx ON public.wf_inst_mst (company_id, branch_id);
 
 CREATE INDEX wf_status_log_instance_id_idx ON public.wf_status_log (company_id, branch_id, instance_id);

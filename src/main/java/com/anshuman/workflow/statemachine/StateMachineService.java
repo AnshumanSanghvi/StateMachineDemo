@@ -68,7 +68,7 @@ public class StateMachineService<S, E, T extends ContextEntity<S, E>> {
         var wfEventLogDto = WorkflowEventLogDto.builder()
             .companyId(entity.getCompanyId())
             .branchId(entity.getBranchId())
-            .typeId(entity.getTypeId())
+            .typeId(entity.getTypeId().getTypeId())
             .instanceId(entity.getId())
             .state(stateMachine.getState().getId().toString())
             .event(eventDto.getEvent())

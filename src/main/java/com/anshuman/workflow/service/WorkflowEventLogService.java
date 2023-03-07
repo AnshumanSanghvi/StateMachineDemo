@@ -4,6 +4,7 @@ import com.anshuman.workflow.data.model.dao.WorkflowEventLogDao;
 import com.anshuman.workflow.data.model.entity.WorkflowEventLogEntity;
 import com.anshuman.workflow.data.model.repository.WorkflowEventLogRepository;
 import com.anshuman.workflow.resource.dto.WorkflowEventLogDto;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +32,12 @@ public class WorkflowEventLogService {
         });
     }
 
-    public void findEventLogsByWorkflowType(WorkflowEventLogDto workflowEventLogDTO) {
-        var output = workflowEventLogDAO.getWorkflowEventLogByType(workflowEventLogDTO);
+    public List<WorkflowEventLogEntity> getWorkflowEventLogsPartitionedByType(WorkflowEventLogDto workflowEventLogDto) {
+        var output = workflowEventLogDAO.getWorkflowEventLogs(workflowEventLogDto);
         log.debug("event logs by typeId:\n{}",
             output.stream().map(WorkflowEventLogEntity::toString)
                 .collect(Collectors.joining(",\n")));
+        return output;
     }
 
 }

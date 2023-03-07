@@ -6,10 +6,12 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @Builder
 @Getter
+@NoArgsConstructor
 public class WorkflowEventLogDto {
 
     private Long id;
@@ -18,7 +20,7 @@ public class WorkflowEventLogDto {
 
     private Integer branchId;
 
-    private WorkflowType typeId;
+    private Integer typeId;
 
     private Long instanceId;
 
@@ -41,7 +43,7 @@ public class WorkflowEventLogDto {
             .id(dto.getId())
             .companyId(dto.getCompanyId())
             .branchId(dto.getBranchId())
-            .typeId(dto.getTypeId())
+            .typeId(WorkflowType.fromId(dto.getTypeId()))
             .instanceId(dto.getInstanceId())
             .state(dto.getState())
             .event(dto.getEvent())
