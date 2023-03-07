@@ -24,12 +24,8 @@ public class WorkflowEventLogService {
 
     @Transactional
     public void logEvent(WorkflowEventLogDto workflowEventLogDTO) {
-        log.debug("Attempting to log workflow event" );
-        CompletableFuture.supplyAsync(() -> {
-            var savedWorkflowEventLog = workflowEventLogRepository.save(WorkflowEventLogDto.toEntity(workflowEventLogDTO));
-            log.debug("saved workflowEventLogEntity: {}", savedWorkflowEventLog);
-            return savedWorkflowEventLog;
-        });
+        log.debug("Attempting to log workflow event");
+        CompletableFuture.supplyAsync(() -> save(workflowEventLogDTO));
     }
 
     public List<WorkflowEventLogEntity> getWorkflowEventLogsPartitionedByType(WorkflowEventLogDto workflowEventLogDto) {
@@ -38,6 +34,12 @@ public class WorkflowEventLogService {
             output.stream().map(WorkflowEventLogEntity::toString)
                 .collect(Collectors.joining(",\n")));
         return output;
+    }
+
+    public WorkflowEventLogEntity save(WorkflowEventLogDto workflowEventLogDto) {
+        var savedEntity = workflowEventLogRepository.save(WorkflowEventLogDto.toEntity(workflowEventLogDto));
+        log.debug("saved workflowEventLogEntity: {}", savedEntity);
+        return savedEntity;
     }
 
 }

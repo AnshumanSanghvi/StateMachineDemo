@@ -51,10 +51,12 @@ public class LeaveAppWFService {
         }
 
         stateMachine = result.getFirst();
-        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto);
+        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto, false);
 
         LeaveAppWorkFlowInstanceEntity savedEntity = leaveAppRepository.save(entity);
         log.debug("saved entity {}", savedEntity);
+
+        stateMachineService.writeToLog(entity, stateMachine, eventDto);
 
         return savedEntity;
     }
@@ -100,7 +102,7 @@ public class LeaveAppWFService {
         }
 
         stateMachine = result.getFirst();
-        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto);
+        stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto, true);
 
         var updatedEntity = updateLeaveApplication(eventDto, stateMachine, entity);
         log.debug("updated entity: {}",updatedEntity);

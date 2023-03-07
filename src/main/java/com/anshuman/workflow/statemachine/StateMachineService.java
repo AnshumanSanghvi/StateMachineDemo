@@ -47,12 +47,13 @@ public class StateMachineService<S, E, T extends ContextEntity<S, E>> {
     }
 
     @Transactional
-    public void saveStateMachineToEntity(@NotNull StateMachine<S, E> stateMachine, @NotNull T entity, PassEventDto eventDto) {
+    public void saveStateMachineToEntity(@NotNull StateMachine<S, E> stateMachine, @NotNull T entity, PassEventDto eventDto, boolean logWorkflowEvent) {
         stateMachineAdapter.persist(stateMachine, entity);
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
 
         // log the event asynchronously once it is successfully processed by the statemachine.
-        writeToLog(entity, stateMachine, eventDto);
+        if (logWorkflowEvent)
+            writeToLog(entity, stateMachine, eventDto);
     }
 
     @Transactional(readOnly = true)

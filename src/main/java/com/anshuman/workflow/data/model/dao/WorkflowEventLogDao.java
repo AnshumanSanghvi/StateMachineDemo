@@ -26,7 +26,6 @@ public class WorkflowEventLogDao {
     public static final String LEAVE_APP_WF_TABLE_NAME = "leaveapp_wf_status_log";
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-
     public List<WorkflowEventLogEntity> getWorkflowEventLogs(WorkflowEventLogDto wf) {
         String query = "SELECT * " +
             " FROM wf_status_log " +
