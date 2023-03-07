@@ -1,6 +1,7 @@
 logging:
   level:
     com.anshuman.workflow: DEBUG
+    com.anshuman.workflow.aspect.ProfilingAspect: DEBUG
     org.springframework: INFO
     org.springframework.statemachine: INFO
     org.springframework.statemachine.support: INFO

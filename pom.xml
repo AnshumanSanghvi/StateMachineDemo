@@ -24,6 +24,8 @@
         <kryo.version>5.4.0</kryo.version>
         <postgres.version>42.5.3</postgres.version>
         <hibernate.validator.version>8.0.0.Final</hibernate.validator.version>
+        <hibernate-types.version>2.21.1</hibernate-types.version>
+        <aspectj.version>1.9.19</aspectj.version>
     </properties>
     <dependencies>
 
@@ -65,7 +67,7 @@
         <dependency>
             <groupId>com.vladmihalcea</groupId>
             <artifactId>hibernate-types-55</artifactId>
-            <version>2.21.1</version>
+            <version>${hibernate-types.version}</version>
         </dependency>
 
 
@@ -114,6 +116,14 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- aspect -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+
 
         <!-- testing -->
         <dependency>
