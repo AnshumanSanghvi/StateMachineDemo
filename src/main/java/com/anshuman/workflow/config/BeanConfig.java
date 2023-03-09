@@ -21,6 +21,13 @@ public class BeanConfig {
     public static final LocalDateTimeSerializer LOCAL_DATETIME_SERIALIZER = new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
     public static final LocalDateTimeDeserializer LOCAL_DATE_TIME_DESERIALIZER = new LocalDateTimeDeserializer(DTF);
 
+    /**
+     * Create and configure an Object Mapper bean that is configured
+     * - to serialize and deserialize LocalDateTime objects.
+     * - to ignore errors if a JSON property is unrecognized/not mapped in the specified POJO class
+     * - to ignore creating or reading from a property whose value is null
+     * @return ObjectMapper objectMapper
+     */
     @Bean
     @Primary
     public ObjectMapper objectMapper() {
@@ -34,6 +41,10 @@ public class BeanConfig {
         return objectMapper;
     }
 
+    /**
+     * Create a MethodValidationPostProcessor bean that will enable <code>javax.annotation</code> based validation on spring bean methods.
+     * @return MethodValidationPostProcessor methodValidationPostProcessor
+     */
     @Bean
     public MethodValidationPostProcessor methodValidationPostProcessor() {
         return new MethodValidationPostProcessor();

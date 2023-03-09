@@ -1,6 +1,16 @@
 package com.anshuman.workflow.statemachine.util;
 
-import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_APPROVAL_FLOW_TYPE;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_CLOSED_STATE_TYPE;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_FORWARDED_MAP;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_MAX_CHANGE_REQUESTS;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_REVIEWERS_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_REVIEWERS_MAP;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_ROLL_BACK_MAX;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.VAL_PARALLEL;
+import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.VAL_SERIAL;
+import static com.anshuman.workflow.statemachine.data.constant.StateMachineConstants.KEY_RETURN_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.StateMachineConstants.KEY_ROLL_BACK_COUNT;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getInt;
 import static com.anshuman.workflow.statemachine.util.ExtendedStateHelper.getString;
 import static java.util.stream.Collectors.toMap;

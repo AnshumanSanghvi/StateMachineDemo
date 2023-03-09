@@ -1,7 +1,7 @@
 package com.anshuman.workflow.service;
 
-import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_RETURN_COUNT;
-import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_ROLL_BACK_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.StateMachineConstants.KEY_RETURN_COUNT;
+import static com.anshuman.workflow.statemachine.data.constant.StateMachineConstants.KEY_ROLL_BACK_COUNT;
 import static com.anshuman.workflow.statemachine.event.LeaveAppEvent.E_INITIALIZE;
 
 import com.anshuman.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
@@ -105,7 +105,7 @@ public class LeaveAppWFService {
         stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventDto, true);
 
         var updatedEntity = updateLeaveApplication(eventDto, stateMachine, entity);
-        log.debug("updated entity: {}",updatedEntity);
+        log.debug("updated entity: {}", updatedEntity);
 
         return EventResponseDto.fromEventResults(entity.getId(), entity.getTypeId(), resultDTOList);
     }

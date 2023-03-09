@@ -1,8 +1,10 @@
 package com.anshuman.workflow.data.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum LeaveType {
     EL(1, "Earned Leave"),
     LND(2, "Leave Not Due"),
@@ -20,16 +22,15 @@ public enum LeaveType {
     PL(14, "Paternity Leave"),
     CAL(15, "Child Adoption Leave");
 
-    @Getter
-    private final String leaveName;
     private final int number;
+    private final String leaveName;
     private static final LeaveType[] values = LeaveType.values();
 
-    LeaveType(int number, String leaveName) {
-        this.leaveName = leaveName;
-        this.number = number;
-    }
-
+    /**
+     * Method to return a LeaveApp enum that matches the leave type id. Can be used to map JSON m
+     * @param number the id to be matched against the leave type enum number
+     * @return LeaveType leaveType that matches the given number
+     */
     public static LeaveType fromNumber(int number) {
         for(LeaveType lt : values) {
             if (lt.getNumber() == number)
