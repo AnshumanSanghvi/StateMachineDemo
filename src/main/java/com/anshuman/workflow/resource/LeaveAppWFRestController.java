@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("wf/leave")
@@ -40,6 +41,8 @@ public class LeaveAppWFRestController {
 
     @GetMapping("/{id}")
     public @ResponseBody LeaveAppWorkFlowInstanceEntity getLeaveAppWFInstanceById(@PathVariable("id") Long id) {
+        if (!leaveAppWFService.existsById(id))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         return leaveAppWFService.getLeaveApplicationById(id);
     }
 
@@ -55,7 +58,10 @@ public class LeaveAppWFRestController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLeaveApp(@PathVariable("id") Long id) {
+        if (!leaveAppWFService.existsById(id))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         leaveAppWFService.deleteLeaveApplication(id);
     }
 

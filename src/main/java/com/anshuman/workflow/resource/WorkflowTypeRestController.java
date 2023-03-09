@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("wf/type")
@@ -44,8 +45,11 @@ public class WorkflowTypeRestController {
         return workflowTypeService.findByTypeId(WorkflowType.fromId(typeId));
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{typeId}")
     public void deleteByTypeId(@PathVariable("typeId") Integer typeId) {
+        if (!workflowTypeService.existsByTypeId(WorkflowType.fromId(typeId)))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         workflowTypeService.deleteByTypeId(WorkflowType.fromId(typeId));
     }
 }
