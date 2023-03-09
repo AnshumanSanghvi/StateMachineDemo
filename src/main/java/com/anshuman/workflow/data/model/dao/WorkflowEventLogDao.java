@@ -23,7 +23,6 @@ public class WorkflowEventLogDao {
     private final JdbcTemplate jdbcTemplate;
 
     private static final String WF_LOG_TABLE_NAME = "wf_status_log";
-    public static final String LEAVE_APP_WF_TABLE_NAME = "leaveapp_wf_status_log";
     private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public List<WorkflowEventLogEntity> getWorkflowEventLogs(WorkflowEventLogDto wf) {
@@ -40,7 +39,7 @@ public class WorkflowEventLogDao {
             Optional.ofNullable(wf.getUserRole()).map(ur -> " AND user_role = " + ur).orElse("") +
             Optional.ofNullable(wf.getCompleted()).map(c -> " AND completed = " + c).orElse("") +
             " ORDER BY instance_id DESC, action_date DESC";
-        final String partitionTableName = WorkflowEventLogType.getTableForWorkflowType(WorkflowType.fromId(wf.getTypeId()));
+        final String partitionTableName = (WorkflowType.fromId(wf.getTypeId())).getTableName();
         final String partitionAwareQuery = query.replace(WF_LOG_TABLE_NAME, partitionTableName);
         log.debug("workflow event log query: {}", partitionAwareQuery);
         try {
@@ -65,30 +64,6 @@ public class WorkflowEventLogDao {
             .userRole(rs.getShort("user_role"))
             .completed(rs.getShort("completed"))
             .build();
-    }
-
-}
-
-enum WorkflowEventLogType {
-    LEAVE_APP(WorkflowType.LEAVE_APPLICATION, WorkflowEventLogDao.LEAVE_APP_WF_TABLE_NAME);
-
-    private final WorkflowType workflowType;
-
-    private final String table;
-
-    private static final WorkflowEventLogType[] values = WorkflowEventLogType.values();
-
-    WorkflowEventLogType(WorkflowType workflowType, String table) {
-        this.workflowType = workflowType;
-        this.table = table;
-    }
-
-    public static String getTableForWorkflowType(WorkflowType type) {
-        for(WorkflowEventLogType wfelt : values) {
-            if (wfelt.workflowType.equals(type))
-                return wfelt.table;
-        }
-        throw new IllegalArgumentException("Unsupported WorkflowType");
     }
 
 }

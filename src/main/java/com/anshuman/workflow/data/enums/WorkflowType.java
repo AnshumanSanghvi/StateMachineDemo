@@ -8,11 +8,13 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @ToString
 public enum WorkflowType {
-    LEAVE_APPLICATION(1, "LeaveApplicationWorkflow");
+    LEAVE_APPLICATION(1, "LeaveApplicationWorkflow", "leaveapp_wf_status_log");
 
     private final int typeId;
 
     private final String name;
+
+    private final String tableName;
 
     private static final WorkflowType[] WORKFLOW_TYPES = WorkflowType.values();
 
