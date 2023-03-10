@@ -8,7 +8,8 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @ToString
 public enum WorkflowType {
-    LEAVE_APPLICATION(1, "LeaveApplicationWorkflow", "leaveapp_wf_status_log");
+    LEAVE_APPLICATION(1, "LeaveApplicationWorkflow", "leaveapp_wf_status_log"),
+    LOAN_APPLICATION(2, "LoanApplicationWorkflow", "loanapp_wf_status_log");
 
     private final int typeId;
 
