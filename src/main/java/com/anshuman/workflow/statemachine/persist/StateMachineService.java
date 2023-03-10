@@ -1,4 +1,4 @@
-package com.anshuman.workflow.statemachine;
+package com.anshuman.workflow.statemachine.persist;
 
 
 import com.anshuman.workflow.data.enums.WorkflowType;
@@ -10,7 +10,6 @@ import com.anshuman.workflow.resource.dto.WorkflowEventLogDto;
 import com.anshuman.workflow.service.WorkflowEventLogService;
 import com.anshuman.workflow.statemachine.data.Pair;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
-import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
 import com.anshuman.workflow.statemachine.util.StringUtil;
 import com.anshuman.workflow.statemachine.util.WFPropsToSMExtStateHelper;
 import java.time.LocalDateTime;
@@ -33,10 +32,10 @@ public class StateMachineService<S, E, T extends ContextEntity<S, E>> {
     private final WorkflowEventLogService workflowEventLogService;
 
     @Transactional(readOnly = true)
-    public StateMachine<S, E> createStateMachine(@NotNull T entity) {
+    public StateMachine<S, E> createStateMachine(@NotNull T entity, WorkflowType workflowType) {
         // create statemachine as per the entity's statemachine id.
-        var stateMachine = Optional.ofNullable(stateMachineAdapter.create(entity.getStateMachineId()))
-            .orElseThrow(() -> new StateMachineException("StateMachine was not created"));
+        var stateMachine = Optional.ofNullable(stateMachineAdapter.createStateMachine(entity.getStateMachineId(), workflowType))
+                .orElseThrow(() -> new StateMachineException("StateMachine was not created"));
 
         // set the state machine extended state from the workflow type and workflow instance
         List<Pair<Integer, Long>> reviewers = entity.getReviewers();
@@ -57,8 +56,8 @@ public class StateMachineService<S, E, T extends ContextEntity<S, E>> {
     }
 
     @Transactional(readOnly = true)
-    public StateMachine<S, E> getStateMachineFromEntity(T entity) {
-        StateMachine<S, E> stateMachine = stateMachineAdapter.restore(entity.getStateMachineId(), entity);
+    public StateMachine<S, E> getStateMachineFromEntity(T entity, WorkflowType workflowType) {
+        StateMachine<S, E> stateMachine = stateMachineAdapter.restore(stateMachineAdapter.createStateMachine(entity.getStateMachineId(), workflowType), entity);
         log.debug("For entity with id: {} and currentState: {}, Restored statemachine: {}",
             entity.getId(), entity.getCurrentState(), StringUtil.stateMachine(stateMachine, false));
         return stateMachine;
