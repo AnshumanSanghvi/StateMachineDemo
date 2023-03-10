@@ -22,7 +22,7 @@ import org.springframework.statemachine.config.builders.StateMachineStateConfigu
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
 @Configuration
-@EnableStateMachineFactory
+@EnableStateMachineFactory(name = "LeaveAppStateMachineFactory")
 public class LeaveAppSMConfig extends EnumStateMachineConfigurerAdapter<LeaveAppState, LeaveAppEvent> {
 
     @Override

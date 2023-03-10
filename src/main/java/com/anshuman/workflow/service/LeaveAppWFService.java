@@ -9,10 +9,10 @@ import com.anshuman.workflow.data.model.repository.LeaveAppWorkflowInstanceRepos
 import com.anshuman.workflow.exception.WorkflowException;
 import com.anshuman.workflow.resource.dto.EventResponseDto;
 import com.anshuman.workflow.resource.dto.PassEventDto;
-import com.anshuman.workflow.statemachine.StateMachineService;
 import com.anshuman.workflow.statemachine.data.dto.EventResultDTO;
 import com.anshuman.workflow.statemachine.event.LeaveAppEvent;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
+import com.anshuman.workflow.statemachine.persist.StateMachineService;
 import com.anshuman.workflow.statemachine.state.LeaveAppState;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -40,7 +40,7 @@ public class LeaveAppWFService {
     public LeaveAppWorkFlowInstanceEntity createLeaveApplication(@NotNull LeaveAppWorkFlowInstanceEntity entity) {
         validateThatEntityDoesNotExist(entity);
 
-        var stateMachine = stateMachineService.createStateMachine(entity);
+        var stateMachine = stateMachineService.createStateMachine(entity, entity.getTypeId());
 
         var eventDto = PassEventDto.builder().event(E_INITIALIZE.name()).actionBy(entity.getCreatedByUserId()).build();
         var result = LeaveAppEvent.passEvent( stateMachine, eventDto);
@@ -92,7 +92,7 @@ public class LeaveAppWFService {
             return Collections.emptyList();
         }
 
-        var stateMachine = stateMachineService.getStateMachineFromEntity(entity);
+        var stateMachine = stateMachineService.getStateMachineFromEntity(entity, entity.getTypeId());
 
         var result = LeaveAppEvent.passEvent( stateMachine, eventDto);
         var resultDTOList = result.getSecond();

@@ -3,6 +3,7 @@ package com.anshuman.workflow.statemachine.config;
 import com.anshuman.workflow.data.model.entity.ContextEntity;
 import com.anshuman.workflow.statemachine.persist.DefaultStateMachineAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.StateMachineContext;
@@ -62,16 +63,16 @@ public class StateMachinePersistenceConfig {
     }
 
     /**
-     * @param stateMachineFactory The StateMachineFactory bean
+     * @param leaveAppStateMachineFactory The StateMachineFactory bean
      * @param <S>                 Parameter for the StateActions class
      * @param <E>                 Parameter for the Event class
      * @return A bean of the DefaultStateMachineAdapter
      */
     @Bean
     public <S, E> DefaultStateMachineAdapter<S, E, ContextEntity<S, E>> stateMachineAdapter(
-        @Autowired StateMachineFactory<S, E> stateMachineFactory,
+        @Autowired @Qualifier("LeaveAppStateMachineFactory") StateMachineFactory<S, E> leaveAppStateMachineFactory,
         @Autowired StateMachinePersister<S, E, ContextEntity<S, E>> stateMachinePersister) {
-        return new DefaultStateMachineAdapter<>(stateMachineFactory, stateMachinePersister);
+        return new DefaultStateMachineAdapter<>(leaveAppStateMachineFactory, stateMachinePersister);
     }
 
 }
