@@ -9,6 +9,16 @@ CREATE TABLE public.leave_wf_inst (
     CONSTRAINT leave_wf_inst_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE public.loan_wf_inst (
+    current_state varchar(100) NULL,
+    is_active int2 NOT NULL,
+    loan_type varchar(100) NOT NULL,
+    statemachine bytea NULL,
+    id int8 NOT NULL,
+    statemachine_id varchar(100) NOT NULL,
+CONSTRAINT loan_wf_inst_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE public.wf_inst_mst (
     id int8 NOT NULL,
     branch_id int4 NOT NULL,
@@ -61,7 +71,11 @@ CREATE TABLE public.wf_type_mst (
 
 CREATE TABLE public.leaveapp_wf_status_log PARTITION OF public.wf_status_log FOR VALUES IN (1);
 
+CREATE TABLE public.loanapp_wf_status_log PARTITION OF public.wf_status_log FOR VALUES IN (2);
+
 CREATE INDEX leave_wf_inst_leave_type_idx ON public.leave_wf_inst (leave_type);
+
+CREATE INDEX loan_wf_inst_loan_type_idx ON public.loan_wf_inst (loan_type);
 
 CREATE INDEX wf_inst_mst_type_id_idx ON public.wf_inst_mst (company_id, branch_id, type_id);
 CREATE INDEX wf_inst_mst_company_id_idx ON public.wf_inst_mst (company_id, branch_id);
@@ -122,3 +136,6 @@ SELECT pg_catalog.setval('public.wf_type_seq', 0, true);
 
 -- ALTER TABLE ONLY public.leave_wf_inst
 --    ADD CONSTRAINT fk2usglhhnfgbd5da0tklxcxv5k FOREIGN KEY (id) REFERENCES public.wf_inst_mst(id);
+
+-- ALTER TABLE ONLY public.loan_wf_inst
+--    ADD CONSTRAINT fkloanforrignkeyreference FOREIGN KEY (id) REFERENCES public.wf_inst_mst(id);

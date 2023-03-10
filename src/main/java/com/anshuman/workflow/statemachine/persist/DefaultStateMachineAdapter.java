@@ -1,7 +1,5 @@
 package com.anshuman.workflow.statemachine.persist;
 
-import static com.anshuman.workflow.data.enums.WorkflowType.LEAVE_APPLICATION;
-
 import com.anshuman.workflow.data.enums.WorkflowType;
 import com.anshuman.workflow.statemachine.exception.StateMachineException;
 import com.anshuman.workflow.statemachine.exception.StateMachinePersistenceException;
@@ -28,10 +26,15 @@ public class DefaultStateMachineAdapter<S, E, T> {
     @Qualifier("LeaveAppStateMachineFactory")
     private final StateMachineFactory<S, E> leaveAppStateMachineFactory;
 
+    @Qualifier("LoanAppStateMachineFactory")
+    private final StateMachineFactory<S, E> loanAppStateMachineFactory;
+
     private final StateMachinePersister<S, E, T> stateMachinePersister;
 
-    public DefaultStateMachineAdapter(StateMachineFactory<S, E> leaveAppStateMachineFactory, StateMachinePersister<S, E, T> stateMachinePersister) {
+    public DefaultStateMachineAdapter(StateMachineFactory<S, E> leaveAppStateMachineFactory, StateMachineFactory<S, E> loanAppStateMachineFactory,
+        StateMachinePersister<S, E, T> stateMachinePersister) {
         this.leaveAppStateMachineFactory = leaveAppStateMachineFactory;
+        this.loanAppStateMachineFactory = loanAppStateMachineFactory;
         this.stateMachinePersister = stateMachinePersister;
     }
 
@@ -63,10 +66,10 @@ public class DefaultStateMachineAdapter<S, E, T> {
 
     public StateMachine<S, E> createStateMachine(String stateMachineId, WorkflowType workflowType) {
         try {
-            StateMachine<S, E> stateMachine =  Optional.of(workflowType)
-                .filter(wft -> wft.equals(LEAVE_APPLICATION))
-                .map(wft -> this.createStateMachineFromStateMachineFactory(stateMachineId, leaveAppStateMachineFactory))
-                .orElseThrow(() -> new StateMachineException("Cannot create statemachine with given statemachineId and workflow type"));
+            StateMachine<S, E> stateMachine =  switch (workflowType) {
+                case LEAVE_APPLICATION -> createStateMachineFromStateMachineFactory(stateMachineId, leaveAppStateMachineFactory);
+                case LOAN_APPLICATION -> createStateMachineFromStateMachineFactory(stateMachineId, loanAppStateMachineFactory);
+            };
             stateMachine.startReactively().block();
             log.debug("Created and started stateMachine: {}", StringUtil.stateMachine(stateMachine, false));
             return stateMachine;

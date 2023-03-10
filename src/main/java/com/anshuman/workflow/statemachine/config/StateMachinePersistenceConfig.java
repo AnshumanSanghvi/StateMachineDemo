@@ -71,8 +71,9 @@ public class StateMachinePersistenceConfig {
     @Bean
     public <S, E> DefaultStateMachineAdapter<S, E, ContextEntity<S, E>> stateMachineAdapter(
         @Autowired @Qualifier("LeaveAppStateMachineFactory") StateMachineFactory<S, E> leaveAppStateMachineFactory,
+        @Autowired @Qualifier("LoanAppStateMachineFactory") StateMachineFactory<S, E> loanAppStateMachineFactory,
         @Autowired StateMachinePersister<S, E, ContextEntity<S, E>> stateMachinePersister) {
-        return new DefaultStateMachineAdapter<>(leaveAppStateMachineFactory, stateMachinePersister);
+        return new DefaultStateMachineAdapter<>(leaveAppStateMachineFactory, loanAppStateMachineFactory, stateMachinePersister);
     }
 
 }

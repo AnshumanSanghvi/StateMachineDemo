@@ -1,6 +1,7 @@
 package com.anshuman.workflow.data.enums;
 
 import static com.anshuman.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
+import static com.anshuman.workflow.statemachine.data.constant.LoanAppSMConstants.LOAN_APP_WF_V1;
 
 import com.anshuman.workflow.statemachine.data.Pair;
 import java.util.Collections;
@@ -9,7 +10,8 @@ import lombok.Getter;
 
 @Getter
 public enum WorkFlowTypeStateMachine {
-    LEAVE_APPLICATION_STATE_MACHINES(WorkflowType.LEAVE_APPLICATION, List.of(new Pair<>("v1", LEAVE_APP_WF_V1)));
+    LEAVE_APPLICATION_STATE_MACHINES(WorkflowType.LEAVE_APPLICATION, List.of(new Pair<>("v1", LEAVE_APP_WF_V1))),
+    LOAN_APPLICATION_STATE_MACHINES(WorkflowType.LOAN_APPLICATION, List.of(new Pair<>("v1", LOAN_APP_WF_V1)));
 
     private final WorkflowType workflowType;
     private final List<Pair<String, String>> stateMachineIds;
