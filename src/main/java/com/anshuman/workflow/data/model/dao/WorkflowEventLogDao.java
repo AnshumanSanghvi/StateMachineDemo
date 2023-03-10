@@ -28,9 +28,9 @@ public class WorkflowEventLogDao {
     public List<WorkflowEventLogEntity> getWorkflowEventLogs(WorkflowEventLogDto wf) {
         String query = "SELECT * " +
             " FROM wf_status_log " +
-            " WHERE type_id = " + wf.getTypeId() + " " +
-            Optional.ofNullable(wf.getCompanyId()).map(cid -> " AND company_id = " + cid).orElse("") +
-            Optional.ofNullable(wf.getBranchId()).map(bid -> " AND branch_id = " + bid).orElse("") +
+            " WHERE company_id = " + wf.getCompanyId() + " " +
+            " AND branch_id = " + wf.getBranchId() + " " +
+            Optional.ofNullable(wf.getTypeId()).map(typeId -> " AND type_id = " + typeId).orElse("") +
             Optional.ofNullable(wf.getInstanceId()).map(iid -> " AND instance_id = " + iid).orElse("") +
             Optional.ofNullable(wf.getActionDate()).map(DTF::format).map(ad -> " AND action_date > '" + ad + "'::date" ).orElse("") +
             Optional.ofNullable(wf.getState()).map(st -> " AND state = " + st).orElse("") +
@@ -38,9 +38,14 @@ public class WorkflowEventLogDao {
             Optional.ofNullable(wf.getActionBy()).map(by -> " AND action_by = " + by).orElse("") +
             Optional.ofNullable(wf.getUserRole()).map(ur -> " AND user_role = " + ur).orElse("") +
             Optional.ofNullable(wf.getCompleted()).map(c -> " AND completed = " + c).orElse("") +
-            " ORDER BY instance_id DESC, action_date DESC";
-        final String partitionTableName = (WorkflowType.fromId(wf.getTypeId())).getTableName();
-        final String partitionAwareQuery = query.replace(WF_LOG_TABLE_NAME, partitionTableName);
+            " ORDER BY instance_id DESC, action_date DESC " +
+            " LIMIT 100 ";
+        final String partitionTableName = Optional
+            .ofNullable(wf.getTypeId())
+            .map(WorkflowType::fromId)
+            .map(WorkflowType::getTableName)
+            .orElse(null);
+        final String partitionAwareQuery = (partitionTableName == null) ? query : query.replace(WF_LOG_TABLE_NAME, partitionTableName);
         log.debug("workflow event log query: {}", partitionAwareQuery);
         try {
             return jdbcTemplate.query(partitionAwareQuery, (rs, rowNum) -> mapWorkflowEventLogEntityFromResultSet(rs));
