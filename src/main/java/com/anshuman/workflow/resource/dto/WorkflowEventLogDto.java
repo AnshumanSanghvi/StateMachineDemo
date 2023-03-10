@@ -21,7 +21,7 @@ public class WorkflowEventLogDto {
 
     @NotNull private Integer branchId;
 
-    @NotNull private Integer typeId;
+    private Integer typeId;
 
     private Long instanceId;
 
