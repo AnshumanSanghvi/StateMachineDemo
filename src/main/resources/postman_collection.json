@@ -1060,7 +1060,7 @@
 			"name": "WorkflowEventLog",
 			"item": [
 				{
-					"name": "GetWorkflowEventLogsByUser",
+					"name": "GetWorkflowEventLogsByUser&Type",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -1069,7 +1069,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": 1,\n    \"actionBy\": 1 \n}",
+							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": 2,\n    \"actionBy\": 1 \n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1102,7 +1102,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": 1,\n    \"actionDate\": \"06-03-2023 00:00:00\"\n}",
+							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,    \n    \"actionDate\": \"10-03-2023 00:00:00\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1126,7 +1126,7 @@
 					"response": []
 				},
 				{
-					"name": "GetWorkflowEventLogs",
+					"name": "GetWorkflowEventLogsByType",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -1135,7 +1135,40 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": 1 \n}",
+							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": 2 \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/wf/log/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"wf",
+								"log",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetWorkflowEventLogsByState&Event",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"state\": \"S_CLOSED\",\n    \"event\": \"E_FORWARD\"\n    \n}",
 							"options": {
 								"raw": {
 									"language": "json"
