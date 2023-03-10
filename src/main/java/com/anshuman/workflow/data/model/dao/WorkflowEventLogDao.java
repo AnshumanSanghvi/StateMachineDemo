@@ -33,8 +33,8 @@ public class WorkflowEventLogDao {
             Optional.ofNullable(wf.getTypeId()).map(typeId -> " AND type_id = " + typeId).orElse("") +
             Optional.ofNullable(wf.getInstanceId()).map(iid -> " AND instance_id = " + iid).orElse("") +
             Optional.ofNullable(wf.getActionDate()).map(DTF::format).map(ad -> " AND action_date > '" + ad + "'::date" ).orElse("") +
-            Optional.ofNullable(wf.getState()).map(st -> " AND state = " + st).orElse("") +
-            Optional.ofNullable(wf.getEvent()).map(e -> " AND event = " + e).orElse("") +
+            Optional.ofNullable(wf.getState()).map(st -> " AND state = '" + st + "'").orElse("") +
+            Optional.ofNullable(wf.getEvent()).map(e -> " AND event = '" + e + "'").orElse("") +
             Optional.ofNullable(wf.getActionBy()).map(by -> " AND action_by = " + by).orElse("") +
             Optional.ofNullable(wf.getUserRole()).map(ur -> " AND user_role = " + ur).orElse("") +
             Optional.ofNullable(wf.getCompleted()).map(c -> " AND completed = " + c).orElse("") +
