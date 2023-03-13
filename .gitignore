@@ -6,6 +6,7 @@ target/
 logs
 .jpb
 *.h2.db
+*.zip
 
 ### STS ###
 .apt_generated

@@ -8,7 +8,7 @@
         <version>2.7.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.anshuman</groupId>
+    <groupId>com.sttl.hrms</groupId>
     <artifactId>StateMachineDemo</artifactId>
     <version>1.0</version>
     <name>StateMachineDemo</name>
