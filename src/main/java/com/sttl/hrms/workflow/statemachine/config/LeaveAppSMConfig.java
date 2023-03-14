@@ -1,10 +1,17 @@
 package com.sttl.hrms.workflow.statemachine.config;
 
 import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
-import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.*;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_APPROVE;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_CANCEL;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_REJECT;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_REQUEST_CHANGES_IN;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_ROLL_BACK;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_SUBMIT;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_COMPLETE;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_REVIEW_OF;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_CLOSED;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_COMPLETED;
-import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_CREATED;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_INITIAL;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_SUBMITTED;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_UNDER_PROCESS;
@@ -42,27 +49,18 @@ public class LeaveAppSMConfig extends EnumStateMachineConfigurerAdapter<LeaveApp
         states
             .withStates()
                 .initial(S_INITIAL)
-                .states(Set.of(S_CREATED, S_SUBMITTED, S_UNDER_PROCESS, S_CLOSED))
+                .states(Set.of(S_SUBMITTED, S_UNDER_PROCESS, S_CLOSED))
                 .end(S_COMPLETED);
     }
 
     @Override
     public void configure(StateMachineTransitionConfigurer<LeaveAppState, LeaveAppEvent> transitions) throws Exception {
 
-        // initialize
+        // initialize and submit application
         transitions
             .withExternal()
                 .name(TX_USER_CREATES_LEAVE_APP)
                 .source(S_INITIAL)
-                .event(E_INITIALIZE)
-                .target(S_CREATED)
-                .and();
-
-        // submit application
-        transitions
-            .withExternal()
-                .name(TX_USER_SUBMITS_LEAVE_APP)
-                .source(S_CREATED)
                 .event(E_SUBMIT)
                 .target(S_SUBMITTED)
                 .and();
@@ -79,13 +77,6 @@ public class LeaveAppSMConfig extends EnumStateMachineConfigurerAdapter<LeaveApp
 
         // cancel
         transitions
-            .withExternal()
-                .name(TX_USER_CANCELS_CREATED_LEAVE_APP)
-                .source(S_CREATED)
-                .event(E_CANCEL)
-                .target(S_COMPLETED)
-                .action(TransitionActions::cancel)
-                .and()
             .withExternal()
                 .name(TX_USER_CANCELS_LEAVE_APP_UNDER_REVIEW)
                 .source(S_UNDER_PROCESS)
@@ -118,7 +109,7 @@ public class LeaveAppSMConfig extends EnumStateMachineConfigurerAdapter<LeaveApp
                 .name(TX_REVIEWER_REQUESTS_CHANGES_FROM_USER_IN_SERIAL_FLOW)
                 .source(S_UNDER_PROCESS)
                 .event(E_REQUEST_CHANGES_IN)
-                .target(S_CREATED)
+                .target(S_INITIAL)
                 .action(TransitionActions::requestChanges)
                 .and();
 

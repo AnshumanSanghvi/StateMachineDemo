@@ -2,7 +2,6 @@ package com.sttl.hrms.workflow.statemachine.state;
 
 public enum LeaveAppState {
     S_INITIAL,
-    S_CREATED,
     S_SUBMITTED,
     S_UNDER_PROCESS,
     S_CLOSED,

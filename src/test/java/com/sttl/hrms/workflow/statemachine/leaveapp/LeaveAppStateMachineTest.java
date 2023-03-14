@@ -8,7 +8,6 @@ import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConsta
 import static com.sttl.hrms.workflow.statemachine.data.constant.StateMachineConstants.KEY_RETURN_COUNT;
 import static com.sttl.hrms.workflow.statemachine.data.constant.StateMachineConstants.KEY_ROLL_BACK_COUNT;
 import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
-import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_INITIALIZE;
 import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_ROLL_BACK;
 import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_SUBMIT;
 import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_COMPLETE;
@@ -71,7 +70,7 @@ class LeaveAppStateMachineTest {
         stateMachine = createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
         // when
-        EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
+        EventSendHelper.sendEvents(stateMachine, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
         EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L, "").blockLast();
         EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 2, 123L, "").blockLast();
         EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 3, 235L, "").blockLast();
@@ -106,7 +105,7 @@ class LeaveAppStateMachineTest {
         stateMachine = createStateMachine(reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
         // when
-        EventSendHelper.sendEvents(stateMachine, E_INITIALIZE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
+        EventSendHelper.sendEvents(stateMachine, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION).blockLast();
         EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L, "").blockLast();
         EventSendHelper.sendRollBackApprovalEvent(stateMachine, E_ROLL_BACK, 1, 234L).blockLast();
         EventSendHelper.sendForwardEvent(stateMachine, E_FORWARD, 1, 234L, "").blockLast();

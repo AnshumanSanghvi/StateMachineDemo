@@ -2,11 +2,18 @@ package com.sttl.hrms.workflow.statemachine.leaveapp;
 
 
 import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.*;
-import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.*;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_APPROVE;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_CANCEL;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_FORWARD;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_REJECT;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_REQUEST_CHANGES_IN;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_ROLL_BACK;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_SUBMIT;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_FLOW_JUNCTION;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_TRIGGER_REVIEW_OF;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_APPROVAL_JUNCTION;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_CLOSED;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_COMPLETED;
-import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_CREATED;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_INITIAL;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_PARALLEL_APPROVAL_FLOW;
 import static com.sttl.hrms.workflow.statemachine.state.LeaveAppState.S_SERIAL_APPROVAL_FLOW;
@@ -76,7 +83,7 @@ public class LeaveAppSMBuilder {
             .configureStates()
             .withStates()
                 .initial(S_INITIAL, context -> StateActions.initial(context, reviewersCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount))
-                .states(Set.of(S_CREATED, S_SUBMITTED, S_UNDER_PROCESS))             
+                .states(Set.of(S_SUBMITTED, S_UNDER_PROCESS))
                 .junction(S_APPROVAL_JUNCTION)
                 .states(Set.of(S_SERIAL_APPROVAL_FLOW, S_PARALLEL_APPROVAL_FLOW))
                 .state(S_CLOSED)
@@ -89,12 +96,8 @@ public class LeaveAppSMBuilder {
 
         configureTransitions
             .withExternal()
-                .name(TX_USER_CREATES_LEAVE_APP)
-                .source(S_INITIAL).event(E_INITIALIZE).target(S_CREATED)
-                .and()
-            .withExternal()
                 .name(TX_USER_SUBMITS_LEAVE_APP)
-                .source(S_CREATED).event(E_SUBMIT).target(S_SUBMITTED)
+                .source(S_INITIAL).event(E_SUBMIT).target(S_SUBMITTED)
                 .and()
             .withExternal()
                 .name(TX_SYSTEM_TRIGGERS_LEAVE_APP_FOR_REVIEW)

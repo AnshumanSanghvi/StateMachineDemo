@@ -2,7 +2,7 @@ package com.sttl.hrms.workflow.service;
 
 import static com.sttl.hrms.workflow.statemachine.data.constant.StateMachineConstants.KEY_RETURN_COUNT;
 import static com.sttl.hrms.workflow.statemachine.data.constant.StateMachineConstants.KEY_ROLL_BACK_COUNT;
-import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_INITIALIZE;
+import static com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent.E_SUBMIT;
 
 import com.sttl.hrms.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
 import com.sttl.hrms.workflow.data.model.repository.LeaveAppWorkflowInstanceRepository;
@@ -42,7 +42,7 @@ public class LeaveAppWFService {
 
         var stateMachine = stateMachineService.createStateMachine(entity, entity.getTypeId());
 
-        var eventDto = PassEventDto.builder().event(E_INITIALIZE.name()).actionBy(entity.getCreatedByUserId()).build();
+        var eventDto = PassEventDto.builder().event(E_SUBMIT.name()).actionBy(entity.getCreatedByUserId()).build();
         var result = LeaveAppEvent.passEvent( stateMachine, eventDto);
 
         List<EventResultDTO<LeaveAppState, LeaveAppEvent>> results = result.getSecond();

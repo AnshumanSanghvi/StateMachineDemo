@@ -13,7 +13,6 @@ import org.springframework.statemachine.StateMachine;
 
 @Slf4j
 public enum LeaveAppEvent {
-    E_INITIALIZE("Initialize Leave Application"),
     E_SUBMIT("Submit Leave Application"),
     E_TRIGGER_REVIEW_OF("Request Review of Leave Application"),
     E_REQUEST_CHANGES_IN("Request Changes to Submitted Leave Application"),
@@ -53,8 +52,7 @@ public enum LeaveAppEvent {
 
         // send the event to the state machine
         var resultFlux = switch (event) {
-            case E_INITIALIZE, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION,
-                E_REJECT, E_CANCEL, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
+            case E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION, E_REJECT, E_CANCEL, E_TRIGGER_COMPLETE -> EventSendHelper.sendEvent(stateMachine, event);
             case E_SUBMIT -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_REVIEW_OF);
             case E_APPROVE -> EventSendHelper.sendEvents(stateMachine, event, E_TRIGGER_COMPLETE);
             case E_REQUEST_CHANGES_IN -> EventSendHelper.sendRequestChangesEvent(stateMachine, event, order, actionBy, comment);
