@@ -8,9 +8,9 @@ public class App {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(App.class)
-            .logStartupInfo(true)
-            .build()
-            .run(args);
+                .logStartupInfo(true)
+                .build()
+                .run(args);
     }
 
 }

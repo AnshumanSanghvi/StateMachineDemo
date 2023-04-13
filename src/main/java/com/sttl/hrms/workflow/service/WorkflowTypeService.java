@@ -4,13 +4,14 @@ import com.sttl.hrms.workflow.data.enums.WorkflowType;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity;
 import com.sttl.hrms.workflow.data.model.repository.WorkflowTypeRepository;
 import com.sttl.hrms.workflow.exception.WorkflowException;
-import java.util.List;
-import java.util.Optional;
-import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class WorkflowTypeService {
     }
 
     private void validateThatWorkflowTypeDoesNotExist(WorkflowType workflowType) {
-        if(existsByTypeId(workflowType))
+        if (existsByTypeId(workflowType))
             throw new WorkflowException("Cannot create new statemachine type, there already exists a type for the given type id");
     }
 

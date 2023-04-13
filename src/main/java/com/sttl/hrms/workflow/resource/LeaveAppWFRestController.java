@@ -1,27 +1,21 @@
 package com.sttl.hrms.workflow.resource;
 
 import com.sttl.hrms.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
+import com.sttl.hrms.workflow.exception.WorkflowException;
 import com.sttl.hrms.workflow.resource.dto.EventResponseDto;
 import com.sttl.hrms.workflow.resource.dto.LeaveAppWFInstanceDto;
 import com.sttl.hrms.workflow.resource.dto.PassEventDto;
-import com.sttl.hrms.workflow.service.LeaveAppWFService;
-import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import com.sttl.hrms.workflow.service.LeaveAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 @RequestMapping("wf/leave")
@@ -30,31 +24,33 @@ import org.springframework.web.server.ResponseStatusException;
 @Validated
 public class LeaveAppWFRestController {
 
-    private final LeaveAppWFService leaveAppWFService;
+    private final LeaveAppService leaveAppWFService;
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody LeaveAppWorkFlowInstanceEntity createLeaveAppWFInstance(@RequestBody @Valid LeaveAppWFInstanceDto dto) {
-        log.debug("create leaveAppWfEntity from dto: {}", dto);
-        return leaveAppWFService.createLeaveApplication(LeaveAppWFInstanceDto.toEntity(dto));
+    public @ResponseBody LeaveAppWorkFlowInstanceEntity createLeaveApp(@RequestBody @Valid LeaveAppWFInstanceDto dto) {
+        log.debug("create leaveApp Entity from dto: {}", dto);
+        if (dto.getCreatedByUserId() == null)
+            throw new WorkflowException("Cannot create leave application", new IllegalArgumentException("Created By User Id cannot be null"));
+        return leaveAppWFService.create(LeaveAppWFInstanceDto.toEntity(dto));
     }
 
     @GetMapping("/{id}")
-    public @ResponseBody LeaveAppWorkFlowInstanceEntity getLeaveAppWFInstanceById(@PathVariable("id") Long id) {
+    public @ResponseBody LeaveAppWorkFlowInstanceEntity getLeaveAppById(@PathVariable("id") Long id) {
         if (!leaveAppWFService.existsById(id))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        return leaveAppWFService.getLeaveApplicationById(id);
+        return leaveAppWFService.getById(id);
     }
 
     @GetMapping("/")
-    public @ResponseBody List<LeaveAppWorkFlowInstanceEntity> getAllLeaveAppWFInstances() {
+    public @ResponseBody List<LeaveAppWorkFlowInstanceEntity> getAllLeaveApps() {
         return leaveAppWFService.getAll();
     }
 
     @PostMapping("/event")
-    public @ResponseBody List<EventResponseDto> sendEvent(@NotNull @RequestBody @Valid PassEventDto eventDto) {
-        log.debug("update leaveAppWfEntity with event: {}", eventDto);
-        return leaveAppWFService.passEvent(eventDto);
+    public @ResponseBody List<EventResponseDto> sendEventToLeaveAppWF(@NotNull @RequestBody @Valid PassEventDto eventDto) {
+        log.debug("update leaveApp Entity with event: {}", eventDto);
+        return leaveAppWFService.passEventToSM(eventDto);
     }
 
     @DeleteMapping("/{id}")
@@ -62,7 +58,7 @@ public class LeaveAppWFRestController {
     public void deleteLeaveApp(@PathVariable("id") Long id) {
         if (!leaveAppWFService.existsById(id))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        leaveAppWFService.deleteLeaveApplication(id);
+        leaveAppWFService.delete(id);
     }
 
 }

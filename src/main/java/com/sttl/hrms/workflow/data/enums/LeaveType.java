@@ -28,11 +28,12 @@ public enum LeaveType {
 
     /**
      * Method to return a LeaveApp enum that matches the leave type id. Can be used to map JSON m
+     *
      * @param number the id to be matched against the leave type enum number
      * @return LeaveType leaveType that matches the given number
      */
     public static LeaveType fromNumber(int number) {
-        for(LeaveType lt : values) {
+        for (LeaveType lt : values) {
             if (lt.getNumber() == number)
                 return lt;
         }

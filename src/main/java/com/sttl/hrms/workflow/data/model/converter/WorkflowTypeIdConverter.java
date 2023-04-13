@@ -1,6 +1,7 @@
 package com.sttl.hrms.workflow.data.model.converter;
 
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 

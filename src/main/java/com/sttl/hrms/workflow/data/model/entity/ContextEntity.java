@@ -1,29 +1,19 @@
 package com.sttl.hrms.workflow.data.model.entity;
 
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
-import com.sttl.hrms.workflow.statemachine.data.Pair;
-import java.util.List;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 
 
-public interface ContextEntity<S, E> {
-
-    Long getCompanyId();
-
-    Integer getBranchId();
-
-    Long getId();
+public interface ContextEntity {
 
     WorkflowType getTypeId();
 
     String getStateMachineId();
 
-    S getCurrentState();
+    String getCurrentState();
 
-    DefaultStateMachineContext<S, E> getStateMachineContext();
+    DefaultStateMachineContext<String, String> getStateMachineContext();
 
-    void setStateMachineContext(DefaultStateMachineContext<S, E> context);
-
-    List<Pair<Integer, Long>> getReviewers();
+    void setStateMachineContext(DefaultStateMachineContext<String, String> context);
 
 }

@@ -2,23 +2,12 @@ package com.sttl.hrms.workflow.data.model.entity;
 
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
 import com.sttl.hrms.workflow.data.model.converter.WorkflowTypeIdConverter;
+import lombok.*;
+import org.hibernate.Hibernate;
+
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.Hibernate;
 
 @Entity
 @Table(name = "wf_status_log", schema = "public")
@@ -53,7 +42,7 @@ public class WorkflowEventLogEntity {
     @Column(name = "state", nullable = false, updatable = false, length = 100)
     private String state;
 
-    @Column(name = "event", nullable = false, updatable = false, length = 100)
+    @Column(name = "`event`", nullable = false, updatable = false, length = 100)
     private String event;
 
     @Column(name = "action_date", nullable = false, updatable = false)
@@ -68,7 +57,7 @@ public class WorkflowEventLogEntity {
     @Column(name = "completed", nullable = false, updatable = false)
     private short completed;
 
-    @Column(name = "comment", length = 1024)
+    @Column(name = "`comment`", length = 1024)
     private String comment;
 
     @Override

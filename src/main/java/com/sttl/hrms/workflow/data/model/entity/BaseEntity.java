@@ -1,16 +1,13 @@
 package com.sttl.hrms.workflow.data.model.entity;
 
-import java.time.LocalDateTime;
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreRemove;
-import javax.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @MappedSuperclass
 @NoArgsConstructor
@@ -26,6 +23,15 @@ public abstract class BaseEntity {
     @Column(name = "branch_id", nullable = false, updatable = false)
     private Integer branchId;
 
+    @Column(name = "create_by", updatable = false)
+    private Long createdByUserId;
+
+    @Column(name = "update_by")
+    private Long updatedByUserId;
+
+    @Column(name = "delete_by")
+    private Long deletedByUserId;
+
     @Column(name = "create_date", updatable = false)
     private LocalDateTime createdDate;
 
@@ -34,7 +40,6 @@ public abstract class BaseEntity {
 
     @Column(name = "delete_date")
     private LocalDateTime deletedDate;
-
 
     @PrePersist
     public void prePersist() {

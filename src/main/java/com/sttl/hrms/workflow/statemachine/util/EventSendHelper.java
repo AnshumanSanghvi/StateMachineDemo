@@ -1,13 +1,8 @@
 package com.sttl.hrms.workflow.statemachine.util;
 
-import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_APPROVE_BY;
-import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_FORWARDED_COMMENT;
-import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_LAST_FORWARDED_BY;
-import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_REQUESTED_CHANGES_BY;
-import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_REQUESTED_CHANGE_COMMENT;
-import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.KEY_ROLL_BACK_BY;
-
-import com.sttl.hrms.workflow.statemachine.data.Pair;
+import com.sttl.hrms.workflow.data.Pair;
+import com.sttl.hrms.workflow.resource.dto.PassEventDto;
+import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.support.MessageBuilder;
@@ -16,6 +11,11 @@ import org.springframework.statemachine.StateMachineEventResult;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.*;
+import java.util.function.Predicate;
+
+import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
+
 @Slf4j
 public class EventSendHelper {
 
@@ -23,58 +23,73 @@ public class EventSendHelper {
         // use class statically
     }
 
-    public static <S, E> Flux<StateMachineEventResult<S, E>> sendEvent(StateMachine<S, E> sm, E event) {
+    public static Pair<StateMachine<String, String>, List<EventResultDto>> passEvents(StateMachine<String,
+            String> stateMachine, List<PassEventDto> eventDtos) {
+
+        StateMachine<String, String> resultStateMachine = stateMachine;
+        List<EventResultDto> results  = new ArrayList<>();
+
+        for (PassEventDto eventDto : eventDtos) {
+            if (!resultStateMachine.hasStateMachineError()) {
+                var eventResult = passEvent(resultStateMachine, eventDto);
+
+                resultStateMachine = eventResult.getFirst();
+                if (!eventResult.getSecond().isEmpty()) results.addAll(eventResult.getSecond());
+            }
+        }
+
+        return new Pair<>(resultStateMachine, results);
+    }
+
+    public static Pair<StateMachine<String, String>, List<EventResultDto>> passEvent(StateMachine<String, String> stateMachine,
+            PassEventDto eventDto) {
+
+        Map<String, Object> headersMap = new HashMap<>();
+        Optional.ofNullable(eventDto.getOrderNo()).ifPresent(ord -> headersMap.put(MSG_KEY_ORDER_NO, ord));
+        Optional.ofNullable(eventDto.getActionBy()).ifPresent(actBy -> headersMap.put(MSG_KEY_ACTION_BY, actBy));
+        Optional.ofNullable(eventDto.getComment()).filter(Predicate.not(String::isBlank))
+                .ifPresent(cmt -> headersMap.put(MSG_KEY_COMMENT, cmt));
+
+        var resultFlux = sendMessageToSM(stateMachine, eventDto.getEvent(), headersMap);
+
+        // parse the result
+        List<EventResultDto> resultDTOList = EventResultHelper.processResultFlux(resultFlux);
+        log.debug("After passing event: {}, resultFlux is: {}", eventDto.getEvent(), resultDTOList);
+        return new Pair<>(stateMachine, resultDTOList);
+    }
+
+    public static Flux<StateMachineEventResult<String, String>> sendMessageToSM(StateMachine<String, String> stateMachine,
+            String event, Map<String, Object> headersMap) {
+        Flux<StateMachineEventResult<String, String>> resultFlux = Flux.empty();
+        MessageBuilder<String> msgBldr = MessageBuilder.withPayload(event);
+        var map = stateMachine.getExtendedState().getVariables();
+
+        Optional.ofNullable(headersMap.get(MSG_KEY_ORDER_NO))
+                .ifPresent(ord -> {
+                    map.put(KEY_ORDER, ord);
+                    msgBldr.setHeader(MSG_KEY_ORDER_NO, ord);});
+        Optional.ofNullable(headersMap.get(MSG_KEY_ACTION_BY))
+                .ifPresent(actBy -> {
+                    map.put(KEY_ACTION_BY, actBy);
+                    msgBldr.setHeader(MSG_KEY_ACTION_BY, actBy);});
+        Optional.ofNullable(headersMap.get(MSG_KEY_COMMENT))
+                .ifPresent(cmt -> {
+                    map.put(KEY_COMMENT, cmt);
+                    msgBldr.setHeader(MSG_KEY_COMMENT, cmt);});
+
         try {
-            return sm.sendEvent(Mono.just(MessageBuilder.withPayload(event).build()));
+            return resultFlux.mergeWith(stateMachine.sendEvent(Mono.just(msgBldr.build())));
         } catch (Exception ex) {
-            throw new StateMachineException("Could not send event: " + event + " to the state machine with id: " + sm.getId(), ex);
+            throw new StateMachineException("Could not send event: " + event + " to the statemachine: " + stateMachine.getId(), ex);
         }
     }
 
-    @SafeVarargs
-    public static <S, E> Flux<StateMachineEventResult<S, E>> sendEvents(StateMachine<S, E> sm, E... events) {
-        Flux<StateMachineEventResult<S, E>> result = Flux.empty();
-        for (E event : events) {
-            result = result.mergeWith(sendEvent(sm, event));
+    public static Flux<StateMachineEventResult<String, String>> sendMessagesToSM(StateMachine<String, String> stateMachine,
+            Map<String, Object> headersMap, String... events) {
+        Flux<StateMachineEventResult<String, String>> resultFlux = Flux.empty();
+        for(String event : events) {
+            resultFlux.mergeWith(sendMessageToSM(stateMachine, event, headersMap));
         }
-        return result;
-    }
-
-    public static <S, E> Flux<StateMachineEventResult<S, E>> sendApproveEvent(StateMachine<S, E> sm, E approveEvent, Integer orderNumber, Long reviewerId) {
-        checkNull("Approve", orderNumber, reviewerId);
-        sm.getExtendedState().getVariables().put(KEY_APPROVE_BY, new Pair<>(orderNumber, reviewerId));
-        return sendEvent(sm, approveEvent);
-    }
-
-    public static <S, E> Flux<StateMachineEventResult<S, E>> sendRollBackApprovalEvent(StateMachine<S, E> sm, E rollBackEvent, Integer orderNumber,
-        Long reviewerId) {
-        checkNull("RollBackApproval", orderNumber, reviewerId);
-        sm.getExtendedState().getVariables().put(KEY_ROLL_BACK_BY, new Pair<>(orderNumber, reviewerId));
-        return sendEvent(sm, rollBackEvent);
-    }
-
-    public static <S, E> Flux<StateMachineEventResult<S, E>> sendRequestChangesEvent(StateMachine<S, E> sm, E requestChangesEvent, Integer orderNumber,
-        Long reviewerId, String comment) {
-        checkNull("RequestChanges", orderNumber, reviewerId);
-        var map = sm.getExtendedState().getVariables();
-        map.put(KEY_REQUESTED_CHANGES_BY, new Pair<>(orderNumber, reviewerId));
-        if (comment != null && !comment.isBlank()) map.put(KEY_REQUESTED_CHANGE_COMMENT, comment);
-        return sendEvent(sm, requestChangesEvent);
-    }
-
-    public static <S, E> Flux<StateMachineEventResult<S, E>> sendForwardEvent(StateMachine<S, E> sm, E forwardEvent, Integer orderNumber,
-        Long reviewerId, String comment) {
-        checkNull("Forward", orderNumber, reviewerId);
-        var map = sm.getExtendedState().getVariables();
-        map.put(KEY_LAST_FORWARDED_BY, new Pair<>(orderNumber, reviewerId));
-        if (comment != null && !comment.isBlank()) map.put(KEY_FORWARDED_COMMENT, comment);
-        return sendEvent(sm, forwardEvent);
-    }
-
-    private static void checkNull(String eventName, Integer orderNumber, Long actionBy) {
-        if (actionBy == null)
-            throw new StateMachineException(new NullPointerException(eventName + " Event - actionBy cannot be null"));
-        if (orderNumber == null)
-            throw new StateMachineException(new NullPointerException(eventName + " Event - orderNumber cannot be null"));
+        return resultFlux;
     }
 }

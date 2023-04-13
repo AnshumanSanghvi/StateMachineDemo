@@ -56,7 +56,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"baseDto\": {\n        \"companyId\": 1,\n        \"branchId\": 1,\n        \"createDate\": \"06-03-2023 13:27:52\"\n    },\n    \"withEffectFromDate\": \"06-03-2023 13:27:52\",\n    \"workflowTypeId\": 1,\n    \"isActive\": 1,\n    \"updateByUserId\": 1,\n    \"wfPropDto\": {\n        \"hasParallelApproval\": false,\n        \"hasRepeatableApprovers\": false,\n        \"canRollBackApproval\": true,\n        \"canAdminApproveWorkflow\": true,\n        \"adminRoleIds\": [\n            0\n        ],\n        \"maximumChangeRequestThreshold\": 3,\n        \"maximumRollbackApprovalThreshold\": 3\n    }\n}",
+							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,    \n    \"workflowTypeId\": 1,\n    \"withEffectFromDate\": \"13-04-2023 15:55:52\",\n    \"wfPropDto\": {\n        \"hasParallelApproval\": false,\n        \"hasRepeatableApprovers\": false,\n        \"canRollBackApproval\": true,\n        \"canAdminApproveWorkflow\": true,\n        \"adminRoleIds\": [\n            0\n        ],\n        \"maximumChangeRequestThreshold\": 3,\n        \"maximumRollbackApprovalThreshold\": 3\n    },\n    \"createDate\": \"13-04-2023 15:55:52\",\n    \"createdByUserId\": 1,\n    \"isActive\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -106,7 +106,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"baseDto\": {\n        \"companyId\": 1,\n        \"branchId\": 1,\n        \"createDate\": \"10-03-2023 13:27:52\"\n    },\n    \"withEffectFromDate\": \"10-03-2023 13:27:52\",\n    \"workflowTypeId\": 2,\n    \"isActive\": 1,\n    \"updateByUserId\": 1,\n    \"wfPropDto\": {\n        \"hasParallelApproval\": false,\n        \"hasRepeatableApprovers\": false,\n        \"canRollBackApproval\": true,\n        \"canAdminApproveWorkflow\": true,\n        \"adminRoleIds\": [\n            0\n        ],\n        \"maximumChangeRequestThreshold\": 3,\n        \"maximumRollbackApprovalThreshold\": 3\n    }\n}",
+							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"workflowTypeId\": 2,\n    \"withEffectFromDate\": \"13-04-2023 18:40:00\",    \n    \"wfPropDto\": {\n        \"hasParallelApproval\": false,\n        \"hasRepeatableApprovers\": false,\n        \"canRollBackApproval\": true,\n        \"canAdminApproveWorkflow\": true,\n        \"adminRoleIds\": [\n            0\n        ],\n        \"maximumChangeRequestThreshold\": 3,\n        \"maximumRollbackApprovalThreshold\": 3\n    },\n    \"createDate\": \"10-03-2023 13:27:52\",\n    \"createdByUserId\": 1,\n    \"isActive\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -320,7 +320,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"workflowType\": \"LEAVE_APPLICATION\",\n    \"workflowInstance\": 72,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 234,\n    \"orderNo\": 1,\n    \"comment\": \"please review reviewer 2\"\n}",
+											"raw": "{\n    \"workflowType\": \"LEAVE_APPLICATION\",\n    \"workflowInstanceId\": 1,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 5,\n    \"orderNo\": 1,\n    \"comment\": \"please review reviewer 2\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -349,7 +349,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"workflowType\": \"LEAVE_APPLICATION\",\n    \"workflowInstance\": 72,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 123,\n    \"orderNo\": 2,\n    \"comment\": \"please review reviewer 3\"\n}",
+											"raw": "{\n    \"workflowType\": \"LEAVE_APPLICATION\",\n    \"workflowInstanceId\": 1,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 6,\n    \"orderNo\": 2,\n    \"comment\": \"please review reviewer 3\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -407,7 +407,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"workflowType\": \"LEAVE_APPLICATION\",\n    \"workflowInstance\": 72,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 235,\n    \"orderNo\": 3,\n    \"comment\": \"done\"\n}",
+											"raw": "{\n    \"workflowType\": \"LEAVE_APPLICATION\",\n    \"workflowInstanceId\": 1,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 7,\n    \"orderNo\": 3,\n    \"comment\": \"done\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -470,7 +470,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"wfInstDto\": {\n        \"baseDto\": {\n            \"companyId\": 1,\n            \"branchId\": 1,\n            \"createDate\": \"02-03-2023 18:53:12\"\n        },\n        \"typeId\": \"LEAVE_APPLICATION\",\n        \"workflowVersion\": 1,\n        \"createdByUserId\": 1,        \n        \"reviewers\": [\n            {\n                \"first\": 1,\n                \"second\": 234\n            },\n            {\n                \"first\": 2,\n                \"second\": 123\n            },\n            {\n                \"first\": 3,\n                \"second\": 235\n            }\n        ]\n    },    \n    \"leaveType\": 1\n}",
+											"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": \"LEAVE_APPLICATION\",\n    \"workflowVersion\": 1,\n    \"leaveType\": 1,\n    \"reviewers\": [\n        {\n            \"first\": 1,\n            \"second\": 5\n        },\n        {\n            \"first\": 2,\n            \"second\": 6\n        },\n        {\n            \"first\": 3,\n            \"second\": 7\n        }\n    ],  \n    \"createdByUserId\": 1,\n    \"createDate\": \"13-04-2023 15:53:12\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -642,7 +642,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"wfInstDto\": {\n        \"baseDto\": {\n            \"companyId\": 1,\n            \"branchId\": 1,\n            \"createDate\": \"02-03-2023 18:53:12\"\n        },\n        \"typeId\": \"LOAN_APPLICATION\",\n        \"workflowVersion\": 1,\n        \"createdByUserId\": 1,        \n        \"reviewers\": [\n            {\n                \"first\": 1,\n                \"second\": 234\n            },\n            {\n                \"first\": 2,\n                \"second\": 123\n            },\n            {\n                \"first\": 3,\n                \"second\": 235\n            }\n        ]\n    },    \n    \"loanType\": 1\n}",
+											"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,        \n    \"typeId\": \"LOAN_APPLICATION\",\n    \"workflowVersion\": 1,\n    \"loanType\": 2,\n    \"reviewers\": [\n        {\n            \"first\": 1,\n            \"second\": 234\n        },\n        {\n            \"first\": 2,\n            \"second\": 123\n        },\n        {\n            \"first\": 3,\n            \"second\": 235\n        }\n    ],\n    \"createdByUserId\": 1,\n    \"createDate\": \"02-03-2023 18:53:12\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -912,7 +912,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"workflowType\": \"LOAN_APPLICATION\",\n    \"workflowInstance\": 72,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 234,\n    \"orderNo\": 1,\n    \"comment\": \"please review reviewer 2\"\n}",
+											"raw": "{\n    \"workflowType\": \"LOAN_APPLICATION\",\n    \"workflowInstanceId\": 6,\n    \"event\": \"E_FORWARD\",\n    \"actionBy\": 234,\n    \"orderNo\": 1,\n    \"comment\": \"please review reviewer 2\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -1060,7 +1060,7 @@
 			"name": "WorkflowEventLog",
 			"item": [
 				{
-					"name": "GetWorkflowEventLogsByUser&Type",
+					"name": "GetWorkflowEventLogsByType&UserId",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -1070,6 +1070,39 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": 2,\n    \"actionBy\": 1 \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/wf/log/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"wf",
+								"log",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetWorkflowEventLogsByType&InstanceId",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"companyId\": 1,\n    \"branchId\": 1,\n    \"typeId\": 2,\n    \"instanceId\": 6 \n}",
 							"options": {
 								"raw": {
 									"language": "json"

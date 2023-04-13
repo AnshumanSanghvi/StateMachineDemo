@@ -13,7 +13,7 @@ logging:
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/workflow2?logUnclosedConnections=true&currentSchema=public&reWriteBatchedInserts=true
+    url: jdbc:postgresql://localhost:5432/workflow?logUnclosedConnections=true&currentSchema=public&reWriteBatchedInserts=true
     username: anshuman
     password: anshuman
   jackson:

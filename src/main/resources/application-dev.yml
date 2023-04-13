@@ -12,7 +12,7 @@ logging:
 spring:
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:/Users/anshuman/workspace/Spring/StateMachineDemo/workflow
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;
     username: sa
     password:
   h2:
@@ -21,11 +21,13 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     generate-ddl: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none # enable schema file based schema creation
     open-in-view: false
     properties:
-      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
       hibernate.hbm2ddl.extra_physical_table_types: PARTITIONED TABLE
     show-sql: true
   main:
     lazy-initialization: true
+  sql:
+    init:
+      mode: embedded

@@ -1,12 +1,13 @@
 package com.sttl.hrms.workflow.resource.dto;
 
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
-import com.sttl.hrms.workflow.statemachine.data.dto.EventResultDTO;
-import java.util.List;
+import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -20,21 +21,21 @@ public class EventResponseDto {
     private String resultType;
     private boolean isComplete;
 
-    public static <S, E> EventResponseDto fromEventResult(Long id, WorkflowType type, EventResultDTO<S, E> eventResultDTO) {
+    public static EventResponseDto fromEventResult(Long id, WorkflowType type, EventResultDto eventResultDTO) {
         return EventResponseDto.builder()
-            .workflowInstance(id)
-            .workflowType(type.getName())
-            .currentState(eventResultDTO.getCurrentState().toString())
-            .event(eventResultDTO.getEvent().toString())
-            .resultType(eventResultDTO.getResultType().name())
-            .isComplete(eventResultDTO.isComplete())
-            .build();
+                .workflowInstance(id)
+                .workflowType(type.getName())
+                .currentState(eventResultDTO.getCurrentState())
+                .event(eventResultDTO.getEvent())
+                .resultType(eventResultDTO.getResultType().name())
+                .isComplete(eventResultDTO.isComplete())
+                .build();
     }
 
-    public static <S, E>List<EventResponseDto> fromEventResults(Long id, WorkflowType type, List<EventResultDTO<S, E>> eventResultDTOList) {
-        return eventResultDTOList
-            .stream()
-            .map(result -> EventResponseDto.fromEventResult(id, type, result))
-            .toList();
+    public static List<EventResponseDto> fromEventResults(Long id, WorkflowType type, List<EventResultDto> eventResultDtoList) {
+        return eventResultDtoList
+                .stream()
+                .map(result -> EventResponseDto.fromEventResult(id, type, result))
+                .toList();
     }
 }

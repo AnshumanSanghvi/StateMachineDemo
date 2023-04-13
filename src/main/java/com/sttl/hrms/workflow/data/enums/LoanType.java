@@ -16,8 +16,8 @@ public enum LoanType {
     private static final LoanType[] values = LoanType.values();
 
     public static LoanType fromId(int id) {
-        for(LoanType loanType : values) {
-            if(loanType.id == id)
+        for (LoanType loanType : values) {
+            if (loanType.id == id)
                 return loanType;
         }
         throw new IllegalArgumentException("No loan type found for given id");

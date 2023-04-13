@@ -1,17 +1,20 @@
 package com.sttl.hrms.workflow.data.enums;
 
-import static com.sttl.hrms.workflow.statemachine.data.constant.LeaveAppSMConstants.LEAVE_APP_WF_V1;
-import static com.sttl.hrms.workflow.statemachine.data.constant.LoanAppSMConstants.LOAN_APP_WF_V1;
-
-import com.sttl.hrms.workflow.statemachine.data.Pair;
-import java.util.Collections;
-import java.util.List;
+import com.sttl.hrms.workflow.data.Pair;
+import com.sttl.hrms.workflow.exception.WorkflowException;
 import lombok.Getter;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static com.sttl.hrms.workflow.statemachine.SMConstants.LEAVE_APP_WF_V1;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.LOAN_APP_WF_V1;
 
 @Getter
 public enum WorkFlowTypeStateMachine {
-    LEAVE_APPLICATION_STATE_MACHINES(WorkflowType.LEAVE_APPLICATION, List.of(new Pair<>("v1", LEAVE_APP_WF_V1))),
-    LOAN_APPLICATION_STATE_MACHINES(WorkflowType.LOAN_APPLICATION, List.of(new Pair<>("v1", LOAN_APP_WF_V1)));
+    LEAVE_APP_SM(WorkflowType.LEAVE_APPLICATION, List.of(new Pair<>("v1", LEAVE_APP_WF_V1))),
+    LOAN_APP_SM(WorkflowType.LOAN_APPLICATION, List.of(new Pair<>("v1", LOAN_APP_WF_V1)));
 
     private final WorkflowType workflowType;
     private final List<Pair<String, String>> stateMachineIds;
@@ -22,11 +25,19 @@ public enum WorkFlowTypeStateMachine {
         this.stateMachineIds = stateMachineIds;
     }
 
-    public static List<Pair<String, String>> getStateMachineIds(WorkflowType workflowType) {
-        for(WorkFlowTypeStateMachine wfsm : values) {
+    public static List<Pair<String, String>> getSMIdsFromWFType(WorkflowType workflowType) {
+        for (WorkFlowTypeStateMachine wfsm : values) {
             if (wfsm.getWorkflowType().equals(workflowType))
                 return wfsm.getStateMachineIds();
         }
         return Collections.emptyList();
+    }
+
+    public static String getLatestSMIdFromWFType(WorkflowType workflowType) {
+        return getSMIdsFromWFType(workflowType)
+                .stream()
+                .max(Comparator.comparing(Pair::getFirst))
+                .map(Pair::getSecond)
+                .orElseThrow(() -> new WorkflowException("No statemachine id found for given workflowType" + workflowType));
     }
 }

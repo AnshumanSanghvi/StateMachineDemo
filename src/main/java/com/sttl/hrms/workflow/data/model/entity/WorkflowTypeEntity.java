@@ -1,19 +1,21 @@
 package com.sttl.hrms.workflow.data.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
 import com.sttl.hrms.workflow.data.model.converter.WorkflowTypeIdConverter;
 import com.sttl.hrms.workflow.data.model.converter.WorkflowTypeNameConverter;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import java.time.LocalDateTime;
-import java.util.Objects;
-import javax.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "wf_type_mst", schema = "public")
@@ -41,17 +43,15 @@ public class WorkflowTypeEntity extends BaseEntity {
     @Convert(converter = WorkflowTypeIdConverter.class)
     private WorkflowType typeId;
 
-    @Column(name = "is_active")
-    private short isActive;
-
-    @Column(name = "update_by")
-    private Long updateByUserId;
-
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb", name = "properties")
     @Basic(fetch = FetchType.LAZY)
     @ToString.Exclude
+    @JsonIgnore
     private WorkflowProperties workflowProperties;
+
+    @Column(name = "is_active")
+    private short isActive;
 
     @Override
     public boolean equals(Object o) {
@@ -68,5 +68,25 @@ public class WorkflowTypeEntity extends BaseEntity {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class WorkflowProperties implements Serializable {
+        private boolean hasParallelApproval = false;
+        private boolean hasRepeatableApprovers = false;
+        private boolean canRollBackApproval = true;
+        private boolean canAdminApproveWorkflow = true;
+        private List<Long> adminRoleIds = new ArrayList<>(5);
+        private int changeReqMaxCount = 5;
+        private int rollbackMaxCount = 5;
+
+        public WorkflowProperties addAdminId(Long id) {
+            if (adminRoleIds == null)
+                adminRoleIds = new ArrayList<>(5);
+            adminRoleIds.add(id);
+            return this;
+        }
     }
 }

@@ -1,61 +1,97 @@
 package com.sttl.hrms.workflow.resource.dto;
 
+import com.sttl.hrms.workflow.data.Pair;
 import com.sttl.hrms.workflow.data.enums.LeaveType;
-import com.sttl.hrms.workflow.data.enums.WorkFlowTypeStateMachine;
+import com.sttl.hrms.workflow.data.enums.WorkflowType;
 import com.sttl.hrms.workflow.data.model.entity.LeaveAppWorkFlowInstanceEntity;
-import com.sttl.hrms.workflow.statemachine.data.Pair;
-import java.util.Comparator;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static com.sttl.hrms.workflow.data.enums.WorkFlowTypeStateMachine.LEAVE_APP_SM;
+
 @Data
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class LeaveAppWFInstanceDto {
 
-    public LeaveAppWFInstanceDto(WorkflowInstanceDto wfInstDto, Integer leaveType) {
-        this.wfInstDto = wfInstDto;
-        this.leaveType = leaveType;
-    }
-
-    WorkflowInstanceDto wfInstDto;
+    // leave app
+    @Builder.Default
     Short isActive = 1;
-    Integer leaveType;
+    @NotNull Integer leaveType;
+
+    // workflow instance entity
+    @NotNull WorkflowType typeId;
+    @Builder.Default
+    Short timesRolledBackCount = 0;
+    @Builder.Default
+    Short timesReturnedCount = 0;
+    Short workflowVersion;
+    @NotNull List<Pair<Integer, Long>> reviewers;
+
+    // base entity
+    @NotNull Long companyId;
+    @NotNull Integer branchId;
+    @Builder.Default
+    LocalDateTime createDate = LocalDateTime.now();
+    LocalDateTime updateDate;
+    LocalDateTime deleteDate;
+    Long createdByUserId;
+    Long updatedByUserId;
+    Long deletedByUserId;
 
     public static LeaveAppWorkFlowInstanceEntity toEntity(LeaveAppWFInstanceDto dto) {
 
-        var leaveAppWFEntity = new LeaveAppWorkFlowInstanceEntity();
+        var entity = new LeaveAppWorkFlowInstanceEntity();
 
         // leave app workflow instance
-        leaveAppWFEntity.setLeaveType(LeaveType.fromNumber(dto.getLeaveType()));
-        leaveAppWFEntity.setIsActive(dto.getIsActive());
+        entity.setLeaveType(LeaveType.fromNumber(dto.getLeaveType()));
+        entity.setIsActive(dto.getIsActive());
 
-        // set the latest version stateMachineId
-        WorkFlowTypeStateMachine.LEAVE_APPLICATION_STATE_MACHINES
-            .getStateMachineIds()
-            .stream()
-            .max(Comparator.comparing(Pair::getFirst))
-            .map(Pair::getSecond)
-            .ifPresent(leaveAppWFEntity::setStateMachineId);
+        List<Short> workflowVersions = LEAVE_APP_SM.getStateMachineIds()
+                .stream()
+                .map(Pair::getFirst)
+                .map(ver -> Short.parseShort(ver.substring(1)))
+                .toList();
+
+        // set the specified workflow version, if not present, set latest version.
+        Optional.ofNullable(dto.getWorkflowVersion())
+                .filter(workflowVersions::contains)
+                .or(() -> workflowVersions.stream().max(Short::compare))
+                .ifPresent(entity::setWorkflowVersion);
+
+        // set the stateMachineId according to the workflow version
+        LEAVE_APP_SM.getStateMachineIds()
+                .stream()
+                .filter(v -> ("v" + entity.getWorkflowVersion()).equalsIgnoreCase(v.getFirst()))
+                .map(Pair::getSecond)
+                .findFirst()
+                .ifPresent(entity::setStateMachineId);
+
 
         // workflow instance
-        var wfInstDto = dto.getWfInstDto();
-        leaveAppWFEntity.setTypeId(wfInstDto.getTypeId());
-        leaveAppWFEntity.setCreatedByUserId(wfInstDto.getCreatedByUserId());
-        leaveAppWFEntity.setUpdatedByUserId(wfInstDto.getUpdatedByUserId());
-        leaveAppWFEntity.setDeletedByUserId(wfInstDto.getDeletedByUserId());
-        leaveAppWFEntity.setTimesRolledBackCount(wfInstDto.getTimesRolledBackCount());
-        leaveAppWFEntity.setTimesReturnedCount(wfInstDto.getTimesReturnedCount());
-        leaveAppWFEntity.setWorkflowVersion(wfInstDto.getWorkflowVersion());
-        leaveAppWFEntity.setReviewers(wfInstDto.getReviewers());
+        entity.setTypeId(dto.getTypeId());
+        entity.setTimesRolledBackCount(dto.getTimesRolledBackCount());
+        entity.setTimesReturnedCount(dto.getTimesReturnedCount());
+        entity.setReviewers(dto.getReviewers());
 
         // base entity
-        var baseDto = wfInstDto.getBaseDto();
-        leaveAppWFEntity.setCompanyId(baseDto.getCompanyId());
-        leaveAppWFEntity.setBranchId(baseDto.getBranchId());
-        leaveAppWFEntity.setCreatedDate(baseDto.getCreateDate());
-        leaveAppWFEntity.setUpdatedDate(baseDto.getUpdateDate());
-        leaveAppWFEntity.setDeletedDate(baseDto.getDeleteDate());
+        entity.setCompanyId(dto.getCompanyId());
+        entity.setBranchId(dto.getBranchId());
+        entity.setCreatedDate(dto.getCreateDate());
+        entity.setUpdatedDate(dto.getUpdateDate());
+        entity.setDeletedDate(dto.getDeleteDate());
+        entity.setCreatedByUserId(dto.getCreatedByUserId());
+        entity.setUpdatedByUserId(dto.getUpdatedByUserId());
+        entity.setDeletedByUserId(dto.getDeletedByUserId());
 
-        return leaveAppWFEntity;
+        return entity;
     }
 }

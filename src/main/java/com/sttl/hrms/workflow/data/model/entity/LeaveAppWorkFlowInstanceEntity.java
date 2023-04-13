@@ -1,22 +1,15 @@
 package com.sttl.hrms.workflow.data.model.entity;
 
 import com.sttl.hrms.workflow.data.enums.LeaveType;
-import com.sttl.hrms.workflow.statemachine.event.LeaveAppEvent;
-import com.sttl.hrms.workflow.statemachine.persist.StateMachineContextConverter;
-import com.sttl.hrms.workflow.statemachine.state.LeaveAppState;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Where;
-import org.springframework.statemachine.support.DefaultStateMachineContext;
+
+import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "leave_wf_inst", schema = "public")
@@ -25,17 +18,7 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 @ToString(callSuper = true)
 @Getter
 @Setter
-public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
-    implements ContextEntity<LeaveAppState, LeaveAppEvent> {
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "current_state", length = 100)
-    private LeaveAppState currentState = LeaveAppState.S_INITIAL;
-
-    @Convert(converter = StateMachineContextConverter.class)
-    @Column(name = "statemachine", columnDefinition = "bytea")
-    @ToString.Exclude
-    private DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext;
+public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity {
 
     @Column(name = "is_active", nullable = false)
     private short isActive = 1;
@@ -44,51 +27,16 @@ public class LeaveAppWorkFlowInstanceEntity extends WorkflowInstanceEntity
     @Enumerated(EnumType.STRING)
     private LeaveType leaveType;
 
-    @Column(name = "statemachine_id", nullable = false, length = 100)
-    private String stateMachineId;
-
-    public void setStateMachineContext(DefaultStateMachineContext<LeaveAppState, LeaveAppEvent> stateMachineContext) {
-        this.setCurrentState(stateMachineContext.getState());
-        this.stateMachineContext = stateMachineContext;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
-            return false;
-        }
-        if (!(o instanceof LeaveAppWorkFlowInstanceEntity that)) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-        if (getIsActive() != that.getIsActive()) {
-            return false;
-        }
-        if (getCurrentState() != null && (getCurrentState() != that.getCurrentState())) {
-            return false;
-        }
-        if(getStateMachineContext() != null && (!getStateMachineContext().equals(that.getStateMachineContext()))) {
-            return false;
-        }
-        if (getLeaveType() != that.getLeaveType()) {
-            return false;
-        }
-        return getStateMachineId().equals(that.getStateMachineId());
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        LeaveAppWorkFlowInstanceEntity that = (LeaveAppWorkFlowInstanceEntity) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + getCurrentState().hashCode();
-        if (getStateMachineContext() != null) result = 31 * result + getStateMachineContext().hashCode();
-        result = 31 * result + (int) getIsActive();
-        result = 31 * result + getLeaveType().hashCode();
-        result = 31 * result + getStateMachineId().hashCode();
-        return result;
+        return getClass().hashCode();
     }
 }
