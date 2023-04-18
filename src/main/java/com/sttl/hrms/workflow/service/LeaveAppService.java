@@ -28,6 +28,10 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
         this.leaveAppRepository = leaveAppRepository;
     }
 
+    public boolean existsById(Long id) {
+        return Optional.ofNullable(leaveAppRepository.existsByIdAndWFType(id)).orElse(false);
+    }
+
     public LeaveAppWorkFlowInstanceEntity create(LeaveAppWorkFlowInstanceEntity entity) {
         LocalDateTime now = entity.getCreatedDate() == null ? LocalDateTime.now() : entity.getCreatedDate();
         Long userId = entity.getCreatedByUserId();
@@ -61,10 +65,6 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
             case E_REQUEST_CHANGES_IN, E_TRIGGER_FLOW_JUNCTION, E_FORWARD, E_ROLL_BACK, E_TRIGGER_COMPLETE -> List.of(passEvent);
         };
         return passEvents(passEvents, leaveAppRepository);
-    }
-
-    public boolean existsById(Long id) {
-        return Optional.ofNullable(leaveAppRepository.existsByIdAndWFType(id)).orElse(false);
     }
 
     public void delete(Long id) {

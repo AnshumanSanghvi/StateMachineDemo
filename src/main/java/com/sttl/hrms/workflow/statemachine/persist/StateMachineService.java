@@ -36,6 +36,7 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
 
     @Transactional(readOnly = true)
     public StateMachine<String, String> createStateMachine(@NotNull T entity) {
+
         // create statemachine as per the entity's statemachine id.
         var stateMachine = Optional
                 .ofNullable(stateMachineAdapter.createStateMachine(entity.getStateMachineId()))
@@ -60,7 +61,8 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
 
     @Transactional(readOnly = true)
     public StateMachine<String, String> getStateMachineFromEntity(T entity) {
-        StateMachine<String, String> stateMachine = stateMachineAdapter.restore(stateMachineAdapter.createStateMachine(entity.getStateMachineId()), entity);
+        String stateMachineId = entity.getStateMachineId();
+        StateMachine<String, String> stateMachine = stateMachineAdapter.restore(stateMachineAdapter.createStateMachine(stateMachineId), entity);
         log.debug("For entity with id: {} and currentState: {}, Restored statemachine: {}",
                 entity.getId(), entity.getCurrentState(), StringUtil.stateMachine(stateMachine, false));
         return stateMachine;

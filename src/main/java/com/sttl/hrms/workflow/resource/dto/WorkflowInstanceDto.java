@@ -29,8 +29,8 @@ public class WorkflowInstanceDto {
 
     // workflow instance entity
     @NotNull WorkflowType typeId;
-    Short timesRolledBackCount = 0;
-    Short timesReturnedCount = 0;
+    @Builder.Default Short timesRolledBackCount = 0;
+    @Builder.Default Short timesReturnedCount = 0;
     Short workflowVersion;
     List<Pair<Integer, Long>> reviewers;
 }

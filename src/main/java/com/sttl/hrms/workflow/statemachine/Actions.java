@@ -10,10 +10,7 @@ import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.state.State;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -41,11 +38,13 @@ public class Actions {
 
     public static void initial(StateContext<String, String> context, WorkflowProperties workflowProperties, Integer reviewers,
             Map<Integer, Long> reviewerMap, boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount) {
-        initial(context.getStateMachine(), workflowProperties, reviewers, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+        initial(context.getStateMachine(), workflowProperties, reviewers, reviewerMap, isParallel, maxChangeRequests,
+                maxRollBackCount);
     }
 
-    public static void initial(StateMachine<String, String> stateMachine, WorkflowProperties workflowProperties, Integer reviewers,
-            Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount) {
+    public static void initial(StateMachine<String, String> stateMachine, WorkflowProperties workflowProperties,
+            Integer reviewers, Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests,
+            Integer maxRollBackCount) {
 
         String stateId = Optional.ofNullable(stateMachine).flatMap(sm -> Optional.ofNullable(sm.getState())
                 .map(State::getId).map(Object::toString)).orElse("null");
@@ -54,53 +53,65 @@ public class Actions {
         Optional.ofNullable(stateMachine)
                 .map(StateMachine::getExtendedState)
                 .flatMap(exs -> Optional.ofNullable(exs.getVariables()))
-                .ifPresent(map -> setExtendedState(stateMachine, workflowProperties, reviewers, reviewerMap, isParallel,
-                        maxChangeRequests, maxRollBackCount, map));
+                .ifPresent(stateMap -> setExtendedState(stateMachine, workflowProperties, reviewers, reviewerMap,
+                        isParallel, maxChangeRequests, maxRollBackCount, stateMap));
     }
 
-    private static void setExtendedState(StateMachine<String, String> stateMachine, WorkflowProperties workflowProperties,
+    private static void setExtendedState(StateMachine<String, String> stateMachine, WorkflowProperties wfProps,
             Integer reviewers, Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests,
-            Integer maxRollBackCount, Map<Object, Object> map) {
+            Integer maxRollBackCount, Map<Object, Object> stateMap) {
         ExtendedState extState = stateMachine.getExtendedState();
 
-        var defaultProps = workflowProperties == null ? new WorkflowProperties() : workflowProperties;
+        var defaultProps = wfProps == null ? new WorkflowProperties() : wfProps;
 
         // flow type property
-        map.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.ofNullable(isParallel)
+        stateMap.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.ofNullable(isParallel)
                 .filter(Boolean::booleanValue).map(flow -> VAL_PARALLEL).orElse(VAL_SERIAL));
 
         // roll back properties
-        map.putIfAbsent(KEY_ROLL_BACK_COUNT, 0);
-        map.putIfAbsent(KEY_ROLL_BACK_MAX, Optional.ofNullable(maxRollBackCount).orElse(defaultProps.getRollbackMaxCount()));
+        stateMap.putIfAbsent(KEY_ROLL_BACK_COUNT, 0);
+        stateMap.putIfAbsent(KEY_ROLL_BACK_MAX, Optional.ofNullable(maxRollBackCount).orElse(defaultProps.getRollbackMaxCount()));
 
         // request change / return properties
-        map.putIfAbsent(KEY_RETURN_COUNT, 0);
-        map.put(KEY_MAX_CHANGE_REQUESTS, Optional.ofNullable(maxChangeRequests).orElse(defaultProps.getChangeReqMaxCount()));
+        stateMap.putIfAbsent(KEY_RETURN_COUNT, 0);
+        stateMap.putIfAbsent(KEY_CHANGE_REQ_MAX, Optional.ofNullable(maxChangeRequests).orElse(defaultProps.getChangeReqMaxCount()));
 
         // reviwer properties
-        Optional.ofNullable(reviewers).ifPresent(rev -> map.putIfAbsent(KEY_REVIEWERS_COUNT, rev));
-        Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty)).ifPresent(rmap -> map.putIfAbsent(KEY_REVIEWERS_MAP, rmap));
+        Optional.ofNullable(reviewers).ifPresent(rev -> stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, rev));
+        Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty)).ifPresent(rmap -> stateMap.putIfAbsent(KEY_REVIEWERS_MAP, rmap));
         Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty)).ifPresent(rmap ->
-                map.putIfAbsent(KEY_FORWARDED_MAP, rmap.entrySet().stream()
+                stateMap.putIfAbsent(KEY_FORWARDED_MAP, rmap.entrySet().stream()
                         .collect(toMap(Map.Entry::getKey, entry -> new Pair<>(entry.getValue(), false)))));
 
+        // admin id property
+        Optional.ofNullable(defaultProps.getAdminRoleIds())
+                .filter(Predicate.not(List::isEmpty))
+                .ifPresent(adminIds -> stateMap.putIfAbsent(KEY_ADMIN_IDS, adminIds));
+
         // default state properties.
-        map.putIfAbsent(KEY_CLOSED_STATE_TYPE, "");
+        stateMap.putIfAbsent(KEY_CLOSED_STATE_TYPE, "");
 
         log.trace("Setting extended state- rollbackCountMax: {}, changeRequestsMax: {}, flowType: {}, reviewersCount: {}, "
                         + "reviewersList: {}",
                 extState.get(KEY_ROLL_BACK_MAX, Integer.class),
-                extState.get(KEY_MAX_CHANGE_REQUESTS, Integer.class),
+                extState.get(KEY_CHANGE_REQ_MAX, Integer.class),
                 extState.get(KEY_APPROVAL_FLOW_TYPE, String.class),
                 extState.get(KEY_REVIEWERS_COUNT, Integer.class),
-                map.get(KEY_REVIEWERS_MAP));
+                stateMap.get(KEY_REVIEWERS_MAP));
     }
 
     public static void forward(StateContext<String, String> context) {
         log.trace("Executing action: forwardStateExitAction with currentState: {}", getStateId(context));
 
+        boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
+
+        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class,
+                null);
+        List<Long> adminIds = get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
+        boolean adminForwarded = adminIds.contains(forwardedBy.getSecond());
+
         // if reviewers can forward the application in any order, then auto-approve.
-        if (Boolean.TRUE.equals(get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE))) {
+        if (anyApprove || adminForwarded) {
             triggerApproveEvent(context);
         }
         // else record the forward event by the reviewer, keeping their order intact.
@@ -154,10 +165,36 @@ public class Actions {
         }
     }
 
+    private static void triggerApproveEvent(StateContext<String, String> context) {
+        log.trace("Executing action: autoApproveTransitionAction with currentState: {}", getStateId(context));
+
+        ExtendedState extState = context.getExtendedState();
+        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        String comment = get(extState, KEY_FORWARDED_COMMENT, String.class, null);
+
+        Map<String, Object> headersMap = new HashMap<>();
+        Optional.ofNullable(forwardBy.getFirst()).ifPresent(ord -> headersMap.put(MSG_KEY_ORDER_NO, ord));
+        Optional.ofNullable(forwardBy.getSecond()).ifPresent(actId -> headersMap.put(MSG_KEY_ACTION_BY, actId));
+        Optional.ofNullable(comment).ifPresent(cmt -> headersMap.put(MSG_KEY_COMMENT, cmt));
+
+        var result = EventSendHelper.sendMessagesToSM(context.getStateMachine(), headersMap, E_APPROVE.name(),
+                E_TRIGGER_COMPLETE.name());
+
+        log.debug("autoApproveTransitionAction results: {}", result
+                .toStream()
+                .map(EventResultDto::new)
+                .map(EventResultDto::toString)
+                .collect(Collectors.joining(", ")));
+    }
+
     public static void approve(StateContext<String, String> context) {
         log.trace("Executing action: approveTransitionAction with currentState: {}", getStateId(context));
         ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
+        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
+        String comment = get(context, KEY_COMMENT, String.class, null);
+        map.put(KEY_APPROVE_BY, actionBy);
+        map.put(KEY_APPROVE_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
     }
@@ -179,7 +216,9 @@ public class Actions {
     public static void reject(StateContext<String, String> context) {
         log.trace("Executing action: rejectTransitionAction with currentState: {}", getStateId(context));
         ExtendedState extState = context.getExtendedState();
-        Map<Object, Object> map = extState.getVariables();
+        var map = context.getExtendedState().getVariables();
+        map.put(KEY_REJECTED_BY, get(context, KEY_ACTION_BY, Long.class,null));
+        map.put(KEY_REJECTED_COMMENT, get(context, KEY_COMMENT, String.class,null));
         map.put(KEY_CLOSED_STATE_TYPE, VAL_REJECTED);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
     }
@@ -229,32 +268,17 @@ public class Actions {
         log.trace("Setting extended state- rollBackCount: {}", get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
     }
 
-    public static void triggerApproveEvent(StateContext<String, String> context) {
-        log.trace("Executing action: autoApproveTransitionAction with currentState: {}", getStateId(context));
-
-        ExtendedState extState = context.getExtendedState();
-        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
-        String comment = get(extState, KEY_APPROVE_COMMENT, String.class, "");
-
-        Map<String, Object> headersMap = new HashMap<>();
-        Optional.ofNullable(forwardBy.getFirst()).ifPresent(ord -> headersMap.put(MSG_KEY_ORDER_NO, ord));
-        Optional.ofNullable(forwardBy.getSecond()).ifPresent(actId -> headersMap.put(MSG_KEY_ACTION_BY, actId));
-        headersMap.put(MSG_KEY_COMMENT, comment);
-
-        var result = EventSendHelper.sendMessagesToSM(context.getStateMachine(), headersMap, E_APPROVE.name(),
-                E_TRIGGER_COMPLETE.name());
-
-        log.debug("autoApproveTransitionAction results: {}", result
-                .toStream()
-                .map(EventResultDto::new)
-                .map(EventResultDto::toString)
-                .collect(Collectors.joining(", ")));
-    }
-
-    public static void approveInParallelFlow(StateContext<String, String> context) {
-        log.trace("Executing action: approveInParallelFlowTransitionAction with currentState: {}", getStateId(context));
+    public static void create(final StateContext<String, String> context) {
         var map = context.getExtendedState().getVariables();
-        map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
-    }
+        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(context, KEY_ORDER, Integer.class, null);
+        String comment = get(context, KEY_COMMENT, String.class, null);
+        var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
+        if (adminIds.contains(actionBy)) {
+            map.put(KEY_LAST_FORWARDED_BY, new Pair<>(orderNo, actionBy));
+            map.put(KEY_FORWARDED_COMMENT, Optional.ofNullable(comment).orElse("Created by Admin"));
+            triggerApproveEvent(context);
+        }
 
+    }
 }

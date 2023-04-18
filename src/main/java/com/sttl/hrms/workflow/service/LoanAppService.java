@@ -9,6 +9,7 @@ import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder;
 import com.sttl.hrms.workflow.statemachine.persist.StateMachineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +19,7 @@ import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SM
 
 @Service
 @Slf4j
+@Transactional(readOnly = true)
 public class LoanAppService extends WorkflowService<LoanAppWorkflowInstanceEntity> {
     private final LoanAppWorkflowInstanceRepository loanAppRepository;
 
@@ -54,29 +56,14 @@ public class LoanAppService extends WorkflowService<LoanAppWorkflowInstanceEntit
 
     public List<EventResponseDto> passEventToSM(PassEventDto passEvent) {
         StateMachineBuilder.SMEvent smEvent = StateMachineBuilder.SMEvent.getByName(passEvent.getEvent());
-        return switch (smEvent) {
-            case E_CREATE -> {
-                {
-                    List<PassEventDto> passEvents = PassEventDto.createPassEvents(passEvent, E_SUBMIT, E_TRIGGER_REVIEW_OF,
-                            E_TRIGGER_FLOW_JUNCTION);
-                    yield passEvents(passEvents, loanAppRepository);
-                }
-            }
-            case E_SUBMIT -> {
-                List<PassEventDto> passEvents = PassEventDto.createPassEvents(passEvent, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
-                yield passEvents(passEvents, loanAppRepository);
-            }
-            case E_TRIGGER_REVIEW_OF -> {
-                List<PassEventDto> passEvents = PassEventDto.createPassEvents(passEvent, E_TRIGGER_FLOW_JUNCTION);
-                yield passEvents(passEvents, loanAppRepository);
-            }
-            case E_APPROVE, E_REJECT, E_CANCEL -> {
-                List<PassEventDto> passEvents = PassEventDto.createPassEvents(passEvent, E_TRIGGER_COMPLETE);
-                yield passEvents(passEvents, loanAppRepository);
-            }
-            case E_REQUEST_CHANGES_IN, E_TRIGGER_FLOW_JUNCTION, E_FORWARD, E_ROLL_BACK, E_TRIGGER_COMPLETE ->
-                    passEvent(passEvent, loanAppRepository);
+        List<PassEventDto> passEvents = switch (smEvent) {
+            case E_CREATE -> PassEventDto.createPassEvents(passEvent, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
+            case E_SUBMIT -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
+            case E_TRIGGER_REVIEW_OF -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_FLOW_JUNCTION);
+            case E_APPROVE, E_REJECT, E_CANCEL -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_COMPLETE);
+            case E_REQUEST_CHANGES_IN, E_TRIGGER_FLOW_JUNCTION, E_FORWARD, E_ROLL_BACK, E_TRIGGER_COMPLETE -> List.of(passEvent);
         };
+        return passEvents(passEvents, loanAppRepository);
     }
 
     public void delete(Long id) {

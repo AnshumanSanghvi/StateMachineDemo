@@ -11,7 +11,8 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineBuilder.Builder;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
 import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.*;
@@ -34,7 +35,7 @@ public class StateMachineBuilder {
 
         configureStates(builder, reviewerCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
-        configureTransitions(builder, reviewerMap, isParallel);
+        configureTransitions(builder, isParallel);
 
         StateMachine<String, String> stateMachine = builder.build();
 
@@ -55,8 +56,8 @@ public class StateMachineBuilder {
                     .monitor(new StateMachineObserver.StateMachineMonitor());
     }
 
-    private static void configureStates(Builder<String, String> builder, Integer reviewersCount, Map<Integer, Long> reviewerMap,
-            Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount) throws Exception {
+    private static void configureStates(Builder<String, String> builder, Integer reviewersCount,
+            Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount) throws Exception {
         builder.configureStates()
                 .withStates()
                     .initial(S_INITIAL.name(), context -> Actions.initial(context, null, reviewersCount,
@@ -68,13 +69,16 @@ public class StateMachineBuilder {
                     .end(S_COMPLETED.name());
     }
 
-    private static void configureTransitions(Builder<String, String> builder, Map<Integer, Long> reviewersMap,
-            Boolean isParallel) throws Exception {
+    private static void configureTransitions(Builder<String, String> builder, Boolean isParallel) throws Exception {
         StateMachineTransitionConfigurer<String, String> transitions = builder.configureTransitions();
 
         transitions
                 .withExternal().name(TX_USER_CREATES_APP)
-                    .source(S_INITIAL.name()).event(E_CREATE.name()).target(S_CREATED.name()).and()
+                    .source(S_INITIAL.name()).event(E_CREATE.name()).target(S_CREATED.name())
+                    .action(Actions::create).and()
+
+                .withExternal().name(TX_USER_CANCELS_CREATED_APP)
+                    .source(S_CREATED.name()).event(E_CANCEL.name()).target(S_COMPLETED.name()).and()
 
                 .withExternal().name(TX_USER_SUBMITS_APP)
                     .source(S_CREATED.name()).event(E_SUBMIT.name()).target(S_SUBMITTED.name()).and()
@@ -94,23 +98,16 @@ public class StateMachineBuilder {
                     .first(S_PARALLEL_APPROVAL_FLOW.name(), Guards::approvalFlow).last(S_SERIAL_APPROVAL_FLOW.name());
 
         if (isParallel)
-            createParallelApprovalTransition(transitions, reviewersMap);
+            configureParallelApprovalTx(transitions);
         else
-            createSerialApprovalTransition(transitions);
-
-                adminTransitions(transitions);
+            configureSerialApprovalTx(transitions);
 
         transitions
                 .withExternal().name(TX_SYST_COMPLETES_APP)
-                .source(S_CLOSED.name()).event(E_TRIGGER_COMPLETE.name()).target(S_COMPLETED.name());
+                    .source(S_CLOSED.name()).event(E_TRIGGER_COMPLETE.name()).target(S_COMPLETED.name());
     }
 
-    private static void adminTransitions(final StateMachineTransitionConfigurer<String, String> transitions) {
-
-    }
-
-    private static void createParallelApprovalTransition(StateMachineTransitionConfigurer<String, String> transitions,
-            Map<Integer, Long> reviewersMap) throws Exception {
+    private static void configureParallelApprovalTx(StateMachineTransitionConfigurer<String, String> transitions) throws Exception {
         transitions
                 .withExternal().name(TX_USER_CANCELS_APP_PARLL)
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_CANCEL.name()).target(S_COMPLETED.name())
@@ -122,14 +119,14 @@ public class StateMachineBuilder {
 
                 .withExternal().name(TX_RVWR_APPROVES_APP_PARLL)
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_APPROVE.name()).target(S_CLOSED.name())
-                    .guard(context -> Guards.approveInParallel(context, reviewersMap)).action(Actions::approveInParallelFlow).and()
+                    .guard(Guards::approveInParallel).action(Actions::approve).and()
 
                 .withExternal().name(TX_RVWR_REQ_CHANGES_FRM_USER_PARLL)
                     .source(S_CLOSED.name()).event(E_REQUEST_CHANGES_IN.name()).target(S_PARALLEL_APPROVAL_FLOW.name())
                     .guard(Guards::requestChanges).action(Actions::requestChanges);
     }
 
-    private static void createSerialApprovalTransition(StateMachineTransitionConfigurer<String, String> transitions)
+    private static void configureSerialApprovalTx(StateMachineTransitionConfigurer<String, String> transitions)
             throws Exception {
         transitions
                 .withInternal().name(TX_RVWR_FWDS_APP)
