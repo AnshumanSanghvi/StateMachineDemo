@@ -32,6 +32,7 @@ public class LoanAppService extends WorkflowService<LoanAppWorkflowInstanceEntit
         return Optional.ofNullable(loanAppRepository.existsByIdAndWFType(id)).orElse(false);
     }
 
+    @Transactional
     public LoanAppWorkflowInstanceEntity create(LoanAppWorkflowInstanceEntity entity) {
         LocalDateTime now = entity.getCreatedDate() == null ? LocalDateTime.now() : entity.getCreatedDate();
         Long userId = entity.getCreatedByUserId();

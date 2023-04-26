@@ -32,6 +32,7 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
         return Optional.ofNullable(leaveAppRepository.existsByIdAndWFType(id)).orElse(false);
     }
 
+    @Transactional
     public LeaveAppWorkFlowInstanceEntity create(LeaveAppWorkFlowInstanceEntity entity) {
         LocalDateTime now = entity.getCreatedDate() == null ? LocalDateTime.now() : entity.getCreatedDate();
         Long userId = entity.getCreatedByUserId();
