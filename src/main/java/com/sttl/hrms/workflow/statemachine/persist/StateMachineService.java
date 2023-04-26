@@ -95,7 +95,8 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
             log.debug("Retrieved workflow properties: {} from workflowType: {}", properties, workflowType);
             return properties;
         } catch (Exception ex) {
-            log.warn("Exception in retrieviug workflow properties for workflowType: {} with errorMessage: ", workflowType, ex);
+            log.warn("Exception in retrieving workflow properties for workflowType: {} with errorMessage: ",
+                    workflowType, ex);
             log.info("{}", "returning default workflow type properties");
             return new WorkflowTypeEntity.WorkflowProperties();
         }
