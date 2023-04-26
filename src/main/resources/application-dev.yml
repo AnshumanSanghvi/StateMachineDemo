@@ -21,13 +21,13 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     generate-ddl: true
     hibernate:
-      ddl-auto: none # enable schema file based schema creation
+      ddl-auto: update # enable schema file based schema creation
     open-in-view: false
     properties:
       hibernate.hbm2ddl.extra_physical_table_types: PARTITIONED TABLE
     show-sql: true
   main:
-    lazy-initialization: true
+    lazy-initialization: false
   sql:
     init:
       mode: embedded
