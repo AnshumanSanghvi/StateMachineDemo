@@ -4,6 +4,7 @@ import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
+import org.springframework.statemachine.ExtendedState.ExtendedStateChangeListener;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.listener.StateMachineListenerAdapter;
@@ -18,6 +19,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class StateMachineObserver {
+
+    @Slf4j
+    public static class ExtendedStateListener implements ExtendedStateChangeListener {
+
+        @Override
+        public void changed(final Object key, final Object value) {
+            log.debug("state changed: key: {}, value: {}", key, value);
+        }
+    }
 
     @Slf4j
     public static class StateMachineListener extends StateMachineListenerAdapter<String, String> {

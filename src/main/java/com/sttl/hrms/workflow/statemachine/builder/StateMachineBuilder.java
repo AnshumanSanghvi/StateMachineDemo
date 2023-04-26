@@ -4,6 +4,7 @@ package com.sttl.hrms.workflow.statemachine.builder;
 import com.sttl.hrms.workflow.statemachine.Actions;
 import com.sttl.hrms.workflow.statemachine.Guards;
 import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver;
+import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.ExtendedStateListener;
 import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.StateMachineInterceptor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class StateMachineBuilder {
             throws Exception {
         Builder<String, String> builder = org.springframework.statemachine.config.StateMachineBuilder.builder();
 
-        confiureStateMachine(builder, stateMachineName);
+        configureStateMachine(builder, stateMachineName);
 
         configureStates(builder, reviewerCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
 
@@ -43,10 +44,12 @@ public class StateMachineBuilder {
                 .withAllRegions()
                 .forEach(region -> region.addStateMachineInterceptor(new StateMachineInterceptor()));
 
+        stateMachine.getExtendedState().setExtendedStateChangeListener(new ExtendedStateListener());
+
         return stateMachine;
     }
 
-    private static void confiureStateMachine(Builder<String, String> builder, String stateMachineName) throws Exception {
+    private static void configureStateMachine(Builder<String, String> builder, String stateMachineName) throws Exception {
         builder.configureConfiguration()
                 .withConfiguration()
                     .machineId(stateMachineName)
