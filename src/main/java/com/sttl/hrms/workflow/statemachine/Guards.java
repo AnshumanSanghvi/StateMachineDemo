@@ -60,8 +60,10 @@ public class Guards {
         // check that the last reviewer in the order is the one who forwarded the application
         Map<Integer, Long> reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
         Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
-        Map.Entry<Integer, Long> finalReviewer = new ArrayList<>(reviewerMap.entrySet()).get(Math.max(totalReviewers - 1, 0));
-        boolean forwarderIsFinalReviewer = new Pair<>(finalReviewer.getKey(), finalReviewer.getValue()).equals(forwardedBy);
+        boolean forwarderIsFinalReviewer = reviewerMap.entrySet().stream()
+                .max(Map.Entry.comparingByKey())
+                .filter(entry -> forwardedBy.getFirst().equals(entry.getKey()) && forwardedBy.getSecond().equals(entry.getValue()))
+                .isPresent();
 
         return forwardedCountMatchesTotalReviewers && allReviewersHaveApproved && forwarderIsFinalReviewer;
     }
