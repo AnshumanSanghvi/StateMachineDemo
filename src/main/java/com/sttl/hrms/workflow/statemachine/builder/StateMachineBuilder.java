@@ -67,7 +67,8 @@ public class StateMachineBuilder {
                             reviewerMap, isParallel, maxChangeRequests, maxRollBackCount))
                     .states(Set.of(S_CREATED.name(), S_SUBMITTED.name(), S_UNDER_PROCESS.name()))
                     .junction(S_APPROVAL_JUNCTION.name())
-                    .states(Set.of(S_SERIAL_APPROVAL_FLOW.name(), S_PARALLEL_APPROVAL_FLOW.name()))
+                    .state(S_SERIAL_APPROVAL_FLOW.name(), E_TRIGGER_COMPLETE.name())
+                    .state(S_PARALLEL_APPROVAL_FLOW.name(), E_TRIGGER_COMPLETE.name())
                     .state(S_CLOSED.name())
                     .end(S_COMPLETED.name());
     }
