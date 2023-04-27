@@ -177,12 +177,10 @@ public class Actions {
         Optional.ofNullable(forwardBy.getSecond()).ifPresent(actId -> headersMap.put(MSG_KEY_ACTION_BY, actId));
         Optional.ofNullable(comment).ifPresent(cmt -> headersMap.put(MSG_KEY_COMMENT, cmt));
 
-        var result = EventSendHelper.sendMessagesToSM(context.getStateMachine(), headersMap, E_APPROVE.name(),
-                E_TRIGGER_COMPLETE.name());
+        var result = EventSendHelper.sendMessageToSM(context.getStateMachine(), E_APPROVE.name(), headersMap);
 
         log.debug("autoApproveTransitionAction results: {}", result
-                .toStream()
-                .map(EventResultDto::new)
+                .stream()
                 .map(EventResultDto::toString)
                 .collect(Collectors.joining(", ")));
     }
@@ -197,6 +195,17 @@ public class Actions {
         map.put(KEY_APPROVE_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
+
+        Map<String, Object> headersMap = new HashMap<>();
+
+        headersMap.put(MSG_KEY_ACTION_BY, actionBy);
+        headersMap.put(MSG_KEY_COMMENT, comment);
+        var result = EventSendHelper.sendMessageToSM(context.getStateMachine(), E_TRIGGER_COMPLETE.name(), headersMap);
+
+        log.debug("approveTransitionAction results: {}", result
+                .stream()
+                .map(EventResultDto::toString)
+                .collect(Collectors.joining(", ")));
     }
 
     public static void requestChanges(StateContext<String, String> context) {
