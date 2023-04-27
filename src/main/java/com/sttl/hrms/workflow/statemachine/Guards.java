@@ -85,8 +85,17 @@ public class Guards {
 
     public static boolean requestChanges(StateContext<String, String> context) {
 
+        var map = context.getExtendedState().getVariables();
+        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(context, KEY_ORDER, Integer.class, null);
+        String comment = get(context, KEY_COMMENT, String.class, null);
+
+        map.put(KEY_CHANGES_REQ_BY, new Pair<>(orderNo, actionBy));
+        map.put(KEY_CHANGE_REQ_COMMENT, comment);
+
         // check that the reviewer requesting changes is valid and belongs to the list of reviewers for the application.
-        Long reviewerId = get(context, KEY_CHANGES_REQ_BY, Long.class, null);
+        Pair<Integer, Long> requestChangesBy = get(context, KEY_CHANGES_REQ_BY, Pair.class, null);
+        Long reviewerId = requestChangesBy.getSecond();
         var reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
         if (reviewerId == null || reviewerId == 0 || !reviewerMap.containsValue(reviewerId)) {
             log.error("Cannot allow returning the application to the applicant as {}",

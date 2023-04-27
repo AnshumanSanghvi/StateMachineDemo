@@ -125,8 +125,12 @@ public class StateMachineBuilder {
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_APPROVE.name()).target(S_CLOSED.name())
                     .guard(Guards::approveInParallel).action(Actions::approve).and()
 
+                .withExternal().name(TX_RVWR_UNDO_APPRVL_PARLL)
+                    .source(S_CLOSED.name()).event(E_ROLL_BACK.name()).target(S_PARALLEL_APPROVAL_FLOW.name())
+                    .guard(Guards::rollBackApproval).action(Actions::rollBackApproval).and()
+
                 .withExternal().name(TX_RVWR_REQ_CHANGES_FRM_USER_PARLL)
-                    .source(S_CLOSED.name()).event(E_REQUEST_CHANGES_IN.name()).target(S_PARALLEL_APPROVAL_FLOW.name())
+                    .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_REQUEST_CHANGES_IN.name()).target(S_CREATED.name())
                     .guard(Guards::requestChanges).action(Actions::requestChanges);
     }
 
@@ -150,8 +154,8 @@ public class StateMachineBuilder {
                     .action(Actions::cancel).and()
 
                 .withExternal().name(TX_RVWR_REQ_CHANGES_FRM_USER_SERIAL)
-                    .source(S_SERIAL_APPROVAL_FLOW.name()).event(E_REQUEST_CHANGES_IN.name()).target(S_SUBMITTED.name())
-                    .action(Actions::requestChanges).and()
+                    .source(S_SERIAL_APPROVAL_FLOW.name()).event(E_REQUEST_CHANGES_IN.name()).target(S_CREATED.name())
+                    .guard(Guards::requestChanges).action(Actions::requestChanges).and()
 
                 .withExternal().name(TX_RVWR_REJECTS_APP_SERIAL)
                     .source(S_SERIAL_APPROVAL_FLOW.name()).event(E_REJECT.name()).target(S_CLOSED.name())

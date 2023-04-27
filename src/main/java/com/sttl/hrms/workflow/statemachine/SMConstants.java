@@ -54,13 +54,14 @@ public class SMConstants {
     public static final String TX_RVWR_REJECTS_APP_SERIAL = "ReviewerRejectsTheApplicationUnderReview";
     public static final String TX_RVWR_REQ_CHANGES_FRM_USER_PARLL = "ReviewerRequestsChangesInTheApplicationUnderReview";
     public static final String TX_RVWR_REQ_CHANGES_FRM_USER_SERIAL = "ReviewerRequestsChangesInTheApplicationUnderReview";
+    public static final String TX_RVWR_UNDO_APPRVL_PARLL = "ReviewerRollsBackApplicationUnderReviewParallel";
     public static final String TX_RVWR_UNDO_APPRVL_SERIAL = "ReviewerRollsBackTheApplicationUnderReview";
     public static final String TX_SYST_COMPLETES_APP = "SystemCompletesTheApplication";
     public static final String TX_SYST_TRGGRS_APPRVL_FLOW = "SystemTriggersTheApprovalFlowJunction";
     public static final String TX_SYST_TRGGRS_APP_FOR_REVIEW = "SystemTriggersTheSubmittedLeaveApplication";
     public static final String TX_USER_CANCELS_APP_PARLL = "UserCancelsTheApplicationUnderReviewInParallelFlow";
     public static final String TX_USER_CANCELS_APP_SERIAL = "UserCancelsTheApplicationUnderReview";
-    public static final String TX_USER_CANCELS_APP_UNDER_REVIEW = "UserCancelsTheApplicationUnderReview";
+    public static final String TX_USER_CANCELS_APP_UNDER_REVIEW = "UserCancelsTheApplicationUnderReviewSerial";
     public static final String TX_USER_CANCELS_CREATED_APP = "UserCancelsTheSubmittedLeaveApplication";
     public static final String TX_USER_CREATES_APP = "UserCreatesTheApplication";
     public static final String TX_USER_SUBMITS_APP = "UserSubmitsTheCreatedApplication";
