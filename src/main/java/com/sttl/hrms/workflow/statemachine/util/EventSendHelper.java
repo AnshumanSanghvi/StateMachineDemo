@@ -7,8 +7,6 @@ import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
-import org.springframework.statemachine.StateMachineEventResult;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
@@ -50,17 +48,15 @@ public class EventSendHelper {
         Optional.ofNullable(eventDto.getComment()).filter(Predicate.not(String::isBlank))
                 .ifPresent(cmt -> headersMap.put(MSG_KEY_COMMENT, cmt));
 
-        var resultFlux = sendMessageToSM(stateMachine, eventDto.getEvent(), headersMap);
-
         // parse the result
-        List<EventResultDto> resultDTOList = EventResultHelper.processResultFlux(resultFlux);
+        List<EventResultDto> resultDTOList = sendMessageToSM(stateMachine, eventDto.getEvent(), headersMap);
         log.debug("After passing event: {}, resultFlux is: {}", eventDto.getEvent(), resultDTOList);
         return new Pair<>(stateMachine, resultDTOList);
     }
 
-    public static Flux<StateMachineEventResult<String, String>> sendMessageToSM(StateMachine<String, String> stateMachine,
+    public static List<EventResultDto> sendMessageToSM(StateMachine<String, String> stateMachine,
             String event, Map<String, Object> headersMap) {
-        Flux<StateMachineEventResult<String, String>> resultFlux = Flux.empty();
+        List<EventResultDto> results = new ArrayList<>();
         MessageBuilder<String> msgBldr = MessageBuilder.withPayload(event);
         var map = stateMachine.getExtendedState().getVariables();
 
@@ -78,18 +74,21 @@ public class EventSendHelper {
                     msgBldr.setHeader(MSG_KEY_COMMENT, cmt);});
 
         try {
-            return resultFlux.mergeWith(stateMachine.sendEvent(Mono.just(msgBldr.build())));
+            return stateMachine.sendEvent(Mono.just(msgBldr.build()))
+                    .toStream()
+                    .map(EventResultDto::new)
+                    .toList();
         } catch (Exception ex) {
             throw new StateMachineException("Could not send event: " + event + " to the statemachine: " + stateMachine.getId(), ex);
         }
     }
 
-    public static Flux<StateMachineEventResult<String, String>> sendMessagesToSM(StateMachine<String, String> stateMachine,
+    public static List<EventResultDto> sendMessagesToSM(StateMachine<String, String> stateMachine,
             Map<String, Object> headersMap, String... events) {
-        Flux<StateMachineEventResult<String, String>> resultFlux = Flux.empty();
+        List<EventResultDto> results = new ArrayList<>();
         for(String event : events) {
-            resultFlux.mergeWith(sendMessageToSM(stateMachine, event, headersMap));
+            results.addAll(sendMessageToSM(stateMachine, event, headersMap));
         }
-        return resultFlux;
+        return results;
     }
 }
