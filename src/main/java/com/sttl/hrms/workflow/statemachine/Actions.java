@@ -5,6 +5,7 @@ import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowPrope
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.util.EventSendHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.statemachine.ExtendedState;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.StateMachine;
@@ -38,6 +39,7 @@ public class Actions {
 
     public static void initial(StateContext<String, String> context, WorkflowProperties workflowProperties, Integer reviewers,
             Map<Integer, Long> reviewerMap, boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount) {
+
         initial(context.getStateMachine(), workflowProperties, reviewers, reviewerMap, isParallel, maxChangeRequests,
                 maxRollBackCount);
     }
@@ -187,17 +189,20 @@ public class Actions {
 
     public static void approve(StateContext<String, String> context) {
         log.trace("Executing action: approveTransitionAction with currentState: {}", getStateId(context));
+
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+
         ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
-        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
-        String comment = get(context, KEY_COMMENT, String.class, null);
+
         map.put(KEY_APPROVE_BY, actionBy);
         map.put(KEY_APPROVE_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
 
         Map<String, Object> headersMap = new HashMap<>();
-
         headersMap.put(MSG_KEY_ACTION_BY, actionBy);
         headersMap.put(MSG_KEY_COMMENT, comment);
         var result = EventSendHelper.sendMessageToSM(context.getStateMachine(), E_TRIGGER_COMPLETE.name(), headersMap);
@@ -224,16 +229,25 @@ public class Actions {
 
     public static void reject(StateContext<String, String> context) {
         log.trace("Executing action: rejectTransitionAction with currentState: {}", getStateId(context));
+
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+
         ExtendedState extState = context.getExtendedState();
         var map = context.getExtendedState().getVariables();
-        map.put(KEY_REJECTED_BY, get(context, KEY_ACTION_BY, Long.class,null));
-        map.put(KEY_REJECTED_COMMENT, get(context, KEY_COMMENT, String.class,null));
+        map.put(KEY_REJECTED_BY, actionBy);
+        map.put(KEY_REJECTED_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_REJECTED);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
     }
 
     public static void cancel(StateContext<String, String> context) {
         log.trace("Executing action: cancelTransitionAction with currentState: {}", getStateId(context));
+
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
@@ -278,12 +292,15 @@ public class Actions {
     }
 
     public static void create(final StateContext<String, String> context) {
-        var map = context.getExtendedState().getVariables();
-        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(context, KEY_ORDER, Integer.class, null);
-        String comment = get(context, KEY_COMMENT, String.class, null);
+
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+
         var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
         if (adminIds.contains(actionBy)) {
+            var map = context.getExtendedState().getVariables();
             map.put(KEY_LAST_FORWARDED_BY, new Pair<>(orderNo, actionBy));
             map.put(KEY_FORWARDED_COMMENT, Optional.ofNullable(comment).orElse("Created by Admin"));
             triggerApproveEvent(context);

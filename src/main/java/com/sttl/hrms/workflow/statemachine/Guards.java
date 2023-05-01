@@ -4,6 +4,7 @@ package com.sttl.hrms.workflow.statemachine;
 import com.sttl.hrms.workflow.data.Pair;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.statemachine.StateContext;
 
 import java.util.*;
@@ -70,9 +71,13 @@ public class Guards {
 
     private static boolean adminApprove(StateContext<String, String> context) {
 
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+
         var map = context.getExtendedState().getVariables();
-        map.put(KEY_APPROVE_BY, get(context, KEY_ACTION_BY, Long.class, null));
-        map.put(KEY_APPROVE_COMMENT, get(context, KEY_COMMENT, String.class, null));
+        map.put(KEY_APPROVE_BY, actionBy);
+        map.put(KEY_APPROVE_COMMENT, comment);
 
         Long approvedBy = get(context, KEY_APPROVE_BY, Long.class, null);
 
@@ -85,11 +90,12 @@ public class Guards {
 
     public static boolean requestChanges(StateContext<String, String> context) {
 
-        var map = context.getExtendedState().getVariables();
-        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(context, KEY_ORDER, Integer.class, null);
-        String comment = get(context, KEY_COMMENT, String.class, null);
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
+        var map = context.getExtendedState().getVariables();
         map.put(KEY_CHANGES_REQ_BY, new Pair<>(orderNo, actionBy));
         map.put(KEY_CHANGE_REQ_COMMENT, comment);
 
@@ -126,10 +132,12 @@ public class Guards {
     public static boolean rollBackApproval(StateContext<String, String> context) {
         log.debug("Executing guard: rollBackCountGuard with currentState: {}", getStateId(context));
 
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+
         var map = context.getExtendedState().getVariables();
-        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(context, KEY_ORDER, Integer.class, null);
-        String comment = get(context, KEY_COMMENT, String.class, null);
         map.put(KEY_ROLL_BACK_BY, new Pair<>(orderNo, actionBy));
         map.put(KEY_ROLL_BACK_COMMENT, comment);
 
@@ -172,11 +180,12 @@ public class Guards {
 
     public static boolean forward(StateContext<String, String> context) {
 
-        var map = context.getExtendedState().getVariables();
-        Long actionBy = get(context, KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(context, KEY_ORDER, Integer.class, null);
-        String comment = get(context, KEY_COMMENT, String.class, null);
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
+        var map = context.getExtendedState().getVariables();
         map.put(KEY_LAST_FORWARDED_BY, new Pair<>(orderNo, actionBy));
         map.put(KEY_FORWARDED_COMMENT, comment);
 

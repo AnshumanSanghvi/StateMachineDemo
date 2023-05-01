@@ -56,22 +56,8 @@ public class EventSendHelper {
 
     public static List<EventResultDto> sendMessageToSM(StateMachine<String, String> stateMachine,
             String event, Map<String, Object> headersMap) {
-        List<EventResultDto> results = new ArrayList<>();
         MessageBuilder<String> msgBldr = MessageBuilder.withPayload(event);
-        var map = stateMachine.getExtendedState().getVariables();
-
-        Optional.ofNullable(headersMap.get(MSG_KEY_ORDER_NO))
-                .ifPresent(ord -> {
-                    map.put(KEY_ORDER, ord);
-                    msgBldr.setHeader(MSG_KEY_ORDER_NO, ord);});
-        Optional.ofNullable(headersMap.get(MSG_KEY_ACTION_BY))
-                .ifPresent(actBy -> {
-                    map.put(KEY_ACTION_BY, actBy);
-                    msgBldr.setHeader(MSG_KEY_ACTION_BY, actBy);});
-        Optional.ofNullable(headersMap.get(MSG_KEY_COMMENT))
-                .ifPresent(cmt -> {
-                    map.put(KEY_COMMENT, cmt);
-                    msgBldr.setHeader(MSG_KEY_COMMENT, cmt);});
+        msgBldr.copyHeaders(headersMap);
 
         try {
             return stateMachine.sendEvent(Mono.just(msgBldr.build()))

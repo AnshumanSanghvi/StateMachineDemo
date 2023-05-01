@@ -12,15 +12,12 @@ public class SMConstants {
     public static final String LOAN_APP_WF_V1 = "LoanApplicationWorkflowStateMachineV1";
 
     // ExtendedState Keys
-    public static final String KEY_ACTION_BY = "ACTION_BY";
     public static final String KEY_ADMIN_IDS = "ADMIN_IDS";
     public static final String KEY_ANY_APPROVE = "ANY_APPROVE";
     public static final String KEY_APPROVAL_FLOW_TYPE = "APPROVAL_FLOW_TYPE";
     public static final String KEY_APPROVE_BY = "APPROVE_BY";
     public static final String KEY_APPROVE_COMMENT = "APPROVE_COMMENT";
     public static final String KEY_CLOSED_STATE_TYPE = "CLOSED_STATE_TYPE";
-    public static final String KEY_COMMENT = "COMMENT";
-    public static final String KEY_CREATED_BY = "CREATED_BY";
     public static final String KEY_FORWARDED_COMMENT = "FORWARDED_COMMENT";
     public static final String KEY_FORWARDED_COUNT = "FORWARDED_COUNT";
     public static final String KEY_FORWARDED_MAP = "FORWARDED_MAP";
@@ -28,7 +25,6 @@ public class SMConstants {
     public static final String KEY_CHANGE_REQ_MAX = "MAX_CHANGE_REQUESTS";
     public static final String KEY_CHANGE_REQ_COMMENT = "REQUESTED_CHANGE_COMMENT";
     public static final String KEY_CHANGES_REQ_BY = "REQUESTED_CHANGES_BY";
-    public static final String KEY_ORDER = "ORDER_NO";
     public static final String KEY_REJECTED_BY = "REJECTED_BY";
     public static final String KEY_REJECTED_COMMENT = "REJECTED_COMMENT";
     public static final String KEY_RETURN_COUNT = "RETURN_COUNT";
