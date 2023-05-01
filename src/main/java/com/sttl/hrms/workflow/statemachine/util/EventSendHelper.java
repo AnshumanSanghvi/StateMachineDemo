@@ -5,6 +5,7 @@ import com.sttl.hrms.workflow.resource.dto.PassEventDto;
 import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
 import reactor.core.publisher.Mono;
@@ -34,6 +35,8 @@ public class EventSendHelper {
                 resultStateMachine = eventResult.getFirst();
                 if (!eventResult.getSecond().isEmpty()) results.addAll(eventResult.getSecond());
             }
+            else log.error("Could not pass event: {} to statemachine: {} as it has an error", eventDto.getEvent(),
+                    stateMachine.getId());
         }
 
         return new Pair<>(resultStateMachine, results);
@@ -47,6 +50,8 @@ public class EventSendHelper {
         Optional.ofNullable(eventDto.getActionBy()).ifPresent(actBy -> headersMap.put(MSG_KEY_ACTION_BY, actBy));
         Optional.ofNullable(eventDto.getComment()).filter(Predicate.not(String::isBlank))
                 .ifPresent(cmt -> headersMap.put(MSG_KEY_COMMENT, cmt));
+        log.debug("Passing Message to statemachine: {} with event: {} and headers: {}", stateMachine.getId(),
+                eventDto.getEvent(), headersMap);
 
         // parse the result
         List<EventResultDto> resultDTOList = sendMessageToSM(stateMachine, eventDto.getEvent(), headersMap);
@@ -58,11 +63,15 @@ public class EventSendHelper {
             String event, Map<String, Object> headersMap) {
         MessageBuilder<String> msgBldr = MessageBuilder.withPayload(event);
         msgBldr.copyHeaders(headersMap);
+        Message<String> message = msgBldr.build();
+        log.debug("Passing Message to statemachine: {} with event: {} and headers: {}", stateMachine.getId(), message.getPayload(),
+                message.getHeaders());
 
         try {
-            return stateMachine.sendEvent(Mono.just(msgBldr.build()))
+            return stateMachine.sendEvent(Mono.just(message))
                     .toStream()
                     .map(EventResultDto::new)
+                    .peek(result -> log.trace("eventResult: {}", result))
                     .toList();
         } catch (Exception ex) {
             throw new StateMachineException("Could not send event: " + event + " to the statemachine: " + stateMachine.getId(), ex);
