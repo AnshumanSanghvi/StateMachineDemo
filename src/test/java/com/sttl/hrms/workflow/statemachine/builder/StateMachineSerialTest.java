@@ -137,9 +137,9 @@ class StateMachineSerialTest {
         assertEquals(new Pair<>(2, 234L), extState.get(KEY_LAST_FORWARDED_BY, Pair.class));
 
         // third reviewer requests changes
-        List<PassEventDto> passEvents6 = createPassEvents(1L, LOAN_APPLICATION, 345L, 1, "please make changes",
+        List<PassEventDto> passEvents5 = createPassEvents(1L, LOAN_APPLICATION, 345L, 3, "please make changes",
                 E_REQUEST_CHANGES_IN);
-        EventSendHelper.passEvents(stateMachine,passEvents6);
+        EventSendHelper.passEvents(stateMachine,passEvents5);
         assertEquals(0, extState.get(KEY_FORWARDED_COUNT, Integer.class));
         assertEquals(S_CREATED.name(), stateMachine.getState().getId());
         assertEquals(2, extState.get(KEY_RETURN_COUNT, Integer.class));
@@ -213,9 +213,22 @@ class StateMachineSerialTest {
         EventSendHelper.passEvents(stateMachine, passEvents1);
         assertEquals(S_SERIAL_APPROVAL_FLOW.name(),stateMachine.getState().getId());
 
-        // reviewer 2 requests changes
+        // test that if reviewer 2 requests changes then they won't be accepted as its out of reviewer order
         List<PassEventDto> passEvents2 = createPassEvents(1L, LOAN_APPLICATION, 234L, 2, "please make changes",
                 E_REQUEST_CHANGES_IN);
+        EventSendHelper.passEvents(stateMachine,passEvents2);
+        assertEquals(0, extState.get(KEY_FORWARDED_COUNT, Integer.class));
+        assertEquals(S_SERIAL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
+        assertEquals(0, extState.get(KEY_RETURN_COUNT, Integer.class));
+
+        // first reviewer forwards the application
+        List<PassEventDto> passEvents3 = createPassEvents(1L, LOAN_APPLICATION, 123L, 1, "forwarded",
+                E_FORWARD);
+        EventSendHelper.passEvents(stateMachine,passEvents3);
+        assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
+        assertEquals(new Pair<>(1, 123L), extState.get(KEY_LAST_FORWARDED_BY, Pair.class));
+
+        // test that now if reviewer 2 requests changes then they will be accepted
         EventSendHelper.passEvents(stateMachine,passEvents2);
         assertEquals(0, extState.get(KEY_FORWARDED_COUNT, Integer.class));
         assertEquals(S_CREATED.name(), stateMachine.getState().getId());

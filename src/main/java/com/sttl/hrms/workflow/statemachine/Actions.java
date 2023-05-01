@@ -78,6 +78,9 @@ public class Actions {
         stateMap.putIfAbsent(KEY_RETURN_COUNT, 0);
         stateMap.putIfAbsent(KEY_CHANGE_REQ_MAX, Optional.ofNullable(maxChangeRequests).orElse(defaultProps.getChangeReqMaxCount()));
 
+        // forward properties
+        stateMap.putIfAbsent(KEY_FORWARDED_COUNT, 0);
+
         // reviwer properties
         Optional.ofNullable(reviewers).ifPresent(rev -> stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, rev));
         Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty)).ifPresent(rmap -> stateMap.putIfAbsent(KEY_REVIEWERS_MAP, rmap));

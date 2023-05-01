@@ -126,6 +126,22 @@ public class Guards {
             return false;
         }
 
+        Pair<Integer, Long> lastForwardedBy = get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Map<Integer, Pair<Long, Boolean>> forwardMap = get(context, KEY_FORWARDED_MAP,
+                Map.class, Collections.emptyMap());
+
+        // if valid lastForwardedBy then
+        if ((lastForwardedBy != null) && (lastForwardedBy.getSecond() != null) && (lastForwardedBy.getSecond() != 0L)) {
+            // first remove all entries in forwardedMap where forwarding hasn't occurred.
+            var entrySet = new HashSet<>(forwardMap.entrySet());
+            entrySet.removeIf(entry -> !entry.getValue().getSecond());
+            for (Map.Entry<Integer, Pair<Long, Boolean>> entry : entrySet) {
+                // then check that no one has forwarded the application after the current user
+                if (entry.getKey() > orderNo) return false;
+            }
+        } else // application hasn't been forwarded
+            return Objects.equals(actionBy, reviewerMap.get(1));
+
         return true;
     }
 
