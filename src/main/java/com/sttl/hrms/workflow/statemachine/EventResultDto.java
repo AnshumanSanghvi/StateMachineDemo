@@ -26,7 +26,8 @@ public class EventResultDto {
     private Long actionBy;
     private String comment;
 
-    public static final Predicate<EventResultDto> accepted = result -> result.getResultType().equals(ResultType.ACCEPTED);
+    public static final Predicate<EventResultDto> accepted = result -> result.getResultType()
+            .equals(ResultType.ACCEPTED);
 
     public EventResultDto(StateMachineEventResult<String, String> result) {
         Region<String, String> stateMachineRegion = result.getRegion();
@@ -40,7 +41,8 @@ public class EventResultDto {
         MessageHeaders headers = result.getMessage().getHeaders();
         Optional.ofNullable(headers.get(MSG_KEY_ORDER_NO, Integer.class)).ifPresent(this::setOrder);
         Optional.ofNullable(headers.get(MSG_KEY_ACTION_BY, Long.class)).ifPresent(this::setActionBy);
-        Optional.ofNullable(headers.get(MSG_KEY_COMMENT, String.class)).filter(Predicate.not(String::isBlank)).ifPresent(this::setComment);
+        Optional.ofNullable(headers.get(MSG_KEY_COMMENT, String.class)).filter(Predicate.not(String::isBlank))
+                .ifPresent(this::setComment);
     }
 
     @Override

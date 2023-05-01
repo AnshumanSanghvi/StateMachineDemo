@@ -72,18 +72,21 @@ public class Actions {
 
         // roll back properties
         stateMap.putIfAbsent(KEY_ROLL_BACK_COUNT, 0);
-        stateMap.putIfAbsent(KEY_ROLL_BACK_MAX, Optional.ofNullable(maxRollBackCount).orElse(defaultProps.getRollbackMaxCount()));
+        stateMap.putIfAbsent(KEY_ROLL_BACK_MAX, Optional.ofNullable(maxRollBackCount)
+                .orElse(defaultProps.getRollbackMaxCount()));
 
         // request change / return properties
         stateMap.putIfAbsent(KEY_RETURN_COUNT, 0);
-        stateMap.putIfAbsent(KEY_CHANGE_REQ_MAX, Optional.ofNullable(maxChangeRequests).orElse(defaultProps.getChangeReqMaxCount()));
+        stateMap.putIfAbsent(KEY_CHANGE_REQ_MAX, Optional.ofNullable(maxChangeRequests)
+                .orElse(defaultProps.getChangeReqMaxCount()));
 
         // forward properties
         stateMap.putIfAbsent(KEY_FORWARDED_COUNT, 0);
 
         // reviwer properties
         Optional.ofNullable(reviewers).ifPresent(rev -> stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, rev));
-        Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty)).ifPresent(rmap -> stateMap.putIfAbsent(KEY_REVIEWERS_MAP, rmap));
+        Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty))
+                .ifPresent(rmap -> stateMap.putIfAbsent(KEY_REVIEWERS_MAP, rmap));
         Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty)).ifPresent(rmap ->
                 stateMap.putIfAbsent(KEY_FORWARDED_MAP, rmap.entrySet().stream()
                         .collect(toMap(Map.Entry::getKey, entry -> new Pair<>(entry.getValue(), false)))));
@@ -132,8 +135,10 @@ public class Actions {
         // get the relevant key matching the forwardBy from the forward Map.
         Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
         Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(extState, KEY_FORWARDED_MAP, Map.class, null);
-        Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> reviewerIdPresent = entry -> entry.getValue().getFirst().equals(forwardBy.getSecond());
-        Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> orderIdPresent = entry -> entry.getKey().equals(forwardBy.getFirst());
+        Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> reviewerIdPresent = entry -> entry.getValue().getFirst()
+                .equals(forwardBy.getSecond());
+        Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> orderIdPresent = entry -> entry.getKey()
+                .equals(forwardBy.getFirst());
         Integer forwardOrderKey = forwardMap
                 .entrySet()
                 .stream()

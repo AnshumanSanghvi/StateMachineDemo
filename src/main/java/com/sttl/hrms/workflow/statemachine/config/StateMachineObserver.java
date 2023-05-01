@@ -84,13 +84,14 @@ public class StateMachineObserver {
 
         @Override
         public void preStateChange(State<String, String> state, Message<String> message, Transition<String, String> transition,
-                                   StateMachine<String, String> stateMachine, StateMachine<String, String> rootStateMachine) {
+                StateMachine<String, String> stateMachine, StateMachine<String, String> rootStateMachine) {
             logMessageHeaders(message);
             log.trace("preStateChange: [stateMachine: {}, current state: {}, event to be passed: {}, transition: {name: {}, source state: {}, target state: {}}]",
                     stateMachine.getId(),
                     state.getId(),
                     Optional.ofNullable(message).map(Message::getPayload).orElse("null"),
-                    Optional.ofNullable(transition).map(Transition::getName).filter(Predicate.not(String::isEmpty)).orElse("null"),
+                    Optional.ofNullable(transition).map(Transition::getName).filter(Predicate.not(String::isEmpty))
+                            .orElse("null"),
                     Optional.ofNullable(transition).map(Transition::getSource).map(State::getId).orElse("null"),
                     Optional.ofNullable(transition).map(Transition::getTarget).map(State::getId).orElse("null")
             );
@@ -98,13 +99,14 @@ public class StateMachineObserver {
 
         @Override
         public void postStateChange(State<String, String> state, Message<String> message, Transition<String, String> transition,
-                                    StateMachine<String, String> stateMachine, StateMachine<String, String> rootStateMachine) {
+                StateMachine<String, String> stateMachine, StateMachine<String, String> rootStateMachine) {
             logMessageHeaders(message);
             log.trace("postStateChange: [stateMachine: {}, current state: {}, event passed: {}, transition: {name: {}, source state: {}, target state: {}}]",
                     stateMachine.getId(),
                     state.getId(),
                     Optional.ofNullable(message).map(Message::getPayload).orElse("null"),
-                    Optional.ofNullable(transition).map(Transition::getName).filter(Predicate.not(String::isEmpty)).orElse("null"),
+                    Optional.ofNullable(transition).map(Transition::getName).filter(Predicate.not(String::isEmpty))
+                            .orElse("null"),
                     Optional.ofNullable(transition).map(Transition::getSource).map(State::getId).orElse("null"),
                     Optional.ofNullable(transition).map(Transition::getTarget).map(State::getId).orElse("null")
             );
@@ -137,7 +139,8 @@ public class StateMachineObserver {
         @Override
         public Exception stateMachineError(StateMachine<String, String> stateMachine, Exception exception) {
             log.error("StateMachineError: [stateMachine: {}, current state: {}, hasError: {}, error message: {}]",
-                    stateMachine.getId(), stateMachine.getState().getId(), stateMachine.hasStateMachineError(), exception.getMessage());
+                    stateMachine.getId(), stateMachine.getState()
+                            .getId(), stateMachine.hasStateMachineError(), exception.getMessage());
             return exception;
         }
 

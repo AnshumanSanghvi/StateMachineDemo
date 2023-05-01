@@ -49,7 +49,8 @@ public class StateMachineBuilder {
         return stateMachine;
     }
 
-    private static void configureStateMachine(Builder<String, String> builder, String stateMachineName) throws Exception {
+    private static void configureStateMachine(Builder<String, String> builder, String stateMachineName)
+            throws Exception {
         builder.configureConfiguration()
                 .withConfiguration()
                     .machineId(stateMachineName)
@@ -60,7 +61,8 @@ public class StateMachineBuilder {
     }
 
     private static void configureStates(Builder<String, String> builder, Integer reviewersCount,
-            Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount) throws Exception {
+            Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount)
+            throws Exception {
         builder.configureStates()
                 .withStates()
                     .initial(S_INITIAL.name(), context -> Actions.initial(context, null, reviewersCount,
@@ -111,7 +113,8 @@ public class StateMachineBuilder {
                     .source(S_CLOSED.name()).event(E_TRIGGER_COMPLETE.name()).target(S_COMPLETED.name());
     }
 
-    private static void configureParallelApprovalTx(StateMachineTransitionConfigurer<String, String> transitions) throws Exception {
+    private static void configureParallelApprovalTx(StateMachineTransitionConfigurer<String, String> transitions)
+            throws Exception {
         transitions
                 .withExternal().name(TX_USER_CANCELS_APP_PARLL)
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_CANCEL.name()).target(S_COMPLETED.name())
@@ -163,8 +166,7 @@ public class StateMachineBuilder {
 
                 .withExternal().name(TX_RVWR_APPROVES_APP_SERIAL)
                     .source(S_SERIAL_APPROVAL_FLOW.name()).event(E_APPROVE.name()).target(S_CLOSED.name())
-                    .guard(Guards::approveInSerial)
-                    .action(Actions::approve);
+                    .guard(Guards::approveInSerial).action(Actions::approve);
     }
 
     public enum SMState {

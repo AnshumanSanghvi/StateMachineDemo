@@ -34,6 +34,6 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
             + "     AND wf.branchId = :branchId"
             + "     AND wf.typeId = :typeId")
     List<WorkflowInstanceEntity> findByTypeId(@Param("companyId") Long companyId, @Param("branchId") Integer branchId,
-                                              @Param("typeId") WorkflowType typeId);
+            @Param("typeId") WorkflowType typeId);
 
 }

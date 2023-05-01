@@ -32,7 +32,8 @@ public class WorkflowEventLogService {
 
     public List<WorkflowEventLogEntity> getWorkflowEventLogsPartitionedByType(WorkflowEventLogDto workflowEventLogDto) {
         var output = workflowEventLogDAO.getWorkflowEventLogs(workflowEventLogDto);
-        log.debug("event logs by typeId: {}", output.stream().map(WorkflowEventLogEntity::toString).collect(Collectors.joining(", ")));
+        log.debug("event logs by typeId: {}", output.stream().map(WorkflowEventLogEntity::toString)
+                .collect(Collectors.joining(", ")));
         return output;
     }
 

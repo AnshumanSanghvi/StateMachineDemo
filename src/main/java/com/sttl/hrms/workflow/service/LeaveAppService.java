@@ -39,10 +39,14 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
         entity.setCreatedDate(now);
 
         List<PassEventDto> passEvents = List.of(
-                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_CREATE.name()).actionBy(userId).actionDate(now).build(),
-                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_SUBMIT.name()).actionBy(userId).actionDate(now).build(),
-                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_TRIGGER_REVIEW_OF.name()).actionBy(userId).actionDate(now).build(),
-                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_TRIGGER_FLOW_JUNCTION.name()).actionBy(userId).actionDate(now).build()
+                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_CREATE.name()).actionBy(userId)
+                        .actionDate(now).build(),
+                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_SUBMIT.name()).actionBy(userId)
+                        .actionDate(now).build(),
+                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_TRIGGER_REVIEW_OF.name())
+                        .actionBy(userId).actionDate(now).build(),
+                PassEventDto.builder().workflowType(entity.getTypeId()).event(E_TRIGGER_FLOW_JUNCTION.name())
+                        .actionBy(userId).actionDate(now).build()
         );
         return createApplication(leaveAppRepository, entity, passEvents);
     }
@@ -57,13 +61,14 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
 
     public List<EventResponseDto> passEventToSM(PassEventDto passEvent) {
         SMEvent smEvent = SMEvent.getByName(passEvent.getEvent());
-        List<PassEventDto> passEvents =  switch (smEvent) {
+        List<PassEventDto> passEvents = switch (smEvent) {
             case E_CREATE -> PassEventDto.createPassEvents(passEvent, E_SUBMIT, E_TRIGGER_REVIEW_OF,
                     E_TRIGGER_FLOW_JUNCTION);
             case E_SUBMIT -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
             case E_TRIGGER_REVIEW_OF -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_FLOW_JUNCTION);
             case E_APPROVE, E_REJECT, E_CANCEL -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_COMPLETE);
-            case E_REQUEST_CHANGES_IN, E_TRIGGER_FLOW_JUNCTION, E_FORWARD, E_ROLL_BACK, E_TRIGGER_COMPLETE -> List.of(passEvent);
+            case E_REQUEST_CHANGES_IN, E_TRIGGER_FLOW_JUNCTION, E_FORWARD, E_ROLL_BACK, E_TRIGGER_COMPLETE ->
+                    List.of(passEvent);
         };
         return passEvents(passEvents, leaveAppRepository);
     }

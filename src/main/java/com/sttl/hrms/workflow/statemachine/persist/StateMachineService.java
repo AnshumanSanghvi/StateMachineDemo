@@ -69,7 +69,7 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
     }
 
     public void writeToLog(T entity, StateMachine<String, String> stateMachine, List<EventResultDto> eventResultList) {
-        for(EventResultDto result : eventResultList) {
+        for (EventResultDto result : eventResultList) {
             // log the event asynchronously once it is successfully processed by the statemachine.
             var wfEventLogDto = WorkflowEventLogDto.builder()
                     .companyId(entity.getCompanyId())

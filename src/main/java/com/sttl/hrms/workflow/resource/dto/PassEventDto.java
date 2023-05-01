@@ -1,7 +1,6 @@
 package com.sttl.hrms.workflow.resource.dto;
 
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
-import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder;
 import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,24 +13,29 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_TRIGGER_COMPLETE;
-
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
 public class PassEventDto {
-    @NotNull WorkflowType workflowType;
-    @NotNull Long workflowInstanceId;
-    @NotNull String event;
-    @NotNull Long actionBy;
-    @Nullable LocalDateTime actionDate;
-    @Nullable Integer orderNo;
-    @Nullable String comment;
+    @NotNull
+    WorkflowType workflowType;
+    @NotNull
+    Long workflowInstanceId;
+    @NotNull
+    String event;
+    @NotNull
+    Long actionBy;
+    @Nullable
+    LocalDateTime actionDate;
+    @Nullable
+    Integer orderNo;
+    @Nullable
+    String comment;
 
-    public static List<PassEventDto> createPassEvents(PassEventDto passEvent, SMEvent...events) {
+    public static List<PassEventDto> createPassEvents(PassEventDto passEvent, SMEvent... events) {
         List<PassEventDto> passEvents = new ArrayList<>(events.length + 1);
-        for(SMEvent event : events) {
+        for (SMEvent event : events) {
             passEvents.add(PassEventDto.builder()
                     .workflowType(passEvent.getWorkflowType())
                     .workflowInstanceId(passEvent.getWorkflowInstanceId())

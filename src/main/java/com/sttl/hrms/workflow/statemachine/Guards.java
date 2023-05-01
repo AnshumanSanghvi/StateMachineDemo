@@ -56,14 +56,16 @@ public class Guards {
         // check that all the reviewers have forwarded the application
         Map<Integer, Pair<Long, Boolean>> forwardedMap = (Map<Integer, Pair<Long, Boolean>>) get(context, KEY_FORWARDED_MAP,
                 Map.class, Collections.emptyMap());
-        boolean allReviewersHaveApproved = forwardedMap.entrySet().stream().allMatch(entry -> entry.getValue().getSecond());
+        boolean allReviewersHaveApproved = forwardedMap.entrySet().stream()
+                .allMatch(entry -> entry.getValue().getSecond());
 
         // check that the last reviewer in the order is the one who forwarded the application
         Map<Integer, Long> reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
         Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
         boolean forwarderIsFinalReviewer = reviewerMap.entrySet().stream()
                 .max(Map.Entry.comparingByKey())
-                .filter(entry -> forwardedBy.getFirst().equals(entry.getKey()) && forwardedBy.getSecond().equals(entry.getValue()))
+                .filter(entry -> forwardedBy.getFirst().equals(entry.getKey()) && forwardedBy.getSecond()
+                        .equals(entry.getValue()))
                 .isPresent();
 
         return forwardedCountMatchesTotalReviewers && allReviewersHaveApproved && forwarderIsFinalReviewer;
@@ -229,8 +231,7 @@ public class Guards {
                 log.error(errorMsg, "the forwarding userId is not in the reviewers list");
                 return false;
             }
-        }
-        else {
+        } else {
             // check that both the order of forwarding,
             // and that the forwarding user is present in the list of reviewers for the application in the serial approval flow.
             return forwardIdAndOrderCheck(context);
@@ -269,10 +270,10 @@ public class Guards {
                 .entrySet()
                 .stream()
                 .noneMatch(entry -> Objects.equals(entry.getKey(), forwardingOrder) &&
-                                    Objects.equals(entry.getValue(), forwardingId));
+                        Objects.equals(entry.getValue(), forwardingId));
         if (isOrderNumberAndReviewerIdAbsent) {
             log.error("Cannot forward the application as {}", "the combination of the forwarding order " +
-                "and the forwarding userId is not present in the list of reviewers");
+                    "and the forwarding userId is not present in the list of reviewers");
             return false;
         }
 

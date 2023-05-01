@@ -23,13 +23,13 @@ public class WorkflowInstanceRestController {
 
     @GetMapping("/cid/{cid}/bid/{bid}")
     public @ResponseBody List<WorkflowInstanceEntity> getWFInstancesByCompanyAndBranch(@PathVariable("cid") Long companyId,
-                                                                                       @PathVariable("bid") Integer branchId) {
+            @PathVariable("bid") Integer branchId) {
         return workflowInstanceService.findByCompanyIdAndBranchId(companyId, branchId);
     }
 
     @GetMapping("/cid/{cid}/bid/{bid}/type/{typeId}")
     public @ResponseBody List<WorkflowInstanceEntity> getWFInstancesByTypeId(@PathVariable("cid") Long companyId,
-                                                                             @PathVariable("bid") Integer branchId, @PathVariable("typeId") Integer typeId) {
+            @PathVariable("bid") Integer branchId, @PathVariable("typeId") Integer typeId) {
         return workflowInstanceService.findByTypeId(companyId, branchId, typeId);
     }
 

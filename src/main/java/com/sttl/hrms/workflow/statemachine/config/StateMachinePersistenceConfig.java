@@ -26,7 +26,8 @@ public class StateMachinePersistenceConfig {
         return new StateMachinePersist<>() {
             @SuppressWarnings("RedundantThrows")
             @Override
-            public void write(StateMachineContext<String, String> context, WorkflowInstanceEntity contextObj) throws Exception {
+            public void write(StateMachineContext<String, String> context, WorkflowInstanceEntity contextObj)
+                    throws Exception {
                 var children = context.getChilds();
                 String state = context.getState();
                 String event = context.getEvent();

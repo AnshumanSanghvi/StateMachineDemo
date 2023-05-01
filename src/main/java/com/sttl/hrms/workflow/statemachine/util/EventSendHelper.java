@@ -26,7 +26,7 @@ public class EventSendHelper {
             String> stateMachine, List<PassEventDto> eventDtos) {
 
         StateMachine<String, String> resultStateMachine = stateMachine;
-        List<EventResultDto> results  = new ArrayList<>();
+        List<EventResultDto> results = new ArrayList<>();
 
         for (PassEventDto eventDto : eventDtos) {
             if (!resultStateMachine.hasStateMachineError()) {
@@ -34,8 +34,7 @@ public class EventSendHelper {
 
                 resultStateMachine = eventResult.getFirst();
                 if (!eventResult.getSecond().isEmpty()) results.addAll(eventResult.getSecond());
-            }
-            else log.error("Could not pass event: {} to statemachine: {} as it has an error", eventDto.getEvent(),
+            } else log.error("Could not pass event: {} to statemachine: {} as it has an error", eventDto.getEvent(),
                     stateMachine.getId());
         }
 
@@ -81,7 +80,7 @@ public class EventSendHelper {
     public static List<EventResultDto> sendMessagesToSM(StateMachine<String, String> stateMachine,
             Map<String, Object> headersMap, String... events) {
         List<EventResultDto> results = new ArrayList<>();
-        for(String event : events) {
+        for (String event : events) {
             results.addAll(sendMessageToSM(stateMachine, event, headersMap));
         }
         return results;

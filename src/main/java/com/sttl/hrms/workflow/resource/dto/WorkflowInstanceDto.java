@@ -18,8 +18,10 @@ import java.util.List;
 public class WorkflowInstanceDto {
 
     // base entity
-    @NotNull Long companyId;
-    @NotNull Integer branchId;
+    @NotNull
+    Long companyId;
+    @NotNull
+    Integer branchId;
     LocalDateTime createDate;
     LocalDateTime updateDate;
     LocalDateTime deleteDate;
@@ -28,9 +30,12 @@ public class WorkflowInstanceDto {
     Long deletedByUserId;
 
     // workflow instance entity
-    @NotNull WorkflowType typeId;
-    @Builder.Default Short timesRolledBackCount = 0;
-    @Builder.Default Short timesReturnedCount = 0;
+    @NotNull
+    WorkflowType typeId;
+    @Builder.Default
+    Short timesRolledBackCount = 0;
+    @Builder.Default
+    Short timesReturnedCount = 0;
     Short workflowVersion;
     List<Pair<Integer, Long>> reviewers;
 }
