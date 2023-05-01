@@ -252,6 +252,8 @@ public class Actions {
         ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
         map.put(KEY_CLOSED_STATE_TYPE, VAL_CANCELED);
+        map.put(KEY_CLOSED_BY, actionBy);
+        map.put(KEY_CLOSED_COMMENT, comment);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
     }
 

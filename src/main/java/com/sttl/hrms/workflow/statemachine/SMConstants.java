@@ -17,6 +17,8 @@ public class SMConstants {
     public static final String KEY_APPROVAL_FLOW_TYPE = "APPROVAL_FLOW_TYPE";
     public static final String KEY_APPROVE_BY = "APPROVE_BY";
     public static final String KEY_APPROVE_COMMENT = "APPROVE_COMMENT";
+    public static final String KEY_CLOSED_BY = "CLOSED_BY";
+    public static final String KEY_CLOSED_COMMENT = "CLOSED_COMMENT";
     public static final String KEY_CLOSED_STATE_TYPE = "CLOSED_STATE_TYPE";
     public static final String KEY_FORWARDED_COMMENT = "FORWARDED_COMMENT";
     public static final String KEY_FORWARDED_COUNT = "FORWARDED_COUNT";
