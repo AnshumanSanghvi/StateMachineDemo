@@ -5,6 +5,7 @@ import com.sttl.hrms.workflow.data.model.entity.WorkflowInstanceEntity;
 import com.sttl.hrms.workflow.data.model.repository.LoanAppWorkflowInstanceRepository;
 import com.sttl.hrms.workflow.resource.dto.EventResponseDto;
 import com.sttl.hrms.workflow.resource.dto.PassEventDto;
+import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder;
 import com.sttl.hrms.workflow.statemachine.persist.StateMachineService;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,11 @@ public class LoanAppService extends WorkflowService<LoanAppWorkflowInstanceEntit
 
     public void delete(Long id) {
         deleteApplication(id, loanAppRepository);
+    }
+
+    @Transactional
+    public List<EventResultDto> resetStateMachine(PassEventDto passEvent) {
+        return resetStateMachine(passEvent, loanAppRepository);
     }
 
 }

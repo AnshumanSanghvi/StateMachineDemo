@@ -6,6 +6,7 @@ import com.sttl.hrms.workflow.resource.dto.EventResponseDto;
 import com.sttl.hrms.workflow.resource.dto.LoanAppWFInstanceDto;
 import com.sttl.hrms.workflow.resource.dto.PassEventDto;
 import com.sttl.hrms.workflow.service.LoanAppService;
+import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -59,6 +60,11 @@ public class LoanAppWFRestController {
         if (!loanAppWFService.existsById(id))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         loanAppWFService.delete(id);
+    }
+
+    @PostMapping("/reset")
+    public @ResponseBody List<EventResultDto> resetWorkFlow(@NotNull @RequestBody @Valid PassEventDto eventDto) {
+        return loanAppWFService.resetStateMachine(eventDto);
     }
 
 }

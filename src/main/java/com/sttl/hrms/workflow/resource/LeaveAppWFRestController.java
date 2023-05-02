@@ -6,6 +6,7 @@ import com.sttl.hrms.workflow.resource.dto.EventResponseDto;
 import com.sttl.hrms.workflow.resource.dto.LeaveAppWFInstanceDto;
 import com.sttl.hrms.workflow.resource.dto.PassEventDto;
 import com.sttl.hrms.workflow.service.LeaveAppService;
+import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -59,6 +60,11 @@ public class LeaveAppWFRestController {
         if (!leaveAppWFService.existsById(id))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         leaveAppWFService.delete(id);
+    }
+
+    @PostMapping("/reset")
+    public @ResponseBody List<EventResultDto> resetWorkFlow(@NotNull @RequestBody @Valid PassEventDto eventDto) {
+        return leaveAppWFService.resetStateMachine(eventDto);
     }
 
 }

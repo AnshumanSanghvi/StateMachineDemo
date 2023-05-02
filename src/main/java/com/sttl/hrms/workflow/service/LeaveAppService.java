@@ -5,6 +5,7 @@ import com.sttl.hrms.workflow.data.model.entity.WorkflowInstanceEntity;
 import com.sttl.hrms.workflow.data.model.repository.LeaveAppWorkflowInstanceRepository;
 import com.sttl.hrms.workflow.resource.dto.EventResponseDto;
 import com.sttl.hrms.workflow.resource.dto.PassEventDto;
+import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent;
 import com.sttl.hrms.workflow.statemachine.persist.StateMachineService;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,11 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
 
     public void delete(Long id) {
         deleteApplication(id, leaveAppRepository);
+    }
+
+    @Transactional
+    public List<EventResultDto> resetStateMachine(PassEventDto passEventDto) {
+        return resetStateMachine(passEventDto, leaveAppRepository);
     }
 
 }

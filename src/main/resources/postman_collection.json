@@ -140,6 +140,30 @@
 							"name": "Send Events",
 							"item": [
 								{
+									"name": "0. LeaveApp WF Send Reset Workflow Event",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"workflowType\": \"LEAVE_APPLICATION\",\n    \"workflowInstance\": 14,\n    \"event\": \"E_RESET\",\n    \"actionBy\": 1\n}"
+										},
+										"url": {
+											"raw": "localhost:8080/wf/leave/reset",
+											"host": [
+												"localhost"
+											],
+											"port": "8080",
+											"path": [
+												"wf",
+												"leave",
+												"reset"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "1. LeaveApp WF Send Initialize Event",
 									"request": {
 										"method": "POST",
@@ -731,6 +755,30 @@
 						{
 							"name": "Send Events",
 							"item": [
+								{
+									"name": "0. LoanApp WF Send Reset Workflow Event",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"workflowType\": \"LOAN_APPLICATION\",\n    \"workflowInstance\": 14,\n    \"event\": \"E_RESET\",\n    \"actionBy\": 1\n}"
+										},
+										"url": {
+											"raw": "localhost:8080/wf/loan/reset",
+											"host": [
+												"localhost"
+											],
+											"port": "8080",
+											"path": [
+												"wf",
+												"loan",
+												"reset"
+											]
+										}
+									},
+									"response": []
+								},
 								{
 									"name": "1. LoanApp WF Send Initialize Event",
 									"request": {

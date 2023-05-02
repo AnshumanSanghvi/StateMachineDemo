@@ -6,10 +6,12 @@ import com.sttl.hrms.workflow.data.enums.WorkflowType;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowInstanceEntity;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity;
 import com.sttl.hrms.workflow.data.model.repository.WorkflowTypeRepository;
+import com.sttl.hrms.workflow.resource.dto.PassEventDto;
 import com.sttl.hrms.workflow.resource.dto.WorkflowEventLogDto;
 import com.sttl.hrms.workflow.service.WorkflowEventLogService;
 import com.sttl.hrms.workflow.statemachine.Actions;
 import com.sttl.hrms.workflow.statemachine.EventResultDto;
+import com.sttl.hrms.workflow.statemachine.ExtStateUtil;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.util.StringUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static com.sttl.hrms.workflow.statemachine.SMConstants.KEY_ADMIN_IDS;
+import static org.springframework.statemachine.StateMachineEventResult.ResultType.ACCEPTED;
 
 @Service
 @RequiredArgsConstructor
@@ -100,8 +102,26 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
             log.info("{}", "returning default workflow type properties");
             return new WorkflowTypeEntity.WorkflowProperties();
         }
+    }
 
-
+    @SuppressWarnings("unchecked")
+    @Transactional
+    public List<EventResultDto> resetStateMachine(T entity, PassEventDto passEventDto, StateMachine<String, String> stateMachine) {
+        List<Long> adminIds = (List<Long>) ExtStateUtil.get(stateMachine.getExtendedState(), KEY_ADMIN_IDS, List.class,
+                Collections.emptyList());
+        if (adminIds.contains(passEventDto.getActionBy())) {
+            throw new StateMachineException("Cannot reset workflow. UserId is not present in list of accepted admin " +
+                    "Ids.");
+        }
+        stateMachine.stopReactively().block();
+        return List.of(EventResultDto.builder()
+                .currentState(stateMachine.getState().getId())
+                .isSubMachine(false)
+                .resultType(ACCEPTED)
+                .comment(Optional.ofNullable(passEventDto.getComment()).orElse("Reset by Admin"))
+                .event("RESET")
+                .isComplete(false)
+                .build());
     }
 
 }

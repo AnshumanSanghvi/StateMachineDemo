@@ -160,6 +160,16 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
 
     abstract boolean existsById(Long id);
 
+    @Transactional
+    public List<EventResultDto> resetStateMachine(PassEventDto passEventDto, JpaRepository<E, Long> repository) {
+        var entity = getApplicationById(passEventDto.getWorkflowInstanceId(), repository);
+        var stateMachine = stateMachineService.getStateMachineFromEntity(entity);
+        var eventResultList = stateMachineService.resetStateMachine(entity, passEventDto, stateMachine);
+        var savedEntity = repository.save(entity);
+        stateMachineService.saveStateMachineToEntity(stateMachine, savedEntity, eventResultList, true);
+        return eventResultList;
+    }
+
 
     /* DELETE */
     @Transactional
