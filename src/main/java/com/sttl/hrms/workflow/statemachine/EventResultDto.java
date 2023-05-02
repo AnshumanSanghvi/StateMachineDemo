@@ -1,7 +1,6 @@
 package com.sttl.hrms.workflow.statemachine;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.statemachine.StateMachineEventResult;
 import org.springframework.statemachine.StateMachineEventResult.ResultType;
@@ -14,6 +13,9 @@ import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class EventResultDto {
 
     private String region;

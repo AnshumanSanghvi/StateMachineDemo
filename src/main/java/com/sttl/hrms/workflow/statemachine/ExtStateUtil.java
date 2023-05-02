@@ -8,12 +8,15 @@ import org.springframework.statemachine.StateContext;
 import java.util.Optional;
 
 @Slf4j
-class ExtStateUtil {
-    static String getStateId(StateContext<String, String> context) {
+public class ExtStateUtil {
+
+    private ExtStateUtil(){}
+
+    public static String getStateId(StateContext<String, String> context) {
         return context.getStateMachine().getState().getId();
     }
 
-    static <T> T get(StateContext<String, String> context, String key, Class<T> clazz, T defaultVal) {
+    public static <T> T get(StateContext<String, String> context, String key, Class<T> clazz, T defaultVal) {
         try {
             return get(context.getExtendedState(), key, clazz, defaultVal);
         } catch (Exception ex) {
@@ -22,7 +25,7 @@ class ExtStateUtil {
         }
     }
 
-    static <T> T get(ExtendedState extendedState, String key, Class<T> clazz, T defaultVal) {
+    public static <T> T get(ExtendedState extendedState, String key, Class<T> clazz, T defaultVal) {
         try {
             return Optional.ofNullable(extendedState.get(key, clazz)).orElse(defaultVal);
         } catch (Exception ex) {
@@ -31,7 +34,7 @@ class ExtStateUtil {
         }
     }
 
-    static <T> T get(MessageHeaders headers, String key, Class<T> clazz, T defaultVal) {
+    public static <T> T get(MessageHeaders headers, String key, Class<T> clazz, T defaultVal) {
         try {
             return Optional.ofNullable(get(headers, key, clazz)).orElse(defaultVal);
         } catch (Exception ex) {
@@ -40,7 +43,7 @@ class ExtStateUtil {
         }
     }
 
-    static <T> T get(MessageHeaders headers, String key, Class<T> clazz) {
+    public static <T> T get(MessageHeaders headers, String key, Class<T> clazz) {
         return headers.get(key, clazz);
     }
 }

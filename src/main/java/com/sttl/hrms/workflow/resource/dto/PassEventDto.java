@@ -27,7 +27,8 @@ public class PassEventDto {
     @NotNull
     Long actionBy;
     @Nullable
-    LocalDateTime actionDate;
+    @Builder.Default
+    LocalDateTime actionDate = LocalDateTime.now();
     @Nullable
     Integer orderNo;
     @Nullable
