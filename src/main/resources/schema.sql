@@ -66,12 +66,11 @@ CREATE TABLE IF NOT EXISTS public.wf_status_log (
     user_role int2 NOT NULL,
     "comment" varchar(1024) NULL,
     CONSTRAINT wf_status_log_pkey PRIMARY KEY (id, type_id)
-);
--- PARTITION BY LIST(type_id);
+) PARTITION BY LIST(type_id);
 
---CREATE TABLE IF NOT EXISTS public.leaveapp_wf_status_log PARTITION OF public.wf_status_log FOR VALUES IN (1);
+CREATE TABLE IF NOT EXISTS public.leaveapp_wf_status_log PARTITION OF public.wf_status_log FOR VALUES IN (1);
 
---CREATE TABLE IF NOT EXISTS public.loanapp_wf_status_log PARTITION OF public.wf_status_log FOR VALUES IN (2);
+CREATE TABLE IF NOT EXISTS public.loanapp_wf_status_log PARTITION OF public.wf_status_log FOR VALUES IN (2);
 
 CREATE INDEX leave_wf_inst_leave_type_idx ON public.leave_wf_inst (leave_type);
 
