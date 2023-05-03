@@ -15,11 +15,11 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.sttl.hrms.workflow.statemachine.ExtStateUtil.get;
-import static com.sttl.hrms.workflow.statemachine.ExtStateUtil.getStateId;
 import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
 import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_APPROVE;
 import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_TRIGGER_COMPLETE;
+import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.get;
+import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.getStateId;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -135,10 +135,12 @@ public class Actions {
         // get the relevant key matching the forwardBy from the forward Map.
         Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
         Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(extState, KEY_FORWARDED_MAP, Map.class, null);
+
         Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> reviewerIdPresent = entry -> entry.getValue().getFirst()
                 .equals(forwardBy.getSecond());
         Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> orderIdPresent = entry -> entry.getKey()
                 .equals(forwardBy.getFirst());
+
         Integer forwardOrderKey = forwardMap
                 .entrySet()
                 .stream()

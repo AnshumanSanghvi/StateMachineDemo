@@ -1,4 +1,4 @@
-package com.sttl.hrms.workflow.statemachine;
+package com.sttl.hrms.workflow.statemachine.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.MessageHeaders;

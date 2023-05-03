@@ -20,20 +20,12 @@ public class EventResultHelper {
         // use class statically
     }
 
-    public static Flux<EventResultDto> toResultDTOFlux(Flux<StateMachineEventResult<String, String>> resultFlux) {
-        return resultFlux
-                .map(EventResultDto::new)
-                .doOnError(ex -> {
-                    throw new StateMachineException("Error parsing the results in the state machine.", ex);
-                })
-                .onErrorStop();
-    }
-
     public static List<EventResultDto> toResultDTOList(Flux<StateMachineEventResult<String, String>> resultFlux) {
-        List<EventResultDto> eventResults = EventResultHelper
-                .toResultDTOFlux(resultFlux)
-                .collectList()
-                .block();
+        List<EventResultDto> eventResults = resultFlux
+                .toStream()
+                .map(EventResultDto::new)
+                .peek(result -> log.trace("event result: {}", result))
+                .toList();
         log.trace("Parsing StateMachine event results to list: {}", eventResults);
         return eventResults;
     }
@@ -71,11 +63,11 @@ public class EventResultHelper {
                     .map(StringUtil::event)
                     .collect(Collectors.joining(", "));
 
-            log.error("Did not persist the state machine context to the database, "
+            String msg = "Did not persist the state machine context to the database, "
                     + "as the following passed event: [" + eventStr + "]" +
-                    " were not accepted by the statemachine ");
+                    " were not accepted by the statemachine ";
 
-            return Collections.emptyList();
+            throw new StateMachineException(msg);
         }
 
         return resultDTOList;

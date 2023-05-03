@@ -67,11 +67,7 @@ public class EventSendHelper {
                 message.getHeaders());
 
         try {
-            return stateMachine.sendEvent(Mono.just(message))
-                    .toStream()
-                    .map(EventResultDto::new)
-                    .peek(result -> log.trace("eventResult: {}", result))
-                    .toList();
+            return EventResultHelper.processResultFlux(stateMachine.sendEvent(Mono.just(message)));
         } catch (Exception ex) {
             throw new StateMachineException("Could not send event: " + event + " to the statemachine: " + stateMachine.getId(), ex);
         }

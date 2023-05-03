@@ -9,9 +9,9 @@ import org.springframework.statemachine.StateContext;
 
 import java.util.*;
 
-import static com.sttl.hrms.workflow.statemachine.ExtStateUtil.get;
-import static com.sttl.hrms.workflow.statemachine.ExtStateUtil.getStateId;
 import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
+import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.get;
+import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.getStateId;
 
 @Slf4j
 @SuppressWarnings("unchecked")
