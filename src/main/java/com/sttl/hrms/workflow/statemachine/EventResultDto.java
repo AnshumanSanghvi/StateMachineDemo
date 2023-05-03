@@ -29,7 +29,7 @@ public class EventResultDto {
     private String comment;
 
     public static final Predicate<EventResultDto> accepted = result -> result.getResultType()
-            .equals(ResultType.ACCEPTED);
+            .equals(ResultType.ACCEPTED) || result.getResultType().equals(ResultType.DEFERRED);
 
     public EventResultDto(StateMachineEventResult<String, String> result) {
         Region<String, String> stateMachineRegion = result.getRegion();
