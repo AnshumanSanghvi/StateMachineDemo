@@ -1,7 +1,8 @@
-package com.sttl.hrms.workflow.statemachine;
+package com.sttl.hrms.workflow.statemachine.builder;
 
 import com.sttl.hrms.workflow.data.Pair;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowProperties;
+import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.util.EventSendHelper;
 import lombok.extern.slf4j.Slf4j;

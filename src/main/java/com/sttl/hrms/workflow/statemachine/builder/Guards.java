@@ -1,4 +1,4 @@
-package com.sttl.hrms.workflow.statemachine;
+package com.sttl.hrms.workflow.statemachine.builder;
 
 
 import com.sttl.hrms.workflow.data.Pair;
