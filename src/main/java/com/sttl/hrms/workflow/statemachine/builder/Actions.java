@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
 import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_APPROVE;
-import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_TRIGGER_COMPLETE;
 import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.get;
 import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.getStateId;
 import static java.util.stream.Collectors.toMap;
@@ -214,16 +213,6 @@ public class Actions {
         map.put(KEY_APPROVE_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
-
-        Map<String, Object> headersMap = new HashMap<>();
-        headersMap.put(MSG_KEY_ACTION_BY, actionBy);
-        headersMap.put(MSG_KEY_COMMENT, comment);
-        var result = EventSendHelper.sendMessageToSM(context.getStateMachine(), E_TRIGGER_COMPLETE.name(), headersMap);
-
-        log.debug("approveTransitionAction results: {}", result
-                .stream()
-                .map(EventResultDto::toString)
-                .collect(Collectors.joining(", ")));
     }
 
     public static void requestChanges(StateContext<String, String> context) {
