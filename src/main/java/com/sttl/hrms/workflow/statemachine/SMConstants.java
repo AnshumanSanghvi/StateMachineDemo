@@ -23,7 +23,7 @@ public class SMConstants {
     public static final String KEY_FORWARDED_COMMENT = "FORWARDED_COMMENT";
     public static final String KEY_FORWARDED_COUNT = "FORWARDED_COUNT";
     public static final String KEY_FORWARDED_MAP = "FORWARDED_MAP";
-    public static final String KEY_LAST_FORWARDED_BY = "LAST_FORWARDED_BY";
+    public static final String KEY_FORWARDED_BY_LAST = "LAST_FORWARDED_BY";
     public static final String KEY_CHANGE_REQ_MAX = "MAX_CHANGE_REQUESTS";
     public static final String KEY_CHANGE_REQ_COMMENT = "REQUESTED_CHANGE_COMMENT";
     public static final String KEY_CHANGES_REQ_BY = "REQUESTED_CHANGES_BY";
@@ -32,7 +32,7 @@ public class SMConstants {
     public static final String KEY_RETURN_COUNT = "RETURN_COUNT";
     public static final String KEY_REVIEWERS_COUNT = "REVIEWERS_COUNT";
     public static final String KEY_REVIEWERS_MAP = "REVIEWERS_MAP";
-    public static final String KEY_ROLL_BACK_BY = "ROLL_BACK_BY";
+    public static final String KEY_ROLL_BACK_BY_LAST = "LAST_ROLL_BACK_BY";
     public static final String KEY_ROLL_BACK_COMMENT = "ROLL_BACK_COMMENT";
     public static final String KEY_ROLL_BACK_COUNT = "ROLL_BACK_COUNT";
     public static final String KEY_ROLL_BACK_MAX = "ROLL_BACK_MAX";
