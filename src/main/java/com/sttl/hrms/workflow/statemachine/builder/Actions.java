@@ -83,6 +83,7 @@ public class Actions {
 
         // forward properties
         stateMap.putIfAbsent(KEY_FORWARDED_COUNT, 0);
+        stateMap.putIfAbsent(KEY_LAST_FORWARDED_BY, new Pair<Integer, Long>(null, null));
 
         // reviwer properties
         Optional.ofNullable(reviewers).ifPresent(rev -> stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, rev));
@@ -288,20 +289,27 @@ public class Actions {
         // reset approve by
         map.put(KEY_APPROVE_BY, 0);
 
-        // reset forwarded by
         Pair<Integer, Long> oldForwardedBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
-        map.put(KEY_LAST_FORWARDED_BY, new Pair<Integer, Long>(null, null));
-
-        // reset last entry in forwarded Map
-        Map<Integer, Pair<Long, Boolean>> forwardedMap = get(extState, KEY_FORWARDED_MAP, Map.class, Collections.emptyMap());
 
         if (oldForwardedBy != null && oldForwardedBy.getFirst() != null && oldForwardedBy.getSecond() != null) {
+            // reset last entry in forwarded Map
+            Map<Integer, Pair<Long, Boolean>> forwardedMap = get(extState, KEY_FORWARDED_MAP, Map.class, Collections.emptyMap());
+            //TODO: fix for repeated reviewer
             forwardedMap.entrySet()
                     .stream()
                     .filter(entry -> entry.getKey().equals(oldForwardedBy.getFirst()))
                     .filter(entry -> entry.getValue().getFirst().equals(oldForwardedBy.getSecond()))
                     .findFirst()
                     .ifPresent(entry -> entry.getValue().setSecond(Boolean.FALSE));
+
+            // reset forwarded by
+            forwardedMap.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getValue().getSecond()) // only select entries that are already forwarded
+                    .max(Comparator.comparing(Map.Entry::getKey)) // find the latest entry that is forwarded
+                    .ifPresentOrElse(e -> map.put(KEY_LAST_FORWARDED_BY, new Pair<>(e.getKey(),
+                                    e.getValue().getFirst())), // set the latest forwarded entry as LAST_FORWARDED_BY
+                            () -> map.put(KEY_LAST_FORWARDED_BY, new Pair<Integer, Long>(null, null))); // if no entry is present, then set null.
         }
 
         log.trace("Setting extended state- rollBackCount: {}", get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
