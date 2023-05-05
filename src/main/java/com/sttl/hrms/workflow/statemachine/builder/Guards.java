@@ -60,7 +60,7 @@ public class Guards {
         if (!allReviewersHaveApproved) return false;
 
         // check that the last reviewer in the order is the one who forwarded the application
-        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
         if (forwardedBy != null && forwardedBy.getFirst() != null && forwardedBy.getSecond() != null) {
             Map<Integer, Long> reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
             return reviewerMap.entrySet().stream()
@@ -130,7 +130,7 @@ public class Guards {
             return false;
         }
 
-        Pair<Integer, Long> lastForwardedBy = get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Pair<Integer, Long> lastForwardedBy = get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
         Map<Integer, Pair<Long, Boolean>> forwardMap = get(context, KEY_FORWARDED_MAP,
                 Map.class, Collections.emptyMap());
 
@@ -158,7 +158,7 @@ public class Guards {
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         var map = context.getExtendedState().getVariables();
-        map.put(KEY_ROLL_BACK_BY, new Pair<>(orderNo, actionBy));
+        map.put(KEY_ROLL_BACK_BY_LAST, new Pair<>(orderNo, actionBy));
         map.put(KEY_ROLL_BACK_COMMENT, comment);
 
         // check that userId is valid
@@ -174,7 +174,7 @@ public class Guards {
 
         // check that the user requesting roll back is in the admin list
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
-        Pair<Integer, Long> rollBackPair = ((Pair<Integer, Long>) get(context, KEY_ROLL_BACK_BY, Pair.class, null));
+        Pair<Integer, Long> rollBackPair = ((Pair<Integer, Long>) get(context, KEY_ROLL_BACK_BY_LAST, Pair.class, null));
         Long rollBackBy = rollBackPair.getSecond();
         if (adminList.contains(rollBackBy)) {
             return true;
@@ -187,7 +187,7 @@ public class Guards {
         // check that for serial approval flow, the user rolling back approval is the latest reviewer who forwarded the application
         boolean isSerial = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
         if (isSerial) {
-            Pair<Integer, Long> forwardBy = ((Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class,
+            Pair<Integer, Long> forwardBy = ((Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class,
                     null));
             if (forwardBy != null && forwardBy.getSecond() != null) {
                 if (!forwardBy.getSecond().equals(rollBackBy)) {
@@ -209,7 +209,7 @@ public class Guards {
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         var map = context.getExtendedState().getVariables();
-        map.put(KEY_LAST_FORWARDED_BY, new Pair<>(orderNo, actionBy));
+        map.put(KEY_FORWARDED_BY_LAST, new Pair<>(orderNo, actionBy));
         map.put(KEY_FORWARDED_COMMENT, comment);
 
         // check if admin action
@@ -221,7 +221,7 @@ public class Guards {
         if (!reviewCountCheck(context)) return false;
 
         // check that the reviewer forwarding the application is valid (i.e. not null or 0)
-        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
         if (forwardedBy == null || forwardedBy.getSecond() == 0L) {
             log.error(errorMsg, "The forwarding reviewer id is 0 or null");
             return false;
@@ -266,7 +266,7 @@ public class Guards {
 
     private static boolean forwardIdAndOrderCheck(StateContext<String, String> context) {
         Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
         Integer forwardingOrder = forwardedBy.getFirst();
         Long forwardingId = forwardedBy.getSecond();
 

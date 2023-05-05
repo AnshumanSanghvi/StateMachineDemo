@@ -75,6 +75,7 @@ public class Actions {
         stateMap.putIfAbsent(KEY_ROLL_BACK_COUNT, 0);
         stateMap.putIfAbsent(KEY_ROLL_BACK_MAX, Optional.ofNullable(maxRollBackCount)
                 .orElse(defaultProps.getRollbackMaxCount()));
+        stateMap.putIfAbsent(KEY_ROLL_BACK_BY_LAST, new Pair<Integer, Long>(null, null));
 
         // request change / return properties
         stateMap.putIfAbsent(KEY_RETURN_COUNT, 0);
@@ -83,7 +84,7 @@ public class Actions {
 
         // forward properties
         stateMap.putIfAbsent(KEY_FORWARDED_COUNT, 0);
-        stateMap.putIfAbsent(KEY_LAST_FORWARDED_BY, new Pair<Integer, Long>(null, null));
+        stateMap.putIfAbsent(KEY_FORWARDED_BY_LAST, new Pair<Integer, Long>(null, null));
 
         // reviwer properties
         Optional.ofNullable(reviewers).ifPresent(rev -> stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, rev));
@@ -115,7 +116,7 @@ public class Actions {
 
         boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
 
-        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class,
+        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class,
                 null);
         List<Long> adminIds = get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
         boolean adminForwarded = adminIds.contains(forwardedBy.getSecond());
@@ -135,7 +136,7 @@ public class Actions {
         ExtendedState extState = context.getExtendedState();
 
         // get the relevant key matching the forwardBy from the forward Map.
-        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null);
         Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(extState, KEY_FORWARDED_MAP, Map.class, null);
 
         Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> reviewerIdPresent = entry -> entry.getValue().getFirst()
@@ -183,7 +184,7 @@ public class Actions {
         log.trace("Executing action: autoApproveTransitionAction with currentState: {}", getStateId(context));
 
         ExtendedState extState = context.getExtendedState();
-        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null);
         String comment = get(extState, KEY_FORWARDED_COMMENT, String.class, null);
 
         Map<String, Object> headersMap = new HashMap<>();
@@ -289,7 +290,7 @@ public class Actions {
         // reset approve by
         map.put(KEY_APPROVE_BY, 0);
 
-        Pair<Integer, Long> oldForwardedBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        Pair<Integer, Long> oldForwardedBy = (Pair<Integer, Long>) get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null);
 
         if (oldForwardedBy != null && oldForwardedBy.getFirst() != null && oldForwardedBy.getSecond() != null) {
             // reset last entry in forwarded Map
@@ -307,9 +308,9 @@ public class Actions {
                     .stream()
                     .filter(entry -> entry.getValue().getSecond()) // only select entries that are already forwarded
                     .max(Comparator.comparing(Map.Entry::getKey)) // find the latest entry that is forwarded
-                    .ifPresentOrElse(e -> map.put(KEY_LAST_FORWARDED_BY, new Pair<>(e.getKey(),
+                    .ifPresentOrElse(e -> map.put(KEY_FORWARDED_BY_LAST, new Pair<>(e.getKey(),
                                     e.getValue().getFirst())), // set the latest forwarded entry as LAST_FORWARDED_BY
-                            () -> map.put(KEY_LAST_FORWARDED_BY, new Pair<Integer, Long>(null, null))); // if no entry is present, then set null.
+                            () -> map.put(KEY_FORWARDED_BY_LAST, new Pair<Integer, Long>(null, null))); // if no entry is present, then set null.
         }
 
         log.trace("Setting extended state- rollBackCount: {}", get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
@@ -325,7 +326,7 @@ public class Actions {
         var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
         if (adminIds.contains(actionBy)) {
             var map = context.getExtendedState().getVariables();
-            map.put(KEY_LAST_FORWARDED_BY, new Pair<>(orderNo, actionBy));
+            map.put(KEY_FORWARDED_BY_LAST, new Pair<>(orderNo, actionBy));
             map.put(KEY_FORWARDED_COMMENT, Optional.ofNullable(comment).orElse("Created by Admin"));
             triggerApproveEvent(context);
         }
