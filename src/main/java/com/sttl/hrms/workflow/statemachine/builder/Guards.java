@@ -47,28 +47,30 @@ public class Guards {
 
         if (adminApprove(context)) return true;
 
+        // check that the number of times the application is forwarded is equal to the total number of reviewers.
         int totalReviewers = get(context, KEY_REVIEWERS_COUNT, Integer.class, 0);
         int forwardedTimes = get(context, KEY_FORWARDED_COUNT, Integer.class, 0);
-
-        // check that the number of times the application is forwarded is equal to the total number of reviewers.
         boolean forwardedCountMatchesTotalReviewers = totalReviewers == forwardedTimes;
+        if (!forwardedCountMatchesTotalReviewers) return false;
 
         // check that all the reviewers have forwarded the application
         Map<Integer, Pair<Long, Boolean>> forwardedMap = (Map<Integer, Pair<Long, Boolean>>) get(context, KEY_FORWARDED_MAP,
                 Map.class, Collections.emptyMap());
-        boolean allReviewersHaveApproved = forwardedMap.entrySet().stream()
-                .allMatch(entry -> entry.getValue().getSecond());
+        boolean allReviewersHaveApproved = forwardedMap.entrySet().stream().allMatch(entry -> entry.getValue().getSecond());
+        if (!allReviewersHaveApproved) return false;
 
         // check that the last reviewer in the order is the one who forwarded the application
-        Map<Integer, Long> reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
         Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class, null);
-        boolean forwarderIsFinalReviewer = reviewerMap.entrySet().stream()
-                .max(Map.Entry.comparingByKey())
-                .filter(entry -> forwardedBy.getFirst().equals(entry.getKey()) && forwardedBy.getSecond()
-                        .equals(entry.getValue()))
-                .isPresent();
+        if (forwardedBy != null && forwardedBy.getFirst() != null && forwardedBy.getSecond() != null) {
+            Map<Integer, Long> reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
+            return reviewerMap.entrySet().stream()
+                    .max(Map.Entry.comparingByKey())
+                    .filter(entry -> forwardedBy.getFirst().equals(entry.getKey()) && forwardedBy.getSecond()
+                            .equals(entry.getValue()))
+                    .isPresent();
+        }
 
-        return forwardedCountMatchesTotalReviewers && allReviewersHaveApproved && forwarderIsFinalReviewer;
+        return true;
     }
 
     private static boolean adminApprove(StateContext<String, String> context) {
@@ -185,11 +187,14 @@ public class Guards {
         // check that for serial approval flow, the user rolling back approval is the latest reviewer who forwarded the application
         boolean isSerial = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
         if (isSerial) {
-            Long forwardBy = ((Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class, null)).getSecond();
-            if (forwardBy.longValue() != rollBackBy.longValue()) {
-                log.error("Cannot roll back the application as the roll back reviewerId: {} does not match the forwarded reviewerId: {}",
-                        rollBackBy, forwardBy);
-                return false;
+            Pair<Integer, Long> forwardBy = ((Pair<Integer, Long>) get(context, KEY_LAST_FORWARDED_BY, Pair.class,
+                    null));
+            if (forwardBy != null && forwardBy.getSecond() != null) {
+                if (!forwardBy.getSecond().equals(rollBackBy)) {
+                    log.error("Cannot roll back the application as the roll back reviewerId: {} does not match the forwarded reviewerId: {}",
+                            rollBackBy, forwardBy);
+                    return false;
+                }
             }
         }
 

@@ -289,17 +289,20 @@ public class Actions {
         map.put(KEY_APPROVE_BY, 0);
 
         // reset forwarded by
-        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
-        map.put(KEY_LAST_FORWARDED_BY, 0);
+        Pair<Integer, Long> oldForwardedBy = (Pair<Integer, Long>) get(extState, KEY_LAST_FORWARDED_BY, Pair.class, null);
+        map.put(KEY_LAST_FORWARDED_BY, new Pair<Integer, Long>(null, null));
 
         // reset last entry in forwarded Map
         Map<Integer, Pair<Long, Boolean>> forwardedMap = get(extState, KEY_FORWARDED_MAP, Map.class, Collections.emptyMap());
-        forwardedMap.entrySet()
-                .stream()
-                .filter(entry -> entry.getKey().equals(forwardedBy.getFirst()))
-                .filter(entry -> entry.getValue().getFirst().equals(forwardedBy.getSecond()))
-                .findFirst()
-                .ifPresent(entry -> entry.getValue().setSecond(Boolean.FALSE));
+
+        if (oldForwardedBy != null && oldForwardedBy.getFirst() != null && oldForwardedBy.getSecond() != null) {
+            forwardedMap.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().equals(oldForwardedBy.getFirst()))
+                    .filter(entry -> entry.getValue().getFirst().equals(oldForwardedBy.getSecond()))
+                    .findFirst()
+                    .ifPresent(entry -> entry.getValue().setSecond(Boolean.FALSE));
+        }
 
         log.trace("Setting extended state- rollBackCount: {}", get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
     }
