@@ -100,6 +100,7 @@ immediate child’s state.
 ---
 
 
+
 **Transition**:
 Three kinds of transitions are defined.
 
