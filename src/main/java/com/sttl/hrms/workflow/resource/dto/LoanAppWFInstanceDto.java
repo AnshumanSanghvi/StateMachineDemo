@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +35,7 @@ public class LoanAppWFInstanceDto {
     @Builder.Default
     Short timesReturnedCount = 0;
     Short workflowVersion;
-    List<Pair<Integer, Long>> reviewers;
+    List<Pair<Integer, List<Long>>> reviewers = new ArrayList<>();
 
     // base entity
     @NotNull Long companyId;

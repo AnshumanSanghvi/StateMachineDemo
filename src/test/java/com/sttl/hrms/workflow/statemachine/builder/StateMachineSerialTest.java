@@ -32,13 +32,17 @@ class StateMachineSerialTest {
     private static final Long reviewer1 = 123L;
     private static final Long reviewer2 = 234L;
     private static final Long reviewer3 = 345L;
+    private static final Long reviewer4 = 456L;
+    private static final Long reviewer5 = 567L;
+    private static final Long reviewer6 = 678L;
     private static final Long admin1 = 1L;
     private static final Long admin2 = 2L;
     private static final Long admin3 = 3L;
 
     public StateMachineSerialTest() throws Exception {
         String stateMachineName = "testStateMachine";
-        Map<Integer, Long> reviewerMap = Map.of(1, reviewer1, 2, reviewer2, 3, reviewer3);
+        Map<Integer, List<Long>> reviewerMap = Map.of(1, List.of(reviewer1, reviewer4), 2, List.of(reviewer2,
+                reviewer5), 3, List.of(reviewer3, reviewer6));
         WorkflowProperties wfProps = new WorkflowProperties();
         wfProps.setAdminRoleIds(List.of(admin1, admin2, admin3));
         wfProps.setRollBackApproval(true);
@@ -141,7 +145,7 @@ class StateMachineSerialTest {
             assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 
             // test that reviewer2 was the one who rejected the app
-            assertEquals(reviewer1, get(extState, KEY_REJECTED_BY, Long.class, null));
+            assertEquals(reviewer1, (get(extState, KEY_REJECTED_BY, Pair.class, null)).getSecond());
 
             // test that forwarded count is reset
             assertNull(extState.getVariables().get(KEY_FORWARDED_COUNT));
@@ -181,7 +185,7 @@ class StateMachineSerialTest {
             assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 
             // test that reviewer2 was the one who rejected the app
-            assertEquals(reviewer2, get(extState, KEY_REJECTED_BY, Long.class, null));
+            assertEquals(reviewer2, get(extState, KEY_REJECTED_BY, Pair.class, null).getSecond());
 
             // test that forwarded count is reset
             assertNull(extState.getVariables().get(KEY_FORWARDED_COUNT));
@@ -232,7 +236,7 @@ class StateMachineSerialTest {
             assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 
             // test that reviewer2 was the one who rejected the app
-            assertEquals(reviewer3, get(extState, KEY_REJECTED_BY, Long.class, null));
+            assertEquals(reviewer3, get(extState, KEY_REJECTED_BY, Pair.class, null).getSecond());
 
             // test that forwarded count is reset
             assertNull(extState.getVariables().get(KEY_FORWARDED_COUNT));

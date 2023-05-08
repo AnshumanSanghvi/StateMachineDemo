@@ -21,7 +21,7 @@ public class StateMachineBuilderFactory {
     }
 
     public static StateMachine<String, String> getStateMachineFromEntityAndType(WorkflowTypeEntity typeEntity,
-            List<Pair<Integer, Long>> reviewers) {
+            List<Pair<Integer, List<Long>>> reviewers) {
         try {
             WorkflowProperties wfProps = typeEntity.getWorkflowProperties();
             return switch (typeEntity.getTypeId()) {
@@ -35,7 +35,7 @@ public class StateMachineBuilderFactory {
         }
     }
 
-    private static Map<Integer, Long> listToMap(List<Pair<Integer, Long>> list) {
+    private static Map<Integer, List<Long>> listToMap(List<Pair<Integer, List<Long>>> list) {
         return Optional.ofNullable(list)
                 .orElse(Collections.emptyList())
                 .stream()

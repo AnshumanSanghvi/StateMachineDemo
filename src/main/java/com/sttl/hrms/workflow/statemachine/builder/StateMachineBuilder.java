@@ -11,6 +11,7 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineBuilder.Builder;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,7 +28,7 @@ public class StateMachineBuilder {
     }
 
     public static StateMachine<String, String> createStateMachine(String stateMachineName,
-            Map<Integer, Long> reviewerMap, WorkflowProperties wfProps)
+            Map<Integer, List<Long>> reviewerMap, WorkflowProperties wfProps)
             throws Exception {
         Builder<String, String> builder = org.springframework.statemachine.config.StateMachineBuilder.builder();
 
@@ -60,7 +61,8 @@ public class StateMachineBuilder {
                     .monitor(new StateMachineObserver.StateMachineMonitor());
     }
 
-    private static void configureStates(Builder<String, String> builder, Map<Integer, Long> reviewerMap, WorkflowProperties wfProps)
+    private static void configureStates(Builder<String, String> builder, Map<Integer, List<Long>> reviewerMap,
+            WorkflowProperties wfProps)
             throws Exception {
         builder.configureStates()
                 .withStates()

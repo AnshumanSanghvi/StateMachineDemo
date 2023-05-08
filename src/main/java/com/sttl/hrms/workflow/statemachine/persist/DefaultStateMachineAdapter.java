@@ -52,7 +52,7 @@ public class DefaultStateMachineAdapter<T> {
     }
 
     public StateMachine<String, String> createStateMachine(WorkflowTypeEntity typeEntity,
-            List<Pair<Integer, Long>> reviewers) {
+            List<Pair<Integer, List<Long>>> reviewers) {
         try {
             StateMachine<String, String> stateMachine =
                     StateMachineBuilderFactory.getStateMachineFromEntityAndType(typeEntity, reviewers);

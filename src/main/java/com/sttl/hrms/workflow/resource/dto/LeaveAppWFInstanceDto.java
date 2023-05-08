@@ -34,7 +34,7 @@ public class LeaveAppWFInstanceDto {
     @Builder.Default
     Short timesReturnedCount = 0;
     Short workflowVersion;
-    @NotNull List<Pair<Integer, Long>> reviewers;
+    @NotNull List<Pair<Integer, List<Long>>> reviewers;
 
     // base entity
     @NotNull Long companyId;
@@ -53,7 +53,7 @@ public class LeaveAppWFInstanceDto {
 
         // leave app workflow instance
         entity.setLeaveType(LeaveType.fromNumber(dto.getLeaveType()));
-        entity.setIsActive(dto.getIsActive());
+        entity.setIsActive(Optional.ofNullable(dto.getIsActive()).orElse((short) 1));
 
         List<Short> workflowVersions = LEAVE_APP_SM.getStateMachineIds()
                 .stream()

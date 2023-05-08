@@ -36,13 +36,13 @@ public class Actions {
     }
 
     public static void initial(StateContext<String, String> context, WorkflowProperties workflowProperties,
-            Map<Integer, Long> reviewerMap) {
+            Map<Integer, List<Long>> reviewerMap) {
 
         initial(context.getStateMachine(), workflowProperties, reviewerMap);
     }
 
     public static void initial(StateMachine<String, String> stateMachine, WorkflowProperties workflowProperties,
-            Map<Integer, Long> reviewerMap) {
+            Map<Integer, List<Long>> reviewerMap) {
 
         String stateId = Optional.ofNullable(stateMachine).flatMap(sm -> Optional.ofNullable(sm.getState())
                 .map(State::getId).map(Object::toString)).orElse("null");
@@ -55,7 +55,7 @@ public class Actions {
     }
 
     private static void setExtendedState(StateMachine<String, String> stateMachine, WorkflowProperties wfProps,
-            Map<Integer, Long> reviewerMap, Map<Object, Object> stateMap) {
+            Map<Integer, List<Long>> reviewerMap, Map<Object, Object> stateMap) {
         ExtendedState extState = stateMachine.getExtendedState();
 
         var workflowProperties = (wfProps == null) ? new WorkflowProperties() : wfProps;
@@ -81,7 +81,8 @@ public class Actions {
         stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, reviewerMap.size());
         stateMap.putIfAbsent(KEY_REVIEWERS_MAP, reviewerMap);
         stateMap.putIfAbsent(KEY_FORWARDED_MAP, reviewerMap.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, entry -> new Pair<>(entry.getValue(), false))));
+                .collect(toMap(Map.Entry::getKey,
+                        entry -> entry.getValue().stream().map(userId -> new Pair<>(userId, false)).collect(Collectors.toList()))));
 
         // admin id property
         stateMap.putIfAbsent(KEY_ADMIN_IDS, workflowProperties.getAdminRoleIds());
@@ -120,8 +121,17 @@ public class Actions {
         }
 
         // 1. set the value in the forward map
-        Map<Integer, Pair<Long, Boolean>> forwardMap = get(extState, KEY_FORWARDED_MAP, Map.class, null);
-        forwardMap.put(orderNo, new Pair<>(actionBy, true));
+        Map<Integer, List<Pair<Long, Boolean>>> forwardMap = get(extState, KEY_FORWARDED_MAP, Map.class, null);
+        var pairList = forwardMap.get(orderNo)
+                .stream()
+                .map(pair -> {
+                    if (pair.getFirst().equals(actionBy)) {
+                        pair.setSecond(true);
+                    }
+                    return pair;
+                })
+                .collect(Collectors.toList());
+        forwardMap.put(orderNo, pairList);
 
         // 2. increment the forward count,
         int forwardedCount = get(extState, KEY_FORWARDED_COUNT, Integer.class, 0) + 1;
@@ -206,10 +216,11 @@ public class Actions {
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
 
         ExtendedState extState = context.getExtendedState();
         var map = context.getExtendedState().getVariables();
-        map.put(KEY_REJECTED_BY, actionBy);
+        map.put(KEY_REJECTED_BY, new Pair<>(orderNo, actionBy));
         map.put(KEY_REJECTED_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_REJECTED);
 
@@ -264,20 +275,25 @@ public class Actions {
         map.remove(KEY_APPROVE_BY);
 
         // reset last entry in forwarded Map
-        Map<Integer, Pair<Long, Boolean>> forwardedMap = get(extState, KEY_FORWARDED_MAP, Map.class, Collections.emptyMap());
+        Map<Integer, List<Pair<Long, Boolean>>> forwardedMap = get(extState, KEY_FORWARDED_MAP, Map.class,
+                Collections.emptyMap());
         forwardedMap.entrySet().stream()
                 .filter(entry -> entry.getKey().equals(orderNo))
-                .filter(entry -> entry.getValue().getFirst().equals(actionBy))
-                .findFirst()
-                .ifPresent(entry -> entry.getValue().setSecond(false));
+                .flatMap(entry -> entry.getValue().stream())
+                .filter(pair -> pair.getFirst().equals(actionBy))
+                .forEach(pair -> pair.setSecond(false));
 
         // reset forwarded by to previous entry
         forwardedMap.entrySet()
                 .stream()
-                .filter(entry -> entry.getValue().getSecond()) // only select entries that are already forwarded
+                .filter(entry -> entry.getValue().stream().anyMatch(Pair::getSecond))
+                 // only select the entries that are already forwarded
                 .max(Map.Entry.comparingByKey()) // find the latest entry that is forwarded
-                .ifPresentOrElse(e -> map.put(KEY_FORWARDED_BY_LAST, new Pair<>(e.getKey(),
-                                e.getValue().getFirst())), // set the latest forwarded entry as LAST_FORWARDED_BY
+                .ifPresentOrElse(e -> e.getValue().stream()
+                        .filter(Pair::getSecond)
+                        .findFirst()
+                        .ifPresent(pair -> map.put(KEY_FORWARDED_BY_LAST, new Pair<>(e.getKey(), pair.getFirst()))),
+                        // set the latest  forwarded entry as LAST_FORWARDED_BY
                         () -> map.remove(KEY_FORWARDED_BY_LAST)); // if no entry is present, then remove.
 
         log.trace("Setting extended state- rollBackCount: {}", get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
