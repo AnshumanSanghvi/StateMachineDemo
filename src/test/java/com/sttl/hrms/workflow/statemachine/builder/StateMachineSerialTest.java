@@ -41,7 +41,7 @@ class StateMachineSerialTest {
         String name = "testStateMachine";
         int reviewerCount = 3;
         Map<Integer, Long> reviewerMap = Map.of(1, reviewer1, 2, reviewer2, 3, reviewer3);
-        boolean isParallel = false;
+        boolean isParallel = true;
         int maxChangeReq = 3;
         int maxRollBack = 3;
         this.stateMachine = StateMachineBuilder.createStateMachine(name, reviewerCount, reviewerMap, isParallel,
@@ -388,6 +388,60 @@ class StateMachineSerialTest {
             assertEquals(new Pair<>(null, null), get(extState, KEY_ROLL_BACK_BY_LAST, Pair.class, null));
             assertEquals(S_SERIAL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
             assertEquals(0, get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
+        }
+
+        @Test
+        void testCasesForForwardInParraller(){
+
+            final ExtendedState extState = stateMachine.getExtendedState();
+            Long wfInstanceId = 1L;
+
+            // create and submit application for review
+            List<PassEventDto> passEvents1 = createPassEvents(wfInstanceId, LOAN_APPLICATION, applicant1, 0, "", E_CREATE,
+                    E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
+            EventSendHelper.passEvents(stateMachine, passEvents1);
+            assertEquals(S_PARALLEL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
+
+            List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer1, 1, "forwarded",
+                    E_FORWARD);
+            EventSendHelper.passEvents(stateMachine, passEvents2);
+            assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
+
+            List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer2, 2, "forwarded",
+                    E_FORWARD);
+            EventSendHelper.passEvents(stateMachine, passEvents3);
+            assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
+
+
+            List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer3, 3, "forwarded",
+                    E_FORWARD);
+            EventSendHelper.passEvents(stateMachine, passEvents4);
+            assertEquals(3, extState.get(KEY_FORWARDED_COUNT, Integer.class));
+
+            assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
+
+
+            List<PassEventDto> passEvents5 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer3, 3, "forwarded",
+                    E_ROLL_BACK);
+            EventSendHelper.passEvents(stateMachine, passEvents5);
+
+            System.err.println("428 :"+extState.get(KEY_FORWARDED_COUNT, Integer.class));
+            assertEquals(S_PARALLEL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
+
+            List<PassEventDto> passEvents6 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer3, 3, "forwarded",
+                    E_FORWARD);
+            EventSendHelper.passEvents(stateMachine, passEvents6);
+            System.err.println("428 :"+extState.get(KEY_FORWARDED_COUNT, Integer.class));
+            assertEquals(3, extState.get(KEY_FORWARDED_COUNT, Integer.class));
+
+            assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
+
+            List<PassEventDto> passEvents7 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer3, 3, "forwarded",
+                    E_TRIGGER_COMPLETE);
+            EventSendHelper.passEvents(stateMachine, passEvents7);
+            System.err.println("442 :"+stateMachine.isComplete());
+            assertEquals(S_COMPLETED.name(), stateMachine.getState().getId());
+            assertEquals(true, stateMachine.isComplete());
         }
     }
 

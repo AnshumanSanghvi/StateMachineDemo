@@ -122,6 +122,10 @@ public class StateMachineBuilder {
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_REJECT.name()).target(S_CLOSED.name())
                     .action(Actions::reject).and()
 
+                .withInternal().name(TX_RVWR_FWDS_APP)
+                    .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_FORWARD.name())
+                    .guard(Guards::forward).action(Actions::forward).and()
+
                 .withExternal().name(TX_RVWR_APPROVES_APP_PARLL)
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_APPROVE.name()).target(S_CLOSED.name())
                     .guard(Guards::approveInParallel).action(Actions::approve).and()
