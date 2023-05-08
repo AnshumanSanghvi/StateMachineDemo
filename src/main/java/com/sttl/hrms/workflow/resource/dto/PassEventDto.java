@@ -36,6 +36,7 @@ public class PassEventDto {
 
     public static List<PassEventDto> createPassEvents(PassEventDto passEvent, SMEvent... events) {
         List<PassEventDto> passEvents = new ArrayList<>(events.length + 1);
+        passEvents.add(passEvent);
         for (SMEvent event : events) {
             passEvents.add(PassEventDto.builder()
                     .workflowType(passEvent.getWorkflowType())
