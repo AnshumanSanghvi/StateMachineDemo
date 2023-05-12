@@ -1,21 +1,59 @@
 package com.sttl.hrms.workflow.statemachine.builder;
 
 
-import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver;
-import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.ExtendedStateListener;
-import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.StateMachineInterceptor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_APPROVES_APP_PARLL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_APPROVES_APP_SERIAL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_FWDS_APP;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_REJECTS_APP_PARLL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_REJECTS_APP_SERIAL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_REQ_CHANGES_FRM_USER_PARLL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_REQ_CHANGES_FRM_USER_SERIAL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_UNDO_APPRVL_PARLL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_RVWR_UNDO_APPRVL_SERIAL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_SYST_COMPLETES_APP;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_SYST_TRGGRS_APPRVL_FLOW;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_SYST_TRGGRS_APP_FOR_REVIEW;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_USER_CANCELS_APP_PARLL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_USER_CANCELS_APP_SERIAL;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_USER_CANCELS_APP_UNDER_REVIEW;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_USER_CANCELS_CREATED_APP;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_USER_CREATES_APP;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.TX_USER_SUBMITS_APP;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_APPROVE;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_CANCEL;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_CREATE;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_FORWARD;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_REJECT;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_REQUEST_CHANGES_IN;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_ROLL_BACK;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_SUBMIT;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_TRIGGER_COMPLETE;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_TRIGGER_FLOW_JUNCTION;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.E_TRIGGER_REVIEW_OF;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_APPROVAL_JUNCTION;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_CLOSED;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_COMPLETED;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_CREATED;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_INITIAL;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_PARALLEL_APPROVAL_FLOW;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_SERIAL_APPROVAL_FLOW;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_SUBMITTED;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_UNDER_PROCESS;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineBuilder.Builder;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
-import java.util.Map;
-import java.util.Set;
+import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver;
+import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.ExtendedStateListener;
+import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.StateMachineInterceptor;
 
-import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
-import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.*;
-import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.*;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
@@ -26,7 +64,7 @@ public class StateMachineBuilder {
     }
 
     public static StateMachine<String, String> createStateMachine(String stateMachineName, Integer reviewerCount,
-            Map<Integer, Long> reviewerMap, boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount)
+            Map<Integer, List<Long>> reviewerMap, boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount)
             throws Exception {
         Builder<String, String> builder = org.springframework.statemachine.config.StateMachineBuilder.builder();
 
@@ -59,7 +97,7 @@ public class StateMachineBuilder {
     }
 
     private static void configureStates(Builder<String, String> builder, Integer reviewersCount,
-            Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount)
+            Map<Integer, List<Long>> reviewerMap, Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount)
             throws Exception {
         builder.configureStates()
                 .withStates()

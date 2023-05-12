@@ -34,7 +34,7 @@ public class LoanAppWFInstanceDto {
     @Builder.Default
     Short timesReturnedCount = 0;
     Short workflowVersion;
-    List<Pair<Integer, Long>> reviewers;
+    List<Pair<Integer, List<Long>>> reviewers;
 
     // base entity
     @NotNull Long companyId;
@@ -77,7 +77,7 @@ public class LoanAppWFInstanceDto {
         entity.setTimesRolledBackCount(dto.getTimesRolledBackCount());
         entity.setTimesReturnedCount(dto.getTimesReturnedCount());
         entity.setReviewers(dto.getReviewers());
-
+       
         // base dto
         entity.setCompanyId(dto.getCompanyId());
         entity.setBranchId(dto.getBranchId());

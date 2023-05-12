@@ -17,6 +17,8 @@ import org.hibernate.annotations.TypeDef;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -54,7 +56,7 @@ public abstract class WorkflowInstanceEntity extends BaseEntity implements Conte
     @Column(columnDefinition = "jsonb", name = "reviewers")
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.EAGER)
-    private List<Pair<Integer, Long>> reviewers = Collections.emptyList();
+    private List<Pair<Integer, List<Long>>> reviewers = Collections.emptyList();
 
     @Column(name = "current_state", length = 100)
     private String currentState = StateMachineBuilder.SMState.S_INITIAL.name();

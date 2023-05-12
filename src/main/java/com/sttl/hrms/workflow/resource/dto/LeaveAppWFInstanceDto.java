@@ -34,7 +34,7 @@ public class LeaveAppWFInstanceDto {
     @Builder.Default
     Short timesReturnedCount = 0;
     Short workflowVersion;
-    @NotNull List<Pair<Integer, Long>> reviewers;
+    @NotNull List<Pair<Integer, List<Long>>> reviewers;
 
     // base entity
     @NotNull Long companyId;

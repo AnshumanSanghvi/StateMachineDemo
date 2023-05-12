@@ -14,10 +14,10 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/workflow?logUnclosedConnections=true&currentSchema=public&reWriteBatchedInserts=true
-    username: anshuman
-    password: anshuman
+    username: postgres
+    password: admin
   jackson:
-    default-property-inclusion: non_null
+    default-property-inclusion: non-null
     deserialization:
       fail-on-ignored-properties: false
       fail-on-unknown-properties: false
