@@ -12,6 +12,7 @@ import org.springframework.statemachine.monitor.AbstractStateMachineMonitor;
 import org.springframework.statemachine.state.State;
 import org.springframework.statemachine.support.StateMachineInterceptorAdapter;
 import org.springframework.statemachine.transition.Transition;
+import org.springframework.statemachine.trigger.Trigger;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
@@ -25,7 +26,7 @@ public class StateMachineObserver {
 
         @Override
         public void changed(final Object key, final Object value) {
-            log.debug("state changed: key: {}, value: {}", key, value);
+            log.debug("extended state changed: key: {}, value: {}", key, value);
         }
     }
 
@@ -121,6 +122,20 @@ public class StateMachineObserver {
                     StringUtil.eventFromContext(stateContext),
                     StringUtil.targetStateFromContext(stateContext),
                     StringUtil.extendedStateFromContext(stateContext));
+
+            Transition<String, String> transition = stateContext.getTransition();
+            String transitionName = transition.getName();
+            Function<StateContext<String, String>, Mono<Boolean>> guard = transition.getGuard();
+            State<String, String> target = transition.getTarget();
+            State<String, String> source = transition.getSource();
+            Trigger<String, String> trigger = transition.getTrigger();
+            String event = trigger.getEvent();
+
+            if (guard != null && Boolean.FALSE.equals(guard.apply(stateContext).block())) {
+                stateContext.getStateMachine().setStateMachineError(new StateMachineException("Guard Failed"));
+                log.error("Guard Failed for transition{name: {}, source: {}, event: {}, target: {}", transitionName,
+                        source.getId(), event, target.getId());
+            }
             return stateContext;
         }
 

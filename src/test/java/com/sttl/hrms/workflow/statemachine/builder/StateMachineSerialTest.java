@@ -259,18 +259,7 @@ class StateMachineSerialTest {
             assertEquals(S_SERIAL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
             assertEquals(0, extState.get(KEY_RETURN_COUNT, Integer.class));
 
-            // first reviewer forwards the application
-            List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer1, 1, "forwarded",
-                    E_FORWARD);
-            EventSendHelper.passEvents(stateMachine, passEvents3);
-            assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
-            assertEquals(new Pair<>(1, reviewer1), extState.get(KEY_FORWARDED_BY_LAST, Pair.class));
-
-            // test that now if reviewer 2 requests changes then they will be accepted
-            EventSendHelper.passEvents(stateMachine, passEvents2);
-            assertEquals(0, extState.get(KEY_FORWARDED_COUNT, Integer.class));
-            assertEquals(S_CREATED.name(), stateMachine.getState().getId());
-            assertEquals(1, extState.get(KEY_RETURN_COUNT, Integer.class));
+            assertTrue(stateMachine.hasStateMachineError());
         }
     }
 
@@ -367,21 +356,27 @@ class StateMachineSerialTest {
         void testRollbackOrder() {
             Long wfInstanceId = 1L;
 
+            // create application
             List<PassEventDto> passEvents1 = createPassEvents(wfInstanceId, LOAN_APPLICATION, applicant1, 0, "create " +
                     "application", E_CREATE, E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
             EventSendHelper.passEvents(stateMachine, passEvents1);
 
+            // first reviewer forwards application
             List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer1, 1, "forward",
                     E_FORWARD);
             EventSendHelper.passEvents(stateMachine, passEvents2);
 
+            // second reviewer forwards application
             List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer2, 2, "forward",
                     E_FORWARD);
             EventSendHelper.passEvents(stateMachine, passEvents3);
 
+            // first reviewer tries to roll back forwarding the application
             List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer1, 1, "roll back",
                     E_ROLL_BACK);
             EventSendHelper.passEvents(stateMachine, passEvents4);
+
+            assertTrue(stateMachine.hasStateMachineError());
 
             final ExtendedState extState = stateMachine.getExtendedState();
             assertEquals(new Pair<>(2, reviewer2), get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null));

@@ -119,12 +119,17 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
 
         var result = EventSendHelper.passEvents(stateMachine, passEvents);
         var eventResultList = result.getSecond();
+        stateMachine = result.getFirst();
+
         if (eventResultList.isEmpty()) {
             log.warn("the statemachine returned empty results.");
             return Collections.emptyList();
         }
 
-        stateMachine = result.getFirst();
+        if (stateMachine.hasStateMachineError()) {
+            log.error("Error processing events in statemachine");
+            return Collections.emptyList();
+        }
 
         // updates the statemachine state in the respective fields of the entity, as well as logs the event to db if present.
         stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventResultList, true);
