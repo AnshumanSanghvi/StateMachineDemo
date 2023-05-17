@@ -114,7 +114,7 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 				"CANCEL HO GYA RE BABA", E_CANCEL);
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(S_COMPLETED.name(), stateMachine.getState().getId());
-		System.err.println("102 =========" + stateMachine.getState().getId());
+		
 
 	}
 
@@ -136,7 +136,7 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 				"REJECT HO GYA BHAI", E_REJECT);
 		EventSendHelper.passEvents(stateMachine, passEvents12);
 		assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
-		System.err.println("102 =========" + stateMachine.getState().getId());
+		
 
 	}
 
@@ -159,16 +159,12 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("85 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("85 =================: " + stateMachine.getState().getId());
 //
 //		List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "forwarded to 3",
 //				E_FORWARD);
 //		EventSendHelper.passEvents(stateMachine, passEvents3);
 //		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 //
-//		System.err.println("102 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-//		System.err.println("102 ========= :" + stateMachine.getState().getId());
 //
 //		List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 344L, 3, "Approve",
 //				E_FORWARD);
@@ -176,8 +172,7 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 //		assertEquals(3, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 //		assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 //
-//		System.err.println("137 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-//		System.err.println("137 ========= :" + stateMachine.getState().getId());
+
 
 	}
 
@@ -200,23 +195,20 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("85 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("85 =================: " + stateMachine.getState().getId());
-
+		
 		List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "forwarded to 3",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents3);
 		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("162 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("162 =================: " + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "rollback to 2",
 				E_ROLL_BACK);
 		EventSendHelper.passEvents(stateMachine, passEvents4);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("Forwarded Count :" + extState.get(KEY_FORWARDED_COUNT, Integer.class));
+		
 
 	}
 
@@ -239,16 +231,14 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("85 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("85 =================: " + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "forwarded to 3",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents3);
 		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("102 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("102 ========= :" + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 344L, 3, "Approve",
 				E_FORWARD);
@@ -256,8 +246,7 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 		assertEquals(3, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 		assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 
-		System.err.println("137 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("137 ========= :" + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents5 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 344L, 3, "rollback",
 				E_ROLL_BACK);
@@ -265,8 +254,7 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 		assertEquals(S_SERIAL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
 
-		System.err.println("137 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("137 ========= :" + stateMachine.getState().getId());
+		
 
 	}
 
@@ -289,24 +277,21 @@ class StateMachineSerialTestAfterMultipleReviwersChanges {
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("85 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("85 =================: " + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "forwarded to 3",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents3);
 		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("102 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("102 ========= :" + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 344L, 3, "forwarded to 3",
 				E_REQUEST_CHANGES_IN);
 		EventSendHelper.passEvents(stateMachine, passEvents4);
 		assertEquals(0, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("102 =================: " + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("102 ========= :" + stateMachine.getState().getId());
+		
 
 	}
 

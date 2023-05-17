@@ -116,7 +116,7 @@ class StateMachineParallelTest {
 		EventSendHelper.passEvents(stateMachine, passEvents11);
 		assertEquals(S_COMPLETED.name(), stateMachine.getState().getId());
 
-		System.err.println("102 =========" + stateMachine.getState().getId());
+		
 
 	}
 
@@ -139,7 +139,7 @@ class StateMachineParallelTest {
 		EventSendHelper.passEvents(stateMachine, passEvents12);
 		assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 
-		System.err.println("102 =========" + stateMachine.getState().getId());
+		
 	}
 
 	@Test
@@ -154,27 +154,27 @@ class StateMachineParallelTest {
 		EventSendHelper.passEvents(stateMachine, passEvents1);
 		assertEquals(S_PARALLEL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
 
-		System.err.println("79 ===============: " + stateMachine.getState().getId());
+		
 		List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 122L, 1, "forwarded to 2",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("85 =================: " + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "forwarded to 3",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents3);
 		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("102 =========" + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 344L, 3, "approved",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents4);
 		assertEquals(3, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("108 =========" + stateMachine.getState().getId());
+		
 
 		assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 
@@ -192,27 +192,27 @@ class StateMachineParallelTest {
 		EventSendHelper.passEvents(stateMachine, passEvents1);
 		assertEquals(S_PARALLEL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
 
-		System.err.println("79 ===============: " + stateMachine.getState().getId());
+		
 		List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 122L, 1, "forwarded",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("85 =================: " + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "forwarded",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents3);
 		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("102 =========" + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents4 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 344L, 3, "forwarded",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents4);
 		assertEquals(3, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("108 =========" + stateMachine.getState().getId());
+		
 
 		assertEquals(S_CLOSED.name(), stateMachine.getState().getId());
 
@@ -220,7 +220,7 @@ class StateMachineParallelTest {
 				E_ROLL_BACK);
 		EventSendHelper.passEvents(stateMachine, passEvents5);
 
-		System.err.println("428 :" + extState.get(KEY_FORWARDED_COUNT, Integer.class));
+		
 		assertEquals(S_PARALLEL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
 
 	}
@@ -237,33 +237,31 @@ class StateMachineParallelTest {
 		EventSendHelper.passEvents(stateMachine, passEvents1);
 		assertEquals(S_PARALLEL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
 
-		System.err.println("79 ===============: " + stateMachine.getState().getId());
+		
 		List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 122L, 1, "forwarded",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents2);
 		assertEquals(1, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("85 =================: " + stateMachine.getState().getId());
+		
 
 		List<PassEventDto> passEvents3 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 234L, 2, "forwarded",
 				E_FORWARD);
 		EventSendHelper.passEvents(stateMachine, passEvents3);
 		assertEquals(2, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 
-		System.err.println("102 =========" + stateMachine.getState().getId());
+		
 
 		// E_REQUEST_CHANGES_IN
 
-		List<PassEventDto> passEvents10 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 344L, 3, "request changes",
+		List<PassEventDto> passEvents10 = createPassEvents(wfInstanceId, LEAVE_APPLICATION, 3L, 3, "request changes",
 				E_REQUEST_CHANGES_IN);
 		EventSendHelper.passEvents(stateMachine, passEvents10);
 
 		assertEquals(S_CREATED.name(),  stateMachine.getState().getId());
 		assertEquals(0, extState.get(KEY_FORWARDED_COUNT, Integer.class));
 		
-		System.err.println("428 :" + extState.get(KEY_FORWARDED_COUNT, Integer.class));
-		System.err.println("428 :" + extState.get(KEY_FORWARDED_MAP, Map.class));
-		System.err.println("===========" + stateMachine.getState().getId());
+		
 
 	}
 
