@@ -64,7 +64,7 @@ public class Actions {
             Integer maxRollBackCount, Map<Object, Object> stateMap) {
         ExtendedState extState = stateMachine.getExtendedState();
 
-        var defaultProps = wfProps == null ? new WorkflowProperties() : wfProps;
+        var defaultProps = (wfProps == null) ? new WorkflowProperties() : wfProps;
 
         // flow type property
         stateMap.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.ofNullable(isParallel)

@@ -1,5 +1,6 @@
 package com.sttl.hrms.workflow.statemachine.config;
 
+import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +56,8 @@ public class StateMachineObserver {
                 log.error("Event not accepted, as the event message is null.");
                 return;
             }
-            log.error("Event not accepted. Name: {}", event.getPayload());
+            log.error("Event not accepted. Message{event: {}, headers: {}}", event.getPayload(),
+                    StringUtil.messageHeaders(event.getHeaders()));
 
         }
 
@@ -96,6 +98,12 @@ public class StateMachineObserver {
                     Optional.ofNullable(transition).map(Transition::getSource).map(State::getId).orElse("null"),
                     Optional.ofNullable(transition).map(Transition::getTarget).map(State::getId).orElse("null")
             );
+
+            Optional.ofNullable(transition)
+                    .filter(t -> t.getTarget().getId().equals(StateMachineBuilder.SMState.S_COMPLETED.name()))
+                    .ifPresent(t -> log.info("Transition: {} of type: {}, from sourceState: {}, to targetState: {} " +
+                                    "with event: {}", t.getName(), t.getKind(), t.getSource().getId(),
+                            t.getTarget().getId(), t.getTrigger().getEvent()));
         }
 
         @Override
