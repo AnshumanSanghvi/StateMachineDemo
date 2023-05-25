@@ -67,7 +67,7 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
                     E_TRIGGER_FLOW_JUNCTION);
             case E_SUBMIT -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
             case E_TRIGGER_REVIEW_OF -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_FLOW_JUNCTION);
-            case E_APPROVE, E_REJECT, E_CANCEL -> PassEventDto.createPassEvents(passEvent, E_TRIGGER_COMPLETE);
+            case E_APPROVE, E_REJECT, E_CANCEL -> PassEventDto.createPassEvents(passEvent);
             case E_REQUEST_CHANGES_IN, E_TRIGGER_FLOW_JUNCTION, E_FORWARD, E_ROLL_BACK, E_TRIGGER_COMPLETE ->
                     List.of(passEvent);
         };
