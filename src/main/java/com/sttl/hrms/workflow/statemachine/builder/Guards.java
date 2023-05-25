@@ -3,9 +3,11 @@ package com.sttl.hrms.workflow.statemachine.builder;
 
 import com.sttl.hrms.workflow.data.Pair;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowProperties;
+import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.statemachine.StateContext;
+import org.springframework.statemachine.StateMachine;
 
 import java.util.*;
 
@@ -39,7 +41,8 @@ public class Guards {
         Long approvedBy = get(context, KEY_APPROVE_BY, Long.class, null);
         Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class,
                 Collections.emptyMap());
-        return !isUserAbsentFromReviewerList(reviewersMap, approvedBy);
+        return !isUserAbsentFromUserList(context.getStateMachine(), reviewersMap.values(), approvedBy, "reviewer",
+                "approve");
     }
 
     public static boolean approveInSerial(StateContext<String, String> context) {
@@ -79,11 +82,14 @@ public class Guards {
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
 
-        // check that the approving reviewer is valid (i.e. not null or 0)
-        if (isUserIdInvalid(actionBy)) return false;
+        // check that the approving admin is valid (i.e. not null or 0)
+        if (isUserIdInvalid(context.getStateMachine(), actionBy, "admin-approve")) return false;
 
+        // check that the admin user id is in admin list
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
-        return adminList.contains(actionBy);
+        if (isUserAbsentFromUserList(context.getStateMachine(), adminList, actionBy, "admin", "adminApprove")) return false;
+
+        return true;
     }
 
     public static boolean requestChanges(StateContext<String, String> context) {
@@ -93,30 +99,24 @@ public class Guards {
         Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
-        // check that the reviewer requesting changes is valid and belongs to the list of reviewers for the application.
+        // check that the reviewer requesting changes is valid
+        if (isUserIdInvalid(context.getStateMachine(), actionBy, "requestChanges")) return false;
+
+        // check that the reviewer belongs to the list of reviewers for the application.
         var reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        if (actionBy == null || actionBy == 0 || !reviewerMap.containsValue(actionBy)) {
-            log.error("Cannot allow returning the application to the applicant as {}",
-                    "the reviewer requesting changes has an invalid id");
+        if (isUserAbsentFromUserList(context.getStateMachine(), reviewerMap.values(), actionBy, "reviewers",
+                "requestChanges"))
             return false;
-        }
 
         // check that the reviwer requesting changes has input a valid comment for the request
         String requestedChangeComment = get(context, KEY_CHANGE_REQ_COMMENT, String.class, null);
-        if (comment == null || comment.isBlank()) {
-            log.error("Cannot allow returning the application to the applicant as {}",
-                    "there is no valid request change comment");
-            return false;
-        }
+        if (isCommentInvalid(context.getStateMachine(), requestedChangeComment, "requestChanges")) return false;
 
         // check that the maximum allowed rollbacks is not 0, and that total number of returns so far don't exceed its max threshold.
         int maxAllowedReturns = get(context, KEY_CHANGE_REQ_MAX, Integer.class, defaultWFP.getChangeReqMaxCount());
         int returnsSoFar = get(context, KEY_RETURN_COUNT, Integer.class, 0);
-        if (maxAllowedReturns != -1 && (returnsSoFar + 1 > maxAllowedReturns)) {
-            log.error("Cannot allow returning the application to the applicant, as {}",
-                    "max return count already reached.");
+        if (isCountExceedingThreshold(context.getStateMachine(), returnsSoFar, maxAllowedReturns, "Change Requests", "requestChanges"))
             return false;
-        }
 
         Pair<Integer, Long> lastForwardedBy = get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
 
@@ -134,17 +134,20 @@ public class Guards {
                 for (var entry : entrySet) {
                     // (check if any orderNo is higher than the current user for the remaining entries.)
                     if (entry.getKey() > orderNo) {
-                        log.error("The Reviewer: {} at position: {} cannot request changes in the application as there " +
-                                        "are other reviewers who have already forwarded the application after them", actionBy,
-                                orderNo);
+                        String errorMsg =
+                                "Guard failed for requestChanges as the reviewer: " + actionBy + " at position: " + orderNo + " cannot request" +
+                                " changes in the application as there are other reviewers who have already forwarded the application after them";
+                        context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
                         return false;
                     }
                 }
             } else { // if the application has not been forwarded before:
                 // check that the current user is the first order user in the reviewersMap
                 if (!reviewerMap.get(1).equals(actionBy)) {
-                    log.error("The Reviewer: {} at position: {} cannot request changes in the application as they are not" +
-                            " present in the reviewer list ", actionBy, orderNo);
+                    String errorMsg =
+                            "Guard failed for requestChanges as the reviewer: " + actionBy + " at position: " + orderNo +
+                                    " cannot request changes in the application as they are not present in the reviewer list";
+                    context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
                     return false;
                 }
             }
@@ -158,17 +161,16 @@ public class Guards {
 
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         // check that userId is valid
-        if (isUserIdInvalid(actionBy)) return false;
-
-        int maxRollBack = get(context, KEY_ROLL_BACK_MAX, Integer.class, defaultWFP.getRollbackMaxCount());
+        if (isUserIdInvalid(context.getStateMachine(), actionBy, "rollBack")) return false;
 
         // check that we have not hit the max rollback limit
         int rollbackCount = get(context, KEY_ROLL_BACK_COUNT, Integer.class, 0);
-        if (isRollBackCountOverLimit(maxRollBack, rollbackCount)) return false;
+        int maxRollBack = get(context, KEY_ROLL_BACK_MAX, Integer.class, defaultWFP.getRollbackMaxCount());
+        if (isCountExceedingThreshold(context.getStateMachine(), rollbackCount, maxRollBack, "rollBackMax", "rollBack"))
+            return false;
 
         // check that the user requesting roll back is in the admin list
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
@@ -178,7 +180,9 @@ public class Guards {
 
         // check that the user requesting rollback is in the reviewer list
         var reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        if (isUserAbsentFromReviewerList(reviewerMap, actionBy)) return false;
+        if (isUserAbsentFromUserList(context.getStateMachine(), reviewerMap.values(), actionBy, "reviewers",
+                "rollBack"))
+            return false;
 
         // check that for serial approval flow, the user rolling back approval is the latest reviewer who forwarded the application
         boolean isSerial = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
@@ -187,8 +191,9 @@ public class Guards {
                     null));
             if (forwardBy != null && forwardBy.getSecond() != null) {
                 if (!forwardBy.getSecond().equals(actionBy)) {
-                    log.error("Cannot roll back the application as the roll back reviewerId: {} does not match the forwarded reviewerId: {}",
-                            actionBy, forwardBy);
+                    String errorMsg = "Cannot roll back the application as the roll back reviewerId: " + actionBy +
+                            " does not match the forwarded reviewerId: " + forwardBy;
+                    context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
                     return false;
                 }
             }
@@ -203,27 +208,23 @@ public class Guards {
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
         Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
 
-        // check if admin action
         var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
+
+        // check if admin action, then always allow.
         if (adminIds.contains(actionBy)) return true;
 
-        final String errorMsg = "Cannot forward the application as {}";
-
+        // check if the application is forwarded more times than the number of reviewers.
         if (!reviewCountCheck(context)) return false;
 
         // check that the reviewer forwarding the application is valid (i.e. not null or 0)
-        if (actionBy == null || actionBy == 0L) {
-            log.error(errorMsg, "The forwarding reviewer id is 0 or null");
-            return false;
-        }
+        if (isUserIdInvalid(context.getStateMachine(), actionBy, "forward")) return false;
 
         Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
 
         // check that the forwardingId is present in the reviewersMap
-        if (!reviewersMap.containsValue(actionBy)) {
-            log.error(errorMsg, "the forwarding userId is not in the reviewers list");
+        if (isUserAbsentFromUserList(context.getStateMachine(), reviewersMap.values(), actionBy, "reviewers",
+                "forward"))
             return false;
-        }
 
         boolean isSerialFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
         if (isSerialFlow) {
@@ -236,19 +237,82 @@ public class Guards {
         return true;
     }
 
+    public static boolean reject(StateContext<String, String> context) {
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+
+        // check that the reviewer requesting changes is valid
+        if (isUserIdInvalid(context.getStateMachine(), actionBy, "reject")) return false;
+
+        // check that the user rejecting the application is in the admin list
+        var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
+        if (adminList.contains(actionBy)) {
+            return true;
+        }
+
+        // check that the reviewer belongs to the list of reviewers for the application.
+        var reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
+        if (isUserAbsentFromUserList(context.getStateMachine(), reviewerMap.values(), actionBy, "reviewers",
+                "reject")) return false;
+
+        // check that the reviwer rejecting application has input a valid comment
+        if (isCommentInvalid(context.getStateMachine(), comment, "reject")) return false;
+
+        Pair<Integer, Long> lastForwardedBy = get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
+
+        boolean isSerialFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
+        if (isSerialFlow) {
+            // if the application has been forwarded before:
+            if (lastForwardedBy != null && lastForwardedBy.getSecond() != null) {
+                // check that the current user is the last person to have forwarded the application,
+                // i.e., no one has forwarded the application after the current user.
+                Map<Integer, Pair<Long, Boolean>> forwardMap = get(context, KEY_FORWARDED_MAP, Map.class,
+                        Collections.emptyMap());
+                var entrySet = new HashSet<>(forwardMap.entrySet());
+                entrySet.removeIf(entry -> !entry.getValue()
+                        .getSecond()); // (remove all successfully forwarded entries)
+                for (var entry : entrySet) {
+                    // (check if any orderNo is higher than the current user for the remaining entries.)
+                    if (entry.getKey() > orderNo) {
+                        String errorMsg =
+                                "Guard failed for: " + "reject" + " as the reviewer: " + actionBy + " at position: " +
+                                orderNo + " cannot reject the application as there are other reviewers who have already forwarded the application after them";
+                        context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+                        return false;
+                    }
+                }
+            } else { // if the application has not been forwarded before:
+                // check that the current user is the first order user in the reviewersMap
+                if (!reviewerMap.get(1).equals(actionBy)) {
+                    String errorMsg =
+                            "Guard failed for reject as the Reviewer: " + actionBy + " at position: " + orderNo + " " +
+                                    "cannot reject the application as they are not present in the reviewer list";
+                    context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     private static boolean reviewCountCheck(StateContext<String, String> context) {
         int forwardedCount = get(context, KEY_FORWARDED_COUNT, Integer.class, 0);
         int reviewerCount = get(context, KEY_REVIEWERS_COUNT, Integer.class, 0);
 
         // check that the application has reviewers
         if (reviewerCount <= 0) {
-            log.error("Cannot forward the application as {}", "there are no reviewers for the application");
+            context.getStateMachine().setStateMachineError(new StateMachineException("Guard failed for forward " +
+                    "as there are no reviewers for the application"));
             return false;
         }
 
         // check that the application is not forwarded more times than total reviewers.
         if (forwardedCount + 1 > reviewerCount) {
-            log.error("Cannot forward the application as {}", "the application is being forwarded more times than the number of defined reviewers");
+            context.getStateMachine().setStateMachineError(new StateMachineException("Guard failed for forward" +
+                    " as the application is being forwarded more times than the number of defined reviewers"));
             return false;
         }
 
@@ -264,66 +328,91 @@ public class Guards {
                 .stream()
                 .noneMatch(entry -> Objects.equals(entry.getKey(), forwardingOrder) &&
                         Objects.equals(entry.getValue(), forwardingId));
+
         if (isOrderNumberAndReviewerIdAbsent) {
-            log.error("Cannot forward the application as {}", "the combination of the forwarding order " +
-                    "and the forwarding userId is not present in the list of reviewers");
+            String errorMsg = "Guard Failed for: " + "forward" + " as the combination of the forwarding order " +
+                    "and the forwarding userId is not present in the list of reviewers";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
             return false;
         }
 
         Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(context, KEY_FORWARDED_MAP,
                 Map.class, Collections.emptyMap());
-        List<Pair<Long, Boolean>> list = new ArrayList<>(forwardMap.values());
-        int upperLimit = list.indexOf(new Pair<>(forwardingId, false)); // returns -1 if pair is not present.
 
-        // check that the same reviewer hasn't already forwarded this application.
-        if (upperLimit < 0) {
-            log.error("Cannot forward the application as {}", "no eligible reviewer found to forward the application");
+        List<Pair<Long, Boolean>> userIdAndForwardHistoryList = new ArrayList<>(forwardMap.values());
+
+        int indexOfPairInForwardingMap = userIdAndForwardHistoryList.indexOf(new Pair<>(forwardingId, false)); // returns -1 if pair is not present.
+
+        // check that
+        // 1. the user is present in forwardingMap, and
+        // 2. the same reviewer hasn't already forwarded this application before.
+        boolean userIdAndForwardingHistoryAbsent = indexOfPairInForwardingMap < 0;
+        if (userIdAndForwardingHistoryAbsent) {
+            String errorMsg = "Guard Failed for: " +"forward" + " as no eligible reviewer found to forward the application";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
             return false;
         }
 
-        if (upperLimit == 0) {
+        if (indexOfPairInForwardingMap == 0) {
             // if the user is the first user in the forwardMap and they have not forwarded the application before,
             // then the check is complete.
             return true;
         }
 
+        // indexOfPairInForwardingMap > 0
         // check that all reviewers before the current one have already forwarded this application
-        if (upperLimit > 0) {
-            boolean forwardOrderMaintained = list.subList(0, upperLimit).stream().allMatch(Pair::getSecond);
-            if (!forwardOrderMaintained) {
-                log.error("Cannot forward the application as {}", "previous reviewers have not forwarded the application");
-                return false;
-            }
+        boolean isforwardingOrderMaintained = userIdAndForwardHistoryList.subList(0, indexOfPairInForwardingMap)
+                .stream().allMatch(Pair::getSecond);
+        if (!isforwardingOrderMaintained) {
+            String errorMsg = "Guard Failed for: " + "forward" + " as previous reviewers have not forwarded the " +
+                    "application";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+            return false;
         }
 
         return true;
     }
 
+
     /**
      * CHECKS
      **/
 
-    private static boolean isRollBackCountOverLimit(final int maxRollBack, final int rollbackCount) {
-        if (rollbackCount + 1 > maxRollBack) {
-            log.error(" Cannot roll back the application as the roll back count: {} exceeds the max roll back count: {}",
-                    rollbackCount + 1, maxRollBack);
+
+    private static boolean isUserAbsentFromUserList(StateMachine<String, String> statemachine, Collection<Long> userList,
+            Long actionBy, String item, String transition) {
+        if (!userList.isEmpty() && !userList.contains(actionBy)) {
+            String errorMsg = "Guard failed on: " + transition + " as the user id: " + actionBy + " is not present in" +
+                    " the " + item + " list: " + userList;
+            statemachine.setStateMachineError(new StateMachineException(errorMsg));
             return true;
         }
         return false;
     }
 
-    private static boolean isUserAbsentFromReviewerList(final Map<Integer, Long> reviewerMap, final Long rollBackBy) {
-        if (!reviewerMap.containsValue(rollBackBy)) {
-            log.error("Cannot perform action on the application as the reviewer id: {} is not present in the reviewer's list: {}",
-                    rollBackBy, reviewerMap);
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isUserIdInvalid(Long userId) {
+    private static boolean isUserIdInvalid(StateMachine<String, String> statemachine, Long userId, String transition) {
         if (userId == null || userId == 0) {
-            log.error("Invalid id of user performing action. userId: " + userId);
+            String errorMsg = "Guard failed on: " + transition + " as invalid userId: " + userId;
+            statemachine.setStateMachineError(new StateMachineException(errorMsg));
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isCommentInvalid(StateMachine<String, String> statemachine, String comment, String transition) {
+        if (comment == null || comment.isBlank()) {
+            String errorMsg = "Guard Failed for: " + transition + " as there is no valid comment provided";
+            statemachine.setStateMachineError(new StateMachineException(errorMsg));
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isCountExceedingThreshold(StateMachine<String, String> statemachine, Integer count, Integer threshold, String item, String transition) {
+        if (count > threshold) {
+            String errorMsg = "Guard Failed for: " + transition + " count: " + count + 1 + " for item: " + item + " " +
+                    "exceeds threshold: " + threshold;
+            statemachine.setStateMachineError(new StateMachineException(errorMsg));
             return true;
         }
         return false;
