@@ -96,7 +96,7 @@ public class Guards {
 
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, 0);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         // check that the reviewer requesting changes is valid
@@ -109,8 +109,7 @@ public class Guards {
             return false;
 
         // check that the reviwer requesting changes has input a valid comment for the request
-        String requestedChangeComment = get(context, KEY_CHANGE_REQ_COMMENT, String.class, null);
-        if (isCommentInvalid(context.getStateMachine(), requestedChangeComment, "requestChanges")) return false;
+        if (isCommentInvalid(context.getStateMachine(), comment, "requestChanges")) return false;
 
         // check that the maximum allowed rollbacks is not 0, and that total number of returns so far don't exceed its max threshold.
         int maxAllowedReturns = get(context, KEY_CHANGE_REQ_MAX, Integer.class, defaultWFP.getChangeReqMaxCount());
@@ -161,7 +160,6 @@ public class Guards {
 
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         // check that userId is valid
@@ -181,9 +179,7 @@ public class Guards {
 
         // check that the user requesting rollback is in the reviewer list
         var reviewerMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        if (isUserAbsentFromUserList(context.getStateMachine(), reviewerMap.values(), actionBy, "reviewers",
-                "rollBack"))
-            return false;
+        if (isUserAbsentFromUserList(context.getStateMachine(), reviewerMap.values(), actionBy, "reviewers", "rollBack")) return false;
 
         // check that for serial approval flow, the user rolling back approval is the latest reviewer who forwarded the application
         boolean isSerial = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
@@ -410,8 +406,9 @@ public class Guards {
     }
 
     private static boolean isCountExceedingThreshold(StateMachine<String, String> statemachine, Integer count, Integer threshold, String item, String transition) {
-        if (count > threshold) {
-            String errorMsg = "Guard Failed for: " + transition + " count: " + count + 1 + " for item: " + item + " " +
+        if (count + 1 > threshold) {
+            String errorMsg = "Guard Failed for: " + transition + " count: " + (count + 1) + " for item: " + item +
+                    " " +
                     "exceeds threshold: " + threshold;
             statemachine.setStateMachineError(new StateMachineException(errorMsg));
             return true;
