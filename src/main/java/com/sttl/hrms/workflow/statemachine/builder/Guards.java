@@ -161,6 +161,7 @@ public class Guards {
 
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         // check that userId is valid

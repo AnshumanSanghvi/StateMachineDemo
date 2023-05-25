@@ -120,7 +120,7 @@ public class StateMachineBuilder {
 
                 .withExternal().name(TX_RVWR_REJECTS_APP_PARLL)
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_REJECT.name()).target(S_CLOSED.name())
-                    .action(Actions::reject).and()
+                    .guard(Guards::reject).action(Actions::reject).and()
 
                 .withExternal().name(TX_RVWR_APPROVES_APP_PARLL)
                     .source(S_PARALLEL_APPROVAL_FLOW.name()).event(E_APPROVE.name()).target(S_CLOSED.name())
@@ -160,7 +160,7 @@ public class StateMachineBuilder {
 
                 .withExternal().name(TX_RVWR_REJECTS_APP_SERIAL)
                     .source(S_SERIAL_APPROVAL_FLOW.name()).event(E_REJECT.name()).target(S_CLOSED.name())
-                    .action(Actions::reject).and()
+                    .guard(Guards::reject).action(Actions::reject).and()
 
                 .withExternal().name(TX_RVWR_APPROVES_APP_SERIAL)
                     .source(S_SERIAL_APPROVAL_FLOW.name()).event(E_APPROVE.name()).target(S_CLOSED.name())
