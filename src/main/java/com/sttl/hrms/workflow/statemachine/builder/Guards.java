@@ -78,19 +78,12 @@ public class Guards {
 
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
-        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
-
-        var map = context.getExtendedState().getVariables();
-        map.put(KEY_APPROVE_BY, actionBy);
-        map.put(KEY_APPROVE_COMMENT, comment);
-
-        Long approvedBy = get(context, KEY_APPROVE_BY, Long.class, null);
 
         // check that the approving reviewer is valid (i.e. not null or 0)
-        if (isUserIdInvalid(approvedBy)) return false;
+        if (isUserIdInvalid(actionBy)) return false;
 
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
-        return adminList.contains(approvedBy);
+        return adminList.contains(actionBy);
     }
 
     public static boolean requestChanges(StateContext<String, String> context) {
@@ -126,24 +119,37 @@ public class Guards {
         }
 
         Pair<Integer, Long> lastForwardedBy = get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
-        Map<Integer, Pair<Long, Boolean>> forwardMap = get(context, KEY_FORWARDED_MAP,
-                Map.class, Collections.emptyMap());
 
-        // if valid lastForwardedBy then
-        if ((lastForwardedBy != null) && (lastForwardedBy.getSecond() != null) && (lastForwardedBy.getSecond() != 0L)) {
-            // first remove all entries in forwardedMap where forwarding hasn't occurred.
-            var entrySet = new HashSet<>(forwardMap.entrySet());
-            entrySet.removeIf(entry -> !entry.getValue().getSecond());
-            for (Map.Entry<Integer, Pair<Long, Boolean>> entry : entrySet) {
-                // then check that no one has forwarded the application after the current user
-                if (entry.getKey() > orderNo) return false;
+        boolean isSerialFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
+        if (isSerialFlow) {
+            // if the application has been forwarded before:
+            if (lastForwardedBy != null && lastForwardedBy.getSecond() != null) {
+                // check that the current user is the last person to have forwarded the application,
+                // i.e., no one has forwarded the application after the current user.
+                Map<Integer, Pair<Long, Boolean>> forwardMap = get(context, KEY_FORWARDED_MAP, Map.class,
+                        Collections.emptyMap());
+                var entrySet = new HashSet<>(forwardMap.entrySet());
+                entrySet.removeIf(entry -> !entry.getValue()
+                        .getSecond()); // (remove all successfully forwarded entries)
+                for (var entry : entrySet) {
+                    // (check if any orderNo is higher than the current user for the remaining entries.)
+                    if (entry.getKey() > orderNo) {
+                        log.error("The Reviewer: {} at position: {} cannot request changes in the application as there " +
+                                        "are other reviewers who have already forwarded the application after them", actionBy,
+                                orderNo);
+                        return false;
+                    }
+                }
+            } else { // if the application has not been forwarded before:
+                // check that the current user is the first order user in the reviewersMap
+                if (!reviewerMap.get(1).equals(actionBy)) {
+                    log.error("The Reviewer: {} at position: {} cannot request changes in the application as they are not" +
+                            " present in the reviewer list ", actionBy, orderNo);
+                    return false;
+                }
             }
-        } else // application hasn't been forwarded
-            return Objects.equals(actionBy, reviewerMap.get(1));
+        }
 
-        var map = context.getExtendedState().getVariables();
-        map.put(KEY_CHANGES_REQ_BY, new Pair<>(orderNo, actionBy));
-        map.put(KEY_CHANGE_REQ_COMMENT, comment);
         return true;
     }
 
@@ -158,9 +164,7 @@ public class Guards {
         // check that userId is valid
         if (isUserIdInvalid(actionBy)) return false;
 
-        // check that roll back is allowed
         int maxRollBack = get(context, KEY_ROLL_BACK_MAX, Integer.class, defaultWFP.getRollbackMaxCount());
-        if (isRollBackAllowed(maxRollBack)) return false;
 
         // check that we have not hit the max rollback limit
         int rollbackCount = get(context, KEY_ROLL_BACK_COUNT, Integer.class, 0);
@@ -190,9 +194,6 @@ public class Guards {
             }
         }
 
-        var map = context.getExtendedState().getVariables();
-        map.put(KEY_ROLL_BACK_BY_LAST, new Pair<>(orderNo, actionBy));
-        map.put(KEY_ROLL_BACK_COMMENT, comment);
         return true;
     }
 
@@ -201,7 +202,6 @@ public class Guards {
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
         Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
-        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         // check if admin action
         var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
@@ -217,24 +217,21 @@ public class Guards {
             return false;
         }
 
-        boolean isParallelFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_PARALLEL);
         Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        if (isParallelFlow) {
-            // check that the forwardingId is present in the reviewersMap in the parallel approval flow.
-            if (!reviewersMap.containsValue(actionBy)) {
-                log.error(errorMsg, "the forwarding userId is not in the reviewers list");
-                return false;
-            }
-        } else {
-            // check that both the order of forwarding,
-            // and that the forwarding user is present in the list of reviewers for the application in the serial approval flow.
+
+        // check that the forwardingId is present in the reviewersMap
+        if (!reviewersMap.containsValue(actionBy)) {
+            log.error(errorMsg, "the forwarding userId is not in the reviewers list");
+            return false;
+        }
+
+        boolean isSerialFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
+        if (isSerialFlow) {
+            // check that both, the order of forwarding, and the forwarding user
+            // is present in the list of reviewers for the application in the serial approval flow.
             if (!forwardIdAndOrderCheck(context, actionBy, orderNo))
                 return false;
         }
-
-        var map = context.getExtendedState().getVariables();
-        map.put(KEY_FORWARDED_BY_LAST, new Pair<>(orderNo, actionBy));
-        map.put(KEY_FORWARDED_COMMENT, comment);
 
         return true;
     }
@@ -284,6 +281,12 @@ public class Guards {
             return false;
         }
 
+        if (upperLimit == 0) {
+            // if the user is the first user in the forwardMap and they have not forwarded the application before,
+            // then the check is complete.
+            return true;
+        }
+
         // check that all reviewers before the current one have already forwarded this application
         if (upperLimit > 0) {
             boolean forwardOrderMaintained = list.subList(0, upperLimit).stream().allMatch(Pair::getSecond);
@@ -299,14 +302,6 @@ public class Guards {
     /**
      * CHECKS
      **/
-
-    private static boolean isRollBackAllowed(final int maxRollBack) {
-        if (maxRollBack <= 0) {
-            log.error("Cannot roll back the application as the max roll back count is {}", maxRollBack);
-            return true;
-        }
-        return false;
-    }
 
     private static boolean isRollBackCountOverLimit(final int maxRollBack, final int rollbackCount) {
         if (rollbackCount + 1 > maxRollBack) {

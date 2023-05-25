@@ -3,7 +3,6 @@ package com.sttl.hrms.workflow.statemachine.builder;
 import com.sttl.hrms.workflow.data.Pair;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowProperties;
 import com.sttl.hrms.workflow.statemachine.EventResultDto;
-import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.util.EventSendHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.MessageHeaders;
@@ -113,58 +112,49 @@ public class Actions {
     public static void forward(StateContext<String, String> context) {
         log.trace("Executing action: forwardStateExitAction with currentState: {}", getStateId(context));
 
-        boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class);
 
-        Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class,
-                null);
+        // if the userId is an admin, then instead of forwarding, auto-approve the application.
         List<Long> adminIds = get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
-        boolean adminForwarded = adminIds.contains(forwardedBy.getSecond());
-
-        // if reviewers can forward the application in any order, then auto-approve.
-        if (anyApprove || adminForwarded) {
+        boolean adminForwarded = adminIds.contains(actionBy);
+        if (adminForwarded) {
             triggerApproveEvent(context);
-        }
-        // else record the forward event by the reviewer, keeping their order intact.
-        else {
-            manualApproveOnForwardSerialFlow(context);
-        }
-    }
-
-    private static void manualApproveOnForwardSerialFlow(StateContext<String, String> context) {
-
-        ExtendedState extState = context.getExtendedState();
-
-        // get the relevant key matching the forwardBy from the forward Map.
-        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null);
-        Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(extState, KEY_FORWARDED_MAP, Map.class, null);
-
-        Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> reviewerIdPresent = entry -> entry.getValue().getFirst()
-                .equals(forwardBy.getSecond());
-        Predicate<Map.Entry<Integer, Pair<Long, Boolean>>> orderIdPresent = entry -> entry.getKey()
-                .equals(forwardBy.getFirst());
-
-        Integer forwardOrderKey = forwardMap
-                .entrySet()
-                .stream()
-                .filter(reviewerIdPresent.and(orderIdPresent))
-                .findFirst()
-                .map(Map.Entry::getKey)
-                .orElse(null);
-
-        // throw error if no key found.
-        if (forwardOrderKey == null) {
-            String errorMsg = "Could not forward the application by the given reviewer with id: " +
-                    forwardBy.getSecond() + " and order: " + forwardBy.getFirst() +
-                    " as the application was either already forwarded, " +
-                    " or the reviewerId is not present in the list of reviewers";
-            log.error(errorMsg);
-            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
             return;
         }
 
-        // continue the forward logic if key found.
+        boolean isParallelFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL)
+                .equalsIgnoreCase(VAL_PARALLEL);
+        if (isParallelFlow) {
+            forwarddForParallelApprovalFlow(context);
+            return;
+        }
+
+        // record the forward event by the reviewer, keeping their order intact.
+        forwardForSerialApprovalFlow(context);
+    }
+
+    //TODO: manage all cases for parallel approval
+    private static void forwarddForParallelApprovalFlow(StateContext<String, String> context) {
+        // if reviewers can forward the application in any order, then auto-approve.
+        boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
+        if (anyApprove) {
+            triggerApproveEvent(context);
+        }
+    }
+
+    private static void forwardForSerialApprovalFlow(StateContext<String, String> context) {
+
+        ExtendedState extState = context.getExtendedState();
+
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, "");
+
         // 1. set the value in the forward map
-        forwardMap.put(forwardOrderKey, new Pair<>(forwardBy.getSecond(), true));
+        Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(extState, KEY_FORWARDED_MAP, Map.class, null);
+        forwardMap.put(orderNo, new Pair<>(actionBy, true));
 
         // 2. increment the forward count,
         int forwardedCount = get(extState, KEY_FORWARDED_COUNT, Integer.class, 0) + 1;
@@ -173,7 +163,11 @@ public class Actions {
         Map<Object, Object> map = extState.getVariables();
         map.put(KEY_FORWARDED_COUNT, forwardedCount);
 
-        // 3. if all reviewers have forwarded the application then approve it
+        // 3. set the forward by record and forward comment
+        map.put(KEY_FORWARDED_BY_LAST, new Pair<>(orderNo, actionBy));
+        map.put(KEY_FORWARDED_COMMENT, comment);
+
+        // 4. if all reviewers have forwarded the application then approve it
         if (forwardedCount == reviewersCount) {
             triggerApproveEvent(context);
         }
@@ -216,13 +210,23 @@ public class Actions {
     }
 
     public static void requestChanges(StateContext<String, String> context) {
-        ExtendedState extState = context.getExtendedState();
-
         log.trace("Executing action: requestChangesTransitionAction with currentState: {}", getStateId(context));
-        Map<Object, Object> map = extState.getVariables();
+
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+
+        ExtendedState extState = context.getExtendedState();
+        var map = extState.getVariables();
+        map.put(KEY_CHANGES_REQ_BY, new Pair<>(orderNo, actionBy));
+        map.put(KEY_CHANGE_REQ_COMMENT, comment);
+
+        // reset counts
         map.put(KEY_RETURN_COUNT, get(extState, KEY_RETURN_COUNT, Integer.class, 0) + 1);
         map.put(KEY_FORWARDED_COUNT, 0);
         map.put(KEY_ROLL_BACK_COUNT, 0);
+
         log.trace("Setting extended state- returnCount: {}, forwardCount: {}, rollBackCount: {}",
                 get(extState, KEY_RETURN_COUNT, Integer.class, 0),
                 get(extState, KEY_FORWARDED_COUNT, Integer.class, 0),
@@ -262,9 +266,17 @@ public class Actions {
     public static void rollBackApproval(StateContext<String, String> context) {
         log.trace("Executing action: rollBackTransitionAction with currentState: {}", getStateId(context));
 
-        ExtendedState extState = context.getExtendedState();
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
+        ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
+
+        map.put(KEY_ROLL_BACK_BY_LAST, new Pair<>(orderNo, actionBy));
+        map.put(KEY_ROLL_BACK_COMMENT, comment);
+
         // increment roll back count
         int currentRollBackCount = get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0);
         map.put(KEY_ROLL_BACK_COUNT, currentRollBackCount + 1);
@@ -273,34 +285,28 @@ public class Actions {
         int forwardCount = get(extState, KEY_FORWARDED_COUNT, Integer.class, 0);
         map.put(KEY_FORWARDED_COUNT, Math.max((forwardCount - 1), 0));
 
-        // reset null state
-        map.put(KEY_CLOSED_STATE_TYPE, "");
+        // reset closed state
+        map.remove(KEY_CLOSED_STATE_TYPE);
 
         // reset approve by
-        map.put(KEY_APPROVE_BY, 0);
+        map.remove(KEY_APPROVE_BY);
 
-        Pair<Integer, Long> oldForwardedBy = (Pair<Integer, Long>) get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null);
+        // reset last entry in forwarded Map
+        Map<Integer, Pair<Long, Boolean>> forwardedMap = get(extState, KEY_FORWARDED_MAP, Map.class, Collections.emptyMap());
+        forwardedMap.entrySet().stream()
+                .filter(entry -> entry.getKey().equals(orderNo))
+                .filter(entry -> entry.getValue().getFirst().equals(actionBy))
+                .findFirst()
+                .ifPresent(entry -> entry.getValue().setSecond(false));
 
-        if (oldForwardedBy != null && oldForwardedBy.getFirst() != null && oldForwardedBy.getSecond() != null) {
-            // reset last entry in forwarded Map
-            Map<Integer, Pair<Long, Boolean>> forwardedMap = get(extState, KEY_FORWARDED_MAP, Map.class, Collections.emptyMap());
-            //TODO: fix for repeated reviewer
-            forwardedMap.entrySet()
-                    .stream()
-                    .filter(entry -> entry.getKey().equals(oldForwardedBy.getFirst()))
-                    .filter(entry -> entry.getValue().getFirst().equals(oldForwardedBy.getSecond()))
-                    .findFirst()
-                    .ifPresent(entry -> entry.getValue().setSecond(Boolean.FALSE));
-
-            // reset forwarded by
-            forwardedMap.entrySet()
-                    .stream()
-                    .filter(entry -> entry.getValue().getSecond()) // only select entries that are already forwarded
-                    .max(Comparator.comparing(Map.Entry::getKey)) // find the latest entry that is forwarded
-                    .ifPresentOrElse(e -> map.put(KEY_FORWARDED_BY_LAST, new Pair<>(e.getKey(),
-                                    e.getValue().getFirst())), // set the latest forwarded entry as LAST_FORWARDED_BY
-                            () -> map.put(KEY_FORWARDED_BY_LAST, new Pair<Integer, Long>(null, null))); // if no entry is present, then set null.
-        }
+        // reset forwarded by to previous entry
+        forwardedMap.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().getSecond()) // only select entries that are already forwarded
+                .max(Map.Entry.comparingByKey()) // find the latest entry that is forwarded
+                .ifPresentOrElse(e -> map.put(KEY_FORWARDED_BY_LAST, new Pair<>(e.getKey(),
+                                e.getValue().getFirst())), // set the latest forwarded entry as LAST_FORWARDED_BY
+                        () -> map.remove(KEY_FORWARDED_BY_LAST)); // if no entry is present, then remove.
 
         log.trace("Setting extended state- rollBackCount: {}", get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
     }
