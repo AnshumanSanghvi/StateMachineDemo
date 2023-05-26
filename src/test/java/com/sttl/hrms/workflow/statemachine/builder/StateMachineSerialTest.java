@@ -6,6 +6,7 @@ import com.sttl.hrms.workflow.resource.dto.PassEventDto;
 import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent;
 import com.sttl.hrms.workflow.statemachine.util.EventResultHelper;
 import com.sttl.hrms.workflow.statemachine.util.EventSendHelper;
+import com.sttl.hrms.workflow.statemachine.util.ExtStateUtil;
 import org.junit.jupiter.api.*;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -133,22 +134,24 @@ class StateMachineSerialTest {
 
     @Nested
     public class RequestChangesTest {
+        String requestChangesComment = "please make the following changes";
+
         @Test
         void requestChangesHappyPath() {
             final ExtendedState extState = stateMachine.getExtendedState();
             Long wfInstanceId = 1L;
 
             // create and submit application for review
-            List<PassEventDto> passEvents1 = createPassEvents(wfInstanceId, LOAN_APPLICATION, applicant1, 0, "", E_CREATE,
+            List<PassEventDto> passEvents1 = createPassEvents(wfInstanceId, LOAN_APPLICATION, applicant1, 0, "hello",
+                    E_CREATE,
                     E_SUBMIT, E_TRIGGER_REVIEW_OF, E_TRIGGER_FLOW_JUNCTION);
             EventSendHelper.passEvents(stateMachine, passEvents1);
             assertEquals(S_SERIAL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
 
             // reviewer 1 requests changes
-            List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer1, 1, "please make " +
-                            "changes", E_REQUEST_CHANGES_IN);
+            List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer1, 1, requestChangesComment, E_REQUEST_CHANGES_IN);
             EventSendHelper.passEvents(stateMachine, passEvents2);
-            assertEquals(0, extState.get(KEY_FORWARDED_COUNT, Integer.class));
+            assertEquals(0, ExtStateUtil.get(extState, KEY_FORWARDED_COUNT, Integer.class, 0));
             assertEquals(S_CREATED.name(), stateMachine.getState().getId());
             assertEquals(1, extState.get(KEY_RETURN_COUNT, Integer.class));
 
@@ -184,6 +187,7 @@ class StateMachineSerialTest {
         @Test
         void requestChangesLimit() {
             final ExtendedState extState = stateMachine.getExtendedState();
+            extState.getVariables().put(KEY_CHANGE_REQ_MAX, 3);
             Long wfInstanceId = 1L;
 
             // create and submit application for review
