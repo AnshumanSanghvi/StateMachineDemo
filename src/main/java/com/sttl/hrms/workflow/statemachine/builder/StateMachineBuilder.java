@@ -53,6 +53,7 @@ public class StateMachineBuilder {
                 .withConfiguration()
                     .machineId(stateMachineName)
                     .listener(new StateMachineObserver.StateMachineListener())
+                    .autoStartup(true)
                     .and()
                 .withMonitoring()
                     .monitor(new StateMachineObserver.StateMachineMonitor());

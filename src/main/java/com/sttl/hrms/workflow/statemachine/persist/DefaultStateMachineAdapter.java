@@ -28,7 +28,6 @@ public class DefaultStateMachineAdapter<T> {
             StateMachine<String, String> restoredStateMachine = stateMachinePersister.restore(stateMachine, contextObj);
             log.debug("Restored stateMachine: {}", StringUtil.stateMachine(restoredStateMachine, false));
             log.trace("Restored stateMachine with details: {}", StringUtil.stateMachine(restoredStateMachine, true));
-            restoredStateMachine.startReactively().block();
             return restoredStateMachine;
         } catch (Exception e) {
             String errMsg = "Could not restore a state machine context from the database, for a statemachine with id: " +
@@ -51,7 +50,6 @@ public class DefaultStateMachineAdapter<T> {
     public StateMachine<String, String> createStateMachine(String stateMachineId) {
         try {
             StateMachine<String, String> stateMachine = StateMachineBuilderFactory.getStateMachine(stateMachineId);
-            stateMachine.startReactively().block();
             log.debug("Created and started stateMachine: {}", StringUtil.stateMachine(stateMachine, false));
             return stateMachine;
         } catch (Exception e) {
