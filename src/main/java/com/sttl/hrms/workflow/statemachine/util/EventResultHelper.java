@@ -54,7 +54,7 @@ public class EventResultHelper {
         // find out if any event wasn't accepted.
         boolean hasErrors = resultDTOList.stream().anyMatch(Predicate.not(EventResultDto.accepted));
 
-        // throw error if the event is not accepted by the state machine.
+        // throw exception if the event is not accepted by the state machine.
         if (hasErrors) {
             String eventStr = resultDTOList
                     .stream()
@@ -62,11 +62,7 @@ public class EventResultHelper {
                     .map(EventResultDto::getEvent)
                     .map(StringUtil::event)
                     .collect(Collectors.joining(", "));
-
-            String msg = "Did not persist the state machine context to the database, "
-                    + "as the following passed event: [" + eventStr + "]" +
-                    " were not accepted by the statemachine ";
-
+            String msg = "The following passed events: [" + eventStr + "] were not accepted by the statemachine ";
             throw new StateMachineException(msg);
         }
 

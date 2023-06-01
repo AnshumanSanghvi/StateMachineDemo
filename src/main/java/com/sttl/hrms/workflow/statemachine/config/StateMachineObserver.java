@@ -52,13 +52,9 @@ public class StateMachineObserver {
 
         @Override
         public void eventNotAccepted(Message<String> event) {
-            if (event == null) {
-                log.error("Event not accepted, as the event message is null.");
-                return;
-            }
-            log.error("Event not accepted. Message{event: {}, headers: {}}", event.getPayload(),
-                    StringUtil.messageHeaders(event.getHeaders()));
-
+            log.error("Event not accepted. Message{event: {}, headers: {}}",
+                    Optional.ofNullable(event).map(Message::getPayload).orElse(""),
+                    Optional.ofNullable(event).map(Message::getHeaders).map(StringUtil::messageHeaders).orElse(""));
         }
 
         @Override

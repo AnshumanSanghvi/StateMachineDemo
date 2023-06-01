@@ -56,7 +56,6 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
     public void saveStateMachineToEntity(@NotNull StateMachine<String, String> stateMachine, @NotNull T entity, List<EventResultDto> eventResultList, boolean logWorkflowEvent) {
         stateMachineAdapter.persist(stateMachine, entity);
         log.debug("persisted stateMachine context: {} for entity with Id: {}", entity.getStateMachineContext(), entity.getId());
-
         if (logWorkflowEvent)
             writeToLog(entity, stateMachine, eventResultList);
     }
@@ -83,7 +82,7 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
                     .actionDate(LocalDateTime.now())
                     .completed((short) (stateMachine.isComplete() ? 1 : 0))
                     .actionBy(result.getActionBy())
-                    .userRole((short) 0)
+                    .userRole((short) 0) //TODO
                     .comment(result.getComment())
                     .build();
             workflowEventLogService.logEvent(wfEventLogDto);

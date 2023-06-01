@@ -5,6 +5,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.statemachine.StateMachineEventResult;
 import org.springframework.statemachine.StateMachineEventResult.ResultType;
 import org.springframework.statemachine.region.Region;
+import org.springframework.statemachine.state.State;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -32,13 +33,13 @@ public class EventResultDto {
             .equals(ResultType.ACCEPTED) || result.getResultType().equals(ResultType.DEFERRED);
 
     public EventResultDto(StateMachineEventResult<String, String> result) {
-        Region<String, String> stateMachineRegion = result.getRegion();
-        this.setRegion(stateMachineRegion.getUuid().toString() + " (" + stateMachineRegion.getId() + ")");
-        this.isSubMachine = stateMachineRegion.getState().isSubmachineState();
+        Region<String, String> smRegion = result.getRegion();
+        this.setRegion(smRegion.getUuid().toString() + " (" + smRegion.getId() + ")");
+        this.isSubMachine = Optional.ofNullable(smRegion.getState()).map(State::isSubmachineState).orElse(false);
         this.setEvent(result.getMessage().getPayload());
         this.setResultType(result.getResultType());
-        this.setCurrentState(stateMachineRegion.getState().getId());
-        this.setComplete(stateMachineRegion.isComplete());
+        Optional.ofNullable(smRegion.getState()).map(State::getId).ifPresent(this::setCurrentState);
+        this.setComplete(smRegion.isComplete());
 
         MessageHeaders headers = result.getMessage().getHeaders();
         Optional.ofNullable(headers.get(MSG_KEY_ORDER_NO, Integer.class)).ifPresent(this::setOrder);

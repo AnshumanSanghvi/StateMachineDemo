@@ -126,7 +126,7 @@ public class Actions {
         boolean isParallelFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL)
                 .equalsIgnoreCase(VAL_PARALLEL);
         if (isParallelFlow) {
-            forwarddForParallelApprovalFlow(context);
+            forwardForParallelApprovalFlow(context);
             return;
         }
 
@@ -135,7 +135,7 @@ public class Actions {
     }
 
     //TODO: manage all cases for parallel approval
-    private static void forwarddForParallelApprovalFlow(StateContext<String, String> context) {
+    private static void forwardForParallelApprovalFlow(StateContext<String, String> context) {
         // if reviewers can forward the application in any order, then auto-approve.
         boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
         if (anyApprove) {
