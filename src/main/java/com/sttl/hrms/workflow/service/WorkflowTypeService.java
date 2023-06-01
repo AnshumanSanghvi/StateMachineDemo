@@ -50,4 +50,18 @@ public class WorkflowTypeService {
     public void deleteByTypeId(WorkflowType workflowType) {
         workflowTypeRepository.deleteByTypeId(workflowType);
     }
+
+    @Transactional(readOnly = true)
+    public WorkflowTypeEntity.WorkflowProperties getWorkFlowPropertiesByType(WorkflowType workflowType) {
+        try {
+            var properties = workflowTypeRepository.getPropertiesByTypeId(workflowType);
+            log.debug("Retrieved workflow properties: {} from workflowType: {}", properties, workflowType);
+            return properties;
+        } catch (Exception ex) {
+            log.warn("Exception in retrieving workflow properties for workflowType: {} with errorMessage: ",
+                    workflowType, ex);
+            log.info("{}", "returning default workflow type properties");
+            return new WorkflowTypeEntity.WorkflowProperties();
+        }
+    }
 }

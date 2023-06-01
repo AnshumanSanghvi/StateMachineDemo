@@ -1,6 +1,7 @@
 package com.sttl.hrms.workflow.statemachine.builder;
 
 
+import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowProperties;
 import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver;
 import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.ExtendedStateListener;
 import com.sttl.hrms.workflow.statemachine.config.StateMachineObserver.StateMachineInterceptor;
@@ -25,16 +26,16 @@ public class StateMachineBuilder {
         // use class statically
     }
 
-    public static StateMachine<String, String> createStateMachine(String stateMachineName, Integer reviewerCount,
-            Map<Integer, Long> reviewerMap, boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount)
+    public static StateMachine<String, String> createStateMachine(String stateMachineName,
+            Map<Integer, Long> reviewerMap, WorkflowProperties wfProps)
             throws Exception {
         Builder<String, String> builder = org.springframework.statemachine.config.StateMachineBuilder.builder();
 
         configureStateMachine(builder, stateMachineName);
 
-        configureStates(builder, reviewerCount, reviewerMap, isParallel, maxChangeRequests, maxRollBackCount);
+        configureStates(builder, reviewerMap, wfProps);
 
-        configureTransitions(builder, isParallel);
+        configureTransitions(builder, wfProps.isHasParallelApproval());
 
         StateMachine<String, String> stateMachine = builder.build();
 
@@ -59,13 +60,11 @@ public class StateMachineBuilder {
                     .monitor(new StateMachineObserver.StateMachineMonitor());
     }
 
-    private static void configureStates(Builder<String, String> builder, Integer reviewersCount,
-            Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount)
+    private static void configureStates(Builder<String, String> builder, Map<Integer, Long> reviewerMap, WorkflowProperties wfProps)
             throws Exception {
         builder.configureStates()
                 .withStates()
-                    .initial(S_INITIAL.name(), context -> Actions.initial(context, null, reviewersCount,
-                            reviewerMap, isParallel, maxChangeRequests, maxRollBackCount))
+                    .initial(S_INITIAL.name(), context -> Actions.initial(context, wfProps, reviewerMap))
                     .states(Set.of(S_CREATED.name(), S_SUBMITTED.name(), S_UNDER_PROCESS.name()))
                     .junction(S_APPROVAL_JUNCTION.name())
                     .state(S_SERIAL_APPROVAL_FLOW.name())

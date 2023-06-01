@@ -1,5 +1,7 @@
 package com.sttl.hrms.workflow.statemachine.persist;
 
+import com.sttl.hrms.workflow.data.Pair;
+import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity;
 import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilderFactory;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachinePersistenceException;
@@ -9,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.persist.StateMachinePersister;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * This is a wrapper class over the DefaultStateMachinePersister.
@@ -47,13 +51,15 @@ public class DefaultStateMachineAdapter<T> {
         }
     }
 
-    public StateMachine<String, String> createStateMachine(String stateMachineId) {
+    public StateMachine<String, String> createStateMachine(WorkflowTypeEntity typeEntity,
+            List<Pair<Integer, Long>> reviewers) {
         try {
-            StateMachine<String, String> stateMachine = StateMachineBuilderFactory.getStateMachine(stateMachineId);
+            StateMachine<String, String> stateMachine =
+                    StateMachineBuilderFactory.getStateMachineFromEntityAndType(typeEntity, reviewers);
             log.debug("Created and started stateMachine: {}", StringUtil.stateMachine(stateMachine, false));
             return stateMachine;
         } catch (Exception e) {
-            String errMsg = "Could not create a new statemachine from the StateMachineBuilderFactory with machineId: " + stateMachineId;
+            String errMsg = "Could not create a new statemachine from the StateMachineBuilderFactory with machineId: " + typeEntity.getTypeId();
             throw new StateMachineException(errMsg, e);
         }
     }

@@ -12,7 +12,6 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.state.State;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
@@ -36,16 +35,14 @@ public class Actions {
         // use class statically
     }
 
-    public static void initial(StateContext<String, String> context, WorkflowProperties workflowProperties, Integer reviewers,
-            Map<Integer, Long> reviewerMap, boolean isParallel, Integer maxChangeRequests, Integer maxRollBackCount) {
+    public static void initial(StateContext<String, String> context, WorkflowProperties workflowProperties,
+            Map<Integer, Long> reviewerMap) {
 
-        initial(context.getStateMachine(), workflowProperties, reviewers, reviewerMap, isParallel, maxChangeRequests,
-                maxRollBackCount);
+        initial(context.getStateMachine(), workflowProperties, reviewerMap);
     }
 
     public static void initial(StateMachine<String, String> stateMachine, WorkflowProperties workflowProperties,
-            Integer reviewers, Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests,
-            Integer maxRollBackCount) {
+            Map<Integer, Long> reviewerMap) {
 
         String stateId = Optional.ofNullable(stateMachine).flatMap(sm -> Optional.ofNullable(sm.getState())
                 .map(State::getId).map(Object::toString)).orElse("null");
@@ -54,48 +51,41 @@ public class Actions {
         Optional.ofNullable(stateMachine)
                 .map(StateMachine::getExtendedState)
                 .flatMap(exs -> Optional.ofNullable(exs.getVariables()))
-                .ifPresent(stateMap -> setExtendedState(stateMachine, workflowProperties, reviewers, reviewerMap,
-                        isParallel, maxChangeRequests, maxRollBackCount, stateMap));
+                .ifPresent(stateMap -> setExtendedState(stateMachine, workflowProperties, reviewerMap, stateMap));
     }
 
     private static void setExtendedState(StateMachine<String, String> stateMachine, WorkflowProperties wfProps,
-            Integer reviewers, Map<Integer, Long> reviewerMap, Boolean isParallel, Integer maxChangeRequests,
-            Integer maxRollBackCount, Map<Object, Object> stateMap) {
+            Map<Integer, Long> reviewerMap, Map<Object, Object> stateMap) {
         ExtendedState extState = stateMachine.getExtendedState();
 
-        var defaultProps = (wfProps == null) ? new WorkflowProperties() : wfProps;
+        var workflowProperties = (wfProps == null) ? new WorkflowProperties() : wfProps;
 
         // flow type property
-        stateMap.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.ofNullable(isParallel)
+        stateMap.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.of(workflowProperties)
+                .map(WorkflowProperties::isHasParallelApproval)
                 .filter(Boolean::booleanValue).map(flow -> VAL_PARALLEL).orElse(VAL_SERIAL));
 
         // roll back properties
         stateMap.putIfAbsent(KEY_ROLL_BACK_COUNT, 0);
-        stateMap.putIfAbsent(KEY_ROLL_BACK_MAX, Optional.ofNullable(maxRollBackCount)
-                .orElse(defaultProps.getRollbackMaxCount()));
+        stateMap.putIfAbsent(KEY_ROLL_BACK_MAX, workflowProperties.getRollbackMaxCount());
         stateMap.putIfAbsent(KEY_ROLL_BACK_BY_LAST, new Pair<Integer, Long>(null, null));
 
         // request change / return properties
         stateMap.putIfAbsent(KEY_RETURN_COUNT, 0);
-        stateMap.putIfAbsent(KEY_CHANGE_REQ_MAX, Optional.ofNullable(maxChangeRequests)
-                .orElse(defaultProps.getChangeReqMaxCount()));
+        stateMap.putIfAbsent(KEY_CHANGE_REQ_MAX, workflowProperties.getChangeReqMaxCount());
 
         // forward properties
         stateMap.putIfAbsent(KEY_FORWARDED_COUNT, 0);
         stateMap.putIfAbsent(KEY_FORWARDED_BY_LAST, new Pair<Integer, Long>(null, null));
 
         // reviwer properties
-        Optional.ofNullable(reviewers).ifPresent(rev -> stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, rev));
-        Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty))
-                .ifPresent(rmap -> stateMap.putIfAbsent(KEY_REVIEWERS_MAP, rmap));
-        Optional.ofNullable(reviewerMap).filter(Predicate.not(Map::isEmpty)).ifPresent(rmap ->
-                stateMap.putIfAbsent(KEY_FORWARDED_MAP, rmap.entrySet().stream()
-                        .collect(toMap(Map.Entry::getKey, entry -> new Pair<>(entry.getValue(), false)))));
+        stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, reviewerMap.size());
+        stateMap.putIfAbsent(KEY_REVIEWERS_MAP, reviewerMap);
+        stateMap.putIfAbsent(KEY_FORWARDED_MAP, reviewerMap.entrySet().stream()
+                .collect(toMap(Map.Entry::getKey, entry -> new Pair<>(entry.getValue(), false))));
 
         // admin id property
-        Optional.ofNullable(defaultProps.getAdminRoleIds())
-                .filter(Predicate.not(List::isEmpty))
-                .ifPresent(adminIds -> stateMap.putIfAbsent(KEY_ADMIN_IDS, adminIds));
+        stateMap.putIfAbsent(KEY_ADMIN_IDS, workflowProperties.getAdminRoleIds());
 
         // default state properties.
         stateMap.putIfAbsent(KEY_CLOSED_STATE_TYPE, "");

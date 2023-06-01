@@ -2,6 +2,7 @@ package com.sttl.hrms.workflow.statemachine.builder;
 
 import com.sttl.hrms.workflow.data.Pair;
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
+import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowProperties;
 import com.sttl.hrms.workflow.resource.dto.PassEventDto;
 import com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent;
 import com.sttl.hrms.workflow.statemachine.util.EventResultHelper;
@@ -26,27 +27,31 @@ import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
 import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMEvent.*;
 import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.*;
 import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.get;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.statemachine.StateMachineEventResult.ResultType.ACCEPTED;
 
 class StateMachineSerialTest {
 
     private final StateMachine<String, String> stateMachine;
-    private static final Long applicant1 = 1L;
+    private static final Long applicant1 = 10L;
     private static final Long reviewer1 = 123L;
     private static final Long reviewer2 = 234L;
     private static final Long reviewer3 = 345L;
+    private static final Long admin1 = 1L;
+    private static final Long admin2 = 2L;
+    private static final Long admin3 = 3L;
 
     public StateMachineSerialTest() throws Exception {
-        String name = "testStateMachine";
-        int reviewerCount = 3;
+        String stateMachineName = "testStateMachine";
         Map<Integer, Long> reviewerMap = Map.of(1, reviewer1, 2, reviewer2, 3, reviewer3);
-        boolean isParallel = false;
-        int maxChangeReq = 3;
-        int maxRollBack = 3;
-        this.stateMachine = StateMachineBuilder.createStateMachine(name, reviewerCount, reviewerMap, isParallel,
-                maxChangeReq, maxRollBack);
+        WorkflowProperties wfProps = new WorkflowProperties();
+        wfProps.setAdminRoleIds(List.of(admin1, admin2, admin3));
+        wfProps.setCanRollBackApproval(true);
+        wfProps.setCanAdminApproveWorkflow(true);
+        wfProps.setHasParallelApproval(false);
+        wfProps.setRollbackMaxCount(3);
+        wfProps.setChangeReqMaxCount(3);
+        this.stateMachine = StateMachineBuilder.createStateMachine(stateMachineName, reviewerMap, wfProps);
     }
 
     @BeforeEach
@@ -62,8 +67,7 @@ class StateMachineSerialTest {
     @RepeatedTest(3)
     void testStateMachineResets() {
         Message<String> message = MessageBuilder.withPayload(E_CREATE.name()).build();
-        var resultFlux = stateMachine.sendEvent(Mono.just(message));
-        var resultList = EventResultHelper.processResultFlux(resultFlux);
+        var resultList = EventResultHelper.processResultFlux(stateMachine.sendEvent(Mono.just(message)));
         assertTrue(resultList.stream().allMatch(res -> res.getResultType().equals(ACCEPTED)));
     }
 
@@ -384,7 +388,7 @@ class StateMachineSerialTest {
 
             final ExtendedState extState = stateMachine.getExtendedState();
             assertEquals(new Pair<>(2, reviewer2), get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null));
-            assertEquals(new Pair<>(null, null), get(extState, KEY_ROLL_BACK_BY_LAST, Pair.class, null));
+            assertNull(get(extState, KEY_ROLL_BACK_BY_LAST, Pair.class, null));
             assertEquals(S_SERIAL_APPROVAL_FLOW.name(), stateMachine.getState().getId());
             assertEquals(0, get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
         }

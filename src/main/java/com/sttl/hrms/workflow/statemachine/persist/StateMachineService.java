@@ -2,13 +2,12 @@ package com.sttl.hrms.workflow.statemachine.persist;
 
 
 import com.sttl.hrms.workflow.data.Pair;
-import com.sttl.hrms.workflow.data.enums.WorkflowType;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowInstanceEntity;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity;
-import com.sttl.hrms.workflow.data.model.repository.WorkflowTypeRepository;
 import com.sttl.hrms.workflow.resource.dto.PassEventDto;
 import com.sttl.hrms.workflow.resource.dto.WorkflowEventLogDto;
 import com.sttl.hrms.workflow.service.WorkflowEventLogService;
+import com.sttl.hrms.workflow.service.WorkflowTypeService;
 import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import com.sttl.hrms.workflow.statemachine.builder.Actions;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
@@ -33,22 +32,24 @@ import static org.springframework.statemachine.StateMachineEventResult.ResultTyp
 public class StateMachineService<T extends WorkflowInstanceEntity> {
 
     private final DefaultStateMachineAdapter<T> stateMachineAdapter;
-    private final WorkflowTypeRepository workflowTypeRepository;
+    private final WorkflowTypeService workflowTypeService;
     private final WorkflowEventLogService workflowEventLogService;
 
     @Transactional(readOnly = true)
     public StateMachine<String, String> createStateMachine(@NotNull T entity) {
 
+        WorkflowTypeEntity typeEntity = workflowTypeService.findByTypeId(entity.getTypeId());
+
         // create statemachine as per the entity's statemachine id.
         var stateMachine = Optional
-                .ofNullable(stateMachineAdapter.createStateMachine(entity.getStateMachineId()))
+                .ofNullable(stateMachineAdapter.createStateMachine(typeEntity, entity.getReviewers()))
                 .orElseThrow(() -> new StateMachineException("StateMachine was not created"));
 
         // set the state machine extended state from the workflow type and workflow instance
         List<Pair<Integer, Long>> reviewersList = entity.getReviewers();
-        var properties = getWorkFlowPropertiesByType(entity.getTypeId());
+        var properties = workflowTypeService.getWorkFlowPropertiesByType(entity.getTypeId());
         Map<Integer, Long> reviewerMap = new LinkedHashMap<>(Pair.pairListToMap(reviewersList));
-        Actions.initial(stateMachine, properties, reviewerMap.size(), reviewerMap, null, null, null);
+        Actions.initial(stateMachine, properties, reviewerMap);
         return stateMachine;
     }
 
@@ -62,8 +63,8 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
 
     @Transactional(readOnly = true)
     public StateMachine<String, String> getStateMachineFromEntity(T entity) {
-        String stateMachineId = entity.getStateMachineId();
-        StateMachine<String, String> stateMachine = stateMachineAdapter.restore(stateMachineAdapter.createStateMachine(stateMachineId), entity);
+        WorkflowTypeEntity typeEntity = workflowTypeService.findByTypeId(entity.getTypeId());
+        var stateMachine = stateMachineAdapter.restore(stateMachineAdapter.createStateMachine(typeEntity, entity.getReviewers()), entity);
         log.debug("For entity with id: {} and currentState: {}, Restored statemachine: {}",
                 entity.getId(), entity.getCurrentState(), StringUtil.stateMachine(stateMachine, false));
         return stateMachine;
@@ -89,19 +90,6 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
         }
     }
 
-    @Transactional(readOnly = true)
-    public WorkflowTypeEntity.WorkflowProperties getWorkFlowPropertiesByType(WorkflowType workflowType) {
-        try {
-            var properties = workflowTypeRepository.getPropertiesByTypeId(workflowType);
-            log.debug("Retrieved workflow properties: {} from workflowType: {}", properties, workflowType);
-            return properties;
-        } catch (Exception ex) {
-            log.warn("Exception in retrieving workflow properties for workflowType: {} with errorMessage: ",
-                    workflowType, ex);
-            log.info("{}", "returning default workflow type properties");
-            return new WorkflowTypeEntity.WorkflowProperties();
-        }
-    }
 
     @SuppressWarnings("unchecked")
     @Transactional
