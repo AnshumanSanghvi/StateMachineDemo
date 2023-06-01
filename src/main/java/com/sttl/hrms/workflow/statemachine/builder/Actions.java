@@ -68,7 +68,6 @@ public class Actions {
         // roll back properties
         stateMap.putIfAbsent(KEY_ROLL_BACK_COUNT, 0);
         stateMap.putIfAbsent(KEY_ROLL_BACK_MAX, workflowProperties.getRollbackMaxCount());
-        stateMap.putIfAbsent(KEY_ROLL_BACK_BY_LAST, new Pair<Integer, Long>(null, null));
 
         // request change / return properties
         stateMap.putIfAbsent(KEY_RETURN_COUNT, 0);
@@ -76,7 +75,6 @@ public class Actions {
 
         // forward properties
         stateMap.putIfAbsent(KEY_FORWARDED_COUNT, 0);
-        stateMap.putIfAbsent(KEY_FORWARDED_BY_LAST, new Pair<Integer, Long>(null, null));
 
         // reviwer properties
         stateMap.putIfAbsent(KEY_REVIEWERS_COUNT, reviewerMap.size());
@@ -86,9 +84,6 @@ public class Actions {
 
         // admin id property
         stateMap.putIfAbsent(KEY_ADMIN_IDS, workflowProperties.getAdminRoleIds());
-
-        // default state properties.
-        stateMap.putIfAbsent(KEY_CLOSED_STATE_TYPE, "");
 
         log.trace("Setting extended state- rollbackCountMax: {}, changeRequestsMax: {}, flowType: {}, reviewersCount: {}, "
                         + "reviewersList: {}",
