@@ -87,9 +87,7 @@ public class Guards {
 
         // check that the admin user id is in admin list
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
-        if (isUserAbsentFromUserList(context.getStateMachine(), adminList, actionBy, "admin", "adminApprove")) return false;
-
-        return true;
+        return adminList.contains(actionBy);
     }
 
     public static boolean requestChanges(StateContext<String, String> context) {
