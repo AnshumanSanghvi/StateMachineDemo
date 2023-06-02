@@ -60,6 +60,7 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
         return getAll(leaveAppRepository);
     }
 
+    @Transactional
     public List<EventResponseDto> passEventToSM(PassEventDto passEvent) {
         SMEvent smEvent = SMEvent.getByName(passEvent.getEvent());
         List<PassEventDto> passEvents = switch (smEvent) {
@@ -74,6 +75,7 @@ public class LeaveAppService extends WorkflowService<LeaveAppWorkFlowInstanceEnt
         return passEvents(passEvents, leaveAppRepository);
     }
 
+    @Transactional
     public void delete(Long id) {
         deleteApplication(id, leaveAppRepository);
     }

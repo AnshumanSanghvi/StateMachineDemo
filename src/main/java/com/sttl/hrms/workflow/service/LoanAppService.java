@@ -60,6 +60,7 @@ public class LoanAppService extends WorkflowService<LoanAppWorkflowInstanceEntit
         return getAll(loanAppRepository);
     }
 
+    @Transactional
     public List<EventResponseDto> passEventToSM(PassEventDto passEvent) {
         StateMachineBuilder.SMEvent smEvent = StateMachineBuilder.SMEvent.getByName(passEvent.getEvent());
         List<PassEventDto> passEvents = switch (smEvent) {
@@ -74,6 +75,7 @@ public class LoanAppService extends WorkflowService<LoanAppWorkflowInstanceEntit
         return passEvents(passEvents, loanAppRepository);
     }
 
+    @Transactional
     public void delete(Long id) {
         deleteApplication(id, loanAppRepository);
     }
