@@ -1,5 +1,6 @@
 package com.sttl.hrms.workflow.service;
 
+import com.sttl.hrms.workflow.data.Pair;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowInstanceEntity;
 import com.sttl.hrms.workflow.exception.WorkflowException;
 import com.sttl.hrms.workflow.resource.dto.EventResponseDto;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -168,6 +170,10 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
                 .map(rollBackCount -> ((Integer) rollBackCount).shortValue())
                 .filter(rollBackCount -> entity.getTimesRolledBackCount() != rollBackCount)
                 .ifPresent(entity::setTimesRolledBackCount);
+        Optional.ofNullable(map.get(KEY_FORWARDED_BY_LAST))
+                .map(lastForwardBy -> ((Pair<Integer, Long>) lastForwardBy).getSecond())
+                .filter(lastForwardBy -> !ObjectUtils.nullSafeEquals(lastForwardBy, entity.getLastForwardedBy()))
+                .ifPresent(entity::setLastForwardedBy);
 
         // update entity
         var updatedEntity = repository.save(entity);

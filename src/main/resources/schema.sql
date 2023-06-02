@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.wf_type_mst (
     CONSTRAINT wf_type_mst_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.wf_inst_mst (
+CREATE TABLE public.wf_inst_mst (
     id int8 NOT NULL,
     branch_id int4 NOT NULL,
     company_id int8 NOT NULL,
@@ -35,7 +35,10 @@ CREATE TABLE IF NOT EXISTS public.wf_inst_mst (
     create_date timestamp NULL,
     update_date timestamp NULL,
     delete_date timestamp NULL,
-    CONSTRAINT wf_inst_mst_pkey PRIMARY KEY (id)
+    fwd_count int2 NOT NULL DEFAULT 0,
+    last_fwd_by int8 NULL,
+    CONSTRAINT wf_inst_mst_pk PRIMARY KEY (id),
+    CONSTRAINT wf_inst_mst_un UNIQUE (company_id, branch_id, id, type_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.leave_wf_inst (

@@ -70,6 +70,9 @@ public abstract class WorkflowInstanceEntity extends BaseEntity implements Conte
     @Column(name = "fwd_count", nullable = false, columnDefinition = "int2 default 0")
     private short forwardCount = 0;
 
+    @Column(name = "last_fwd_by")
+    private Long lastForwardedBy;
+
     public void setStateMachineContext(DefaultStateMachineContext<String, String> stateMachineContext) {
         this.setCurrentState(stateMachineContext.getState());
         this.stateMachineContext = stateMachineContext;
