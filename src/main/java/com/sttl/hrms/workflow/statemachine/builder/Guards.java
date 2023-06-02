@@ -202,6 +202,7 @@ public class Guards {
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
         Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
 
         var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
 
@@ -213,6 +214,9 @@ public class Guards {
 
         // check that the reviewer forwarding the application is valid (i.e. not null or 0)
         if (isUserIdInvalid(context.getStateMachine(), actionBy, "forward")) return false;
+
+        // check that the comment is not null or empty.
+        if (isCommentInvalid(context.getStateMachine(), comment, "forward")) return false;
 
         Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
 
@@ -227,6 +231,60 @@ public class Guards {
             // is present in the list of reviewers for the application in the serial approval flow.
             if (!forwardIdAndOrderCheck(context, actionBy, orderNo))
                 return false;
+        }
+
+        return true;
+    }
+
+    private static boolean forwardIdAndOrderCheck(StateContext<String, String> context, Long forwardingId, Integer forwardingOrder) {
+        Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
+
+        // check that the order number and the userId of the forwarding reviewer are present in the list of reviewers for the application.
+        boolean isOrderNumberAndReviewerIdAbsent = reviewersMap
+                .entrySet()
+                .stream()
+                .noneMatch(entry -> Objects.equals(entry.getKey(), forwardingOrder) &&
+                        Objects.equals(entry.getValue(), forwardingId));
+
+        if (isOrderNumberAndReviewerIdAbsent) {
+            String errorMsg = "Guard Failed for: " + "forward" + " as the combination of the forwarding order " +
+                    "and the forwarding userId is not present in the list of reviewers";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+            return false;
+        }
+
+        Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(context, KEY_FORWARDED_MAP,
+                Map.class, Collections.emptyMap());
+
+        List<Pair<Long, Boolean>> userIdAndForwardHistoryList = new ArrayList<>(forwardMap.values());
+
+        int indexOfPairInForwardingMap = userIdAndForwardHistoryList.indexOf(new Pair<>(forwardingId, false)); // returns -1 if pair is not present.
+
+        // check that
+        // 1. the user is present in forwardingMap, and
+        // 2. the same reviewer hasn't already forwarded this application before.
+        boolean userIdAndForwardingHistoryAbsent = indexOfPairInForwardingMap < 0;
+        if (userIdAndForwardingHistoryAbsent) {
+            String errorMsg = "Guard Failed for: " +"forward" + " as no eligible reviewer found to forward the application";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+            return false;
+        }
+
+        if (indexOfPairInForwardingMap == 0) {
+            // if the user is the first user in the forwardMap and they have not forwarded the application before,
+            // then the check is complete.
+            return true;
+        }
+
+        // indexOfPairInForwardingMap > 0
+        // check that all reviewers before the current one have already forwarded this application
+        boolean isforwardingOrderMaintained = userIdAndForwardHistoryList.subList(0, indexOfPairInForwardingMap)
+                .stream().allMatch(Pair::getSecond);
+        if (!isforwardingOrderMaintained) {
+            String errorMsg = "Guard Failed for: " + "forward" + " as previous reviewers have not forwarded the " +
+                    "application";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+            return false;
         }
 
         return true;
@@ -313,61 +371,6 @@ public class Guards {
 
         return true;
     }
-
-    private static boolean forwardIdAndOrderCheck(StateContext<String, String> context, Long forwardingId, Integer forwardingOrder) {
-        Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-
-        // check that the order number and the userId of the forwarding reviewer are present in the list of reviewers for the application.
-        boolean isOrderNumberAndReviewerIdAbsent = reviewersMap
-                .entrySet()
-                .stream()
-                .noneMatch(entry -> Objects.equals(entry.getKey(), forwardingOrder) &&
-                        Objects.equals(entry.getValue(), forwardingId));
-
-        if (isOrderNumberAndReviewerIdAbsent) {
-            String errorMsg = "Guard Failed for: " + "forward" + " as the combination of the forwarding order " +
-                    "and the forwarding userId is not present in the list of reviewers";
-            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
-            return false;
-        }
-
-        Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(context, KEY_FORWARDED_MAP,
-                Map.class, Collections.emptyMap());
-
-        List<Pair<Long, Boolean>> userIdAndForwardHistoryList = new ArrayList<>(forwardMap.values());
-
-        int indexOfPairInForwardingMap = userIdAndForwardHistoryList.indexOf(new Pair<>(forwardingId, false)); // returns -1 if pair is not present.
-
-        // check that
-        // 1. the user is present in forwardingMap, and
-        // 2. the same reviewer hasn't already forwarded this application before.
-        boolean userIdAndForwardingHistoryAbsent = indexOfPairInForwardingMap < 0;
-        if (userIdAndForwardingHistoryAbsent) {
-            String errorMsg = "Guard Failed for: " +"forward" + " as no eligible reviewer found to forward the application";
-            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
-            return false;
-        }
-
-        if (indexOfPairInForwardingMap == 0) {
-            // if the user is the first user in the forwardMap and they have not forwarded the application before,
-            // then the check is complete.
-            return true;
-        }
-
-        // indexOfPairInForwardingMap > 0
-        // check that all reviewers before the current one have already forwarded this application
-        boolean isforwardingOrderMaintained = userIdAndForwardHistoryList.subList(0, indexOfPairInForwardingMap)
-                .stream().allMatch(Pair::getSecond);
-        if (!isforwardingOrderMaintained) {
-            String errorMsg = "Guard Failed for: " + "forward" + " as previous reviewers have not forwarded the " +
-                    "application";
-            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
-            return false;
-        }
-
-        return true;
-    }
-
 
     /**
      * CHECKS
