@@ -79,6 +79,11 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
     /* UPDATE */
     @Transactional
     public List<EventResponseDto> passEvent(PassEventDto eventDto, JpaRepository<E, Long> repository) {
+        if (eventDto == null) {
+            log.warn("returning empty results as there are no events to pass");
+            return Collections.emptyList();
+        }
+
         var entity = getApplicationById(eventDto.getWorkflowInstanceId(), repository);
         Long userId = eventDto.getActionBy();
 
@@ -97,6 +102,11 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
         }
 
         stateMachine = result.getFirst();
+
+        if (stateMachine.hasStateMachineError()) {
+            log.error("Error processing events in statemachine");
+            return Collections.emptyList();
+        }
 
         // updates the statemachine state in the respective fields of the entity, as well as logs the event to db if present.
         stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventResultList, true);
