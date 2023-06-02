@@ -12,6 +12,13 @@ import org.springframework.statemachine.state.State;
 import org.springframework.statemachine.transition.Transition;
 import reactor.core.publisher.Flux;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -216,6 +223,78 @@ public class StringUtil {
                 .map(EventResultDto::new)
                 .map(EventResultDto::toString)
                 .collect(Collectors.joining(",\n")) + "]";
+    }
+
+    public static <T> String classDelta(T obj1, T ob2) {
+        Field[] obj1Fields = obj1.getClass().getDeclaredFields();
+        Field[] obj2Fields = ob2.getClass().getDeclaredFields();
+        StringBuilder changes = new StringBuilder(obj1.getClass().getSimpleName()).append("{");
+        for (Field obj1Field : obj1Fields) {
+            for (Field obj2Field : obj2Fields) {
+                try {
+                    obj1Field.setAccessible(true);
+                    obj2Field.setAccessible(true);
+                    final String obj1FieldName = obj1Field.getName();
+                    final String obj2FieldName = obj2Field.getName();
+                    final Object obj1Value = obj1Field.get(obj1);
+                    final Object obj2Value = obj2Field.get(ob2);
+                    if (obj1FieldName.equalsIgnoreCase(obj2FieldName) && obj1Value != null && !obj1Value.equals(obj2Value)) {
+                        changes.append(" ").append(obj1FieldName).append(": ").append(obj1Value).append(" | ")
+                                .append(obj2Value).append(",");
+                    }
+                } catch (IllegalAccessException ex) {
+                    changes.append("error: ").append(ex.getMessage());
+                }
+            }
+        }
+        if (changes.length() > 1) changes.deleteCharAt(changes.length() - 1);
+        changes.append("}");
+        return changes.toString();
+    }
+
+    public static <T> String beanDelta(T obj1, T obj2) {
+        StringBuilder changes = new StringBuilder();
+        try {
+            BeanInfo obj1Info = Introspector.getBeanInfo(obj1.getClass());
+            BeanInfo obj2Info = Introspector.getBeanInfo(obj2.getClass());
+            changes.append(obj1Info.getClass().getSimpleName()).append("{");
+            for (PropertyDescriptor obj1Prop : obj1Info.getPropertyDescriptors()) {
+                for (PropertyDescriptor obj2Prop : obj2Info.getPropertyDescriptors()) {
+                    if (obj1Prop != null && obj2Prop != null && obj1Prop.getName().equalsIgnoreCase(obj2Prop.getName())) {
+                        String obj1PropVal = Optional.of(obj1Prop)
+                                .flatMap(prop -> Optional.ofNullable(prop.getReadMethod()))
+                                .flatMap(method -> Optional.ofNullable(methodInvoke(method, obj1)))
+                                .map(Object::toString)
+                                .map(val -> val.length() > 100 ? val.substring(0, 100).concat("...") : val)
+                                .orElse("<null>");
+
+                        String obj2PropVal = Optional.of(obj2Prop)
+                                .flatMap(prop -> Optional.ofNullable(prop.getReadMethod()))
+                                .flatMap(method -> Optional.ofNullable(methodInvoke(method, obj2)))
+                                .map(Object::toString)
+                                .map(val -> val.length() > 100 ? val.substring(0, 100).concat("...") : val)
+                                .orElse("<null>");
+                        if (!obj1PropVal.equalsIgnoreCase(obj2PropVal)) {
+                            changes.append(" ").append(obj1Prop.getName()).append(": ")
+                                    .append(obj1PropVal).append(" | ").append(obj2PropVal).append(",");
+                        }
+                    }
+                }
+            }
+        } catch (IntrospectionException ex) {
+            changes.append("error: ").append(ex.getMessage());
+        }
+        if (changes.length() > 1) changes.deleteCharAt(changes.length() - 1);
+        changes.append("}");
+        return changes.toString();
+    }
+
+    private static <T> Object methodInvoke(Method method, T obj) {
+        try {
+            return method.invoke(obj);
+        } catch (InvocationTargetException | IllegalAccessException ex) {
+            return null;
+        }
     }
 
 }

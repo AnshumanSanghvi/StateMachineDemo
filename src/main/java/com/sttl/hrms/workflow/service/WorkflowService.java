@@ -8,6 +8,7 @@ import com.sttl.hrms.workflow.statemachine.EventResultDto;
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import com.sttl.hrms.workflow.statemachine.persist.StateMachineService;
 import com.sttl.hrms.workflow.statemachine.util.EventSendHelper;
+import com.sttl.hrms.workflow.statemachine.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -134,7 +135,8 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
         // updates the statemachine state in the respective fields of the entity, as well as logs the event to db if present.
         stateMachineService.saveStateMachineToEntity(stateMachine, entity, eventResultList, true);
 
-        updateApplication(userId, stateMachine, repository, entity);
+        var savedEntity = updateApplication(userId, stateMachine, repository, entity);
+        log.debug("Updated entity with the following delta changes: {}", StringUtil.beanDelta(entity, savedEntity));
 
         return EventResponseDto.fromEventResults(entity.getId(), entity.getTypeId(), eventResultList);
     }
