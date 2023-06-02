@@ -106,6 +106,11 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
 
     @Transactional
     public List<EventResponseDto> passEvents(List<PassEventDto> passEvents, JpaRepository<E, Long> repository) {
+        if (passEvents == null || passEvents.isEmpty()) {
+            log.warn("returning empty results as there are no events to pass");
+            return Collections.emptyList();
+        }
+
         Long instanceId = passEvents.get(0).getWorkflowInstanceId();
         Long userId = passEvents.get(0).getActionBy();
 
