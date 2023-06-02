@@ -19,9 +19,9 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import static com.sttl.hrms.workflow.statemachine.SMConstants.KEY_RETURN_COUNT;
-import static com.sttl.hrms.workflow.statemachine.SMConstants.KEY_ROLL_BACK_COUNT;
+import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -150,19 +150,24 @@ public abstract class WorkflowService<E extends WorkflowInstanceEntity> {
     public E updateApplication(Long userId, StateMachine<String, String> stateMachine,
             JpaRepository<E, Long> repository, E entity) {
 
+        var map = stateMachine.getExtendedState().getVariables();
+
         // update entity details
         entity.setUpdatedDate(LocalDateTime.now());
         entity.setUpdatedByUserId(userId);
         entity.setCurrentState(stateMachine.getState().getId());
-        var map = stateMachine.getExtendedState().getVariables();
-        int returnCount = (Integer) map.getOrDefault(KEY_RETURN_COUNT, 0);
-        if (entity.getTimesReturnedCount() != returnCount) {
-            entity.setTimesReturnedCount((short) returnCount);
-        }
-        int rollbackCount = (Integer) map.getOrDefault(KEY_ROLL_BACK_COUNT, 0);
-        if (entity.getTimesRolledBackCount() != rollbackCount) {
-            entity.setTimesRolledBackCount((short) rollbackCount);
-        }
+        Optional.ofNullable(map.get(KEY_FORWARDED_COUNT))
+                .map(fwdCount -> ((Integer) fwdCount).shortValue())
+                .filter(forwardCount -> entity.getForwardCount() != forwardCount)
+                .ifPresent(entity::setForwardCount);
+        Optional.ofNullable(map.get(KEY_RETURN_COUNT))
+                .map(returnCount -> ((Integer) returnCount).shortValue())
+                .filter(returnCount -> entity.getTimesReturnedCount() != returnCount)
+                .ifPresent(entity::setTimesReturnedCount);
+        Optional.ofNullable(map.get(KEY_ROLL_BACK_COUNT))
+                .map(rollBackCount -> ((Integer) rollBackCount).shortValue())
+                .filter(rollBackCount -> entity.getTimesRolledBackCount() != rollBackCount)
+                .ifPresent(entity::setTimesRolledBackCount);
 
         // update entity
         var updatedEntity = repository.save(entity);

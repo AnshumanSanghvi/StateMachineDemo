@@ -67,6 +67,9 @@ public abstract class WorkflowInstanceEntity extends BaseEntity implements Conte
     @Column(name = "statemachine_id", nullable = false, length = 100)
     private String stateMachineId;
 
+    @Column(name = "fwd_count", nullable = false, columnDefinition = "int2 default 0")
+    private short forwardCount = 0;
+
     public void setStateMachineContext(DefaultStateMachineContext<String, String> stateMachineContext) {
         this.setCurrentState(stateMachineContext.getState());
         this.stateMachineContext = stateMachineContext;
