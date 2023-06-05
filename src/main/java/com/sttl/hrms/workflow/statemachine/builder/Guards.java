@@ -35,14 +35,27 @@ public class Guards {
     public static boolean approveInParallel(StateContext<String, String> context) {
         log.debug("Executing guard: parallelApprovalGuard with currentState: {}", getStateId(context));
 
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+
         if (adminApprove(context)) return true;
 
         // check that the approving reviewer is present in the list of reviewers for the application
-        Long approvedBy = get(context, KEY_APPROVE_BY, Long.class, null);
         Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class,
                 Collections.emptyMap());
-        return !isUserAbsentFromUserList(context.getStateMachine(), reviewersMap.values(), approvedBy, "reviewer",
-                "approve");
+        if(isUserAbsentFromUserList(context.getStateMachine(), reviewersMap.values(), actionBy, "reviewer",
+                "approve")) return false;
+
+        boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
+        if (anyApprove)
+            return true;
+
+        int forwardedCount = get(context.getExtendedState(), KEY_FORWARDED_COUNT, Integer.class, 0);
+        int reviewersCount = get(context.getExtendedState(), KEY_REVIEWERS_COUNT, Integer.class, 0);
+        if (forwardedCount != reviewersCount)
+            return false;
+
+        return true;
     }
 
     public static boolean approveInSerial(StateContext<String, String> context) {
@@ -227,16 +240,36 @@ public class Guards {
 
         boolean isSerialFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
         if (isSerialFlow) {
-            // check that both, the order of forwarding, and the forwarding user
-            // is present in the list of reviewers for the application in the serial approval flow.
-            if (!forwardIdAndOrderCheck(context, actionBy, orderNo))
-                return false;
+            return forwardSerialCheck(context, actionBy, orderNo);
+        } else
+            return forwardParallelCheck(context, actionBy);
+    }
+
+    private static boolean forwardParallelCheck(StateContext<String, String> context, Long forwardingId) {
+
+        Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(context, KEY_FORWARDED_MAP,
+                Map.class, Collections.emptyMap());
+
+        List<Pair<Long, Boolean>> userIdAndForwardHistoryList = new ArrayList<>(forwardMap.values());
+
+        int indexOfPairInForwardingMap = userIdAndForwardHistoryList.indexOf(new Pair<>(forwardingId, false)); // returns -1 if pair is not present.
+
+        // check that
+        // 1. the user is present in forwardingMap, and
+        // 2. the same reviewer hasn't already forwarded this application before.
+        boolean userIdAndForwardingHistoryAbsent = indexOfPairInForwardingMap < 0;
+        if (userIdAndForwardingHistoryAbsent) {
+            String errorMsg = "Guard Failed for: " +"forward" + " either the user has forwarded the application " +
+                    "before, or this user id is not present in the forwarding list";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+            return false;
         }
 
         return true;
+
     }
 
-    private static boolean forwardIdAndOrderCheck(StateContext<String, String> context, Long forwardingId, Integer forwardingOrder) {
+    private static boolean forwardSerialCheck(StateContext<String, String> context, Long forwardingId, Integer forwardingOrder) {
         Map<Integer, Long> reviewersMap = (Map<Integer, Long>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
 
         // check that the order number and the userId of the forwarding reviewer are present in the list of reviewers for the application.
@@ -265,7 +298,8 @@ public class Guards {
         // 2. the same reviewer hasn't already forwarded this application before.
         boolean userIdAndForwardingHistoryAbsent = indexOfPairInForwardingMap < 0;
         if (userIdAndForwardingHistoryAbsent) {
-            String errorMsg = "Guard Failed for: " +"forward" + " as no eligible reviewer found to forward the application";
+            String errorMsg = "Guard Failed for: " +"forward" + " either the user has forwarded the application " +
+                    "before, or this user id is not present in the forwarding list";
             context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
             return false;
         }

@@ -81,6 +81,7 @@ public class WorkflowTypeEntity extends BaseEntity {
         private List<Long> adminRoleIds = new ArrayList<>(5);
         private int changeReqMaxCount = 5;
         private int rollbackMaxCount = 5;
+        private boolean singleApproval = false;
 
         public WorkflowProperties addAdminId(Long id) {
             if (adminRoleIds == null)

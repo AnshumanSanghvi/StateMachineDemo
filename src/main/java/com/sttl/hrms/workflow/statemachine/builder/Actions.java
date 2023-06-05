@@ -64,6 +64,7 @@ public class Actions {
         stateMap.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.of(workflowProperties)
                 .map(WorkflowProperties::isParallelApproval)
                 .filter(Boolean::booleanValue).map(flow -> VAL_PARALLEL).orElse(VAL_SERIAL));
+        stateMap.putIfAbsent(KEY_ANY_APPROVE, workflowProperties.isSingleApproval());
 
         // roll back properties
         stateMap.putIfAbsent(KEY_ROLL_BACK_COUNT, 0);
@@ -97,8 +98,12 @@ public class Actions {
     public static void forward(StateContext<String, String> context) {
         log.trace("Executing action: forwardStateExitAction with currentState: {}", getStateId(context));
 
+        ExtendedState extState = context.getExtendedState();
+
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class);
+        String comment = get(headers, MSG_KEY_COMMENT, String.class, "");
 
         // if the userId is an admin, then instead of forwarding, auto-approve the application.
         List<Long> adminIds = get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
@@ -108,37 +113,14 @@ public class Actions {
             return;
         }
 
-        boolean isParallelFlow = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL)
-                .equalsIgnoreCase(VAL_PARALLEL);
-        if (isParallelFlow) {
-            forwardForParallelApprovalFlow(context);
-            return;
-        }
-
-        // record the forward event by the reviewer, keeping their order intact.
-        forwardForSerialApprovalFlow(context);
-    }
-
-    //TODO: manage all cases for parallel approval
-    private static void forwardForParallelApprovalFlow(StateContext<String, String> context) {
         // if reviewers can forward the application in any order, then auto-approve.
         boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
         if (anyApprove) {
             triggerApproveEvent(context);
         }
-    }
-
-    private static void forwardForSerialApprovalFlow(StateContext<String, String> context) {
-
-        ExtendedState extState = context.getExtendedState();
-
-        MessageHeaders headers = context.getMessage().getHeaders();
-        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class);
-        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class);
-        String comment = get(headers, MSG_KEY_COMMENT, String.class, "");
 
         // 1. set the value in the forward map
-        Map<Integer, Pair<Long, Boolean>> forwardMap = (Map<Integer, Pair<Long, Boolean>>) get(extState, KEY_FORWARDED_MAP, Map.class, null);
+        Map<Integer, Pair<Long, Boolean>> forwardMap = get(extState, KEY_FORWARDED_MAP, Map.class, null);
         forwardMap.put(orderNo, new Pair<>(actionBy, true));
 
         // 2. increment the forward count,
@@ -148,7 +130,7 @@ public class Actions {
         Map<Object, Object> map = extState.getVariables();
         map.put(KEY_FORWARDED_COUNT, forwardedCount);
 
-        // 3. set the forward by record and forward comment
+        // 3. set the last-forward-by record and forward comment
         map.put(KEY_FORWARDED_BY_LAST, new Pair<>(orderNo, actionBy));
         map.put(KEY_FORWARDED_COMMENT, comment);
 
@@ -161,14 +143,9 @@ public class Actions {
     private static void triggerApproveEvent(StateContext<String, String> context) {
         log.trace("Executing action: autoApproveTransitionAction with currentState: {}", getStateId(context));
 
-        ExtendedState extState = context.getExtendedState();
-        Pair<Integer, Long> forwardBy = (Pair<Integer, Long>) get(extState, KEY_FORWARDED_BY_LAST, Pair.class, null);
-        String comment = get(extState, KEY_FORWARDED_COMMENT, String.class, null);
-
-        Map<String, Object> headersMap = new HashMap<>();
-        Optional.ofNullable(forwardBy.getFirst()).ifPresent(ord -> headersMap.put(MSG_KEY_ORDER_NO, ord));
-        Optional.ofNullable(forwardBy.getSecond()).ifPresent(actId -> headersMap.put(MSG_KEY_ACTION_BY, actId));
-        Optional.ofNullable(comment).ifPresent(cmt -> headersMap.put(MSG_KEY_COMMENT, cmt));
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Map<String, Object> headersMap = new HashMap<>(headers.size());
+        headersMap.putAll(headers);
 
         var result = EventSendHelper.sendMessageToSM(context.getStateMachine(), E_APPROVE.name(), headersMap);
 
