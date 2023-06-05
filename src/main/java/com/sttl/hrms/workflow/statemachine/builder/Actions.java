@@ -230,6 +230,11 @@ public class Actions {
         map.put(KEY_REJECTED_BY, actionBy);
         map.put(KEY_REJECTED_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_REJECTED);
+
+        map.remove(KEY_FORWARDED_BY_LAST);
+        map.remove(KEY_FORWARDED_COMMENT);
+        map.remove(KEY_FORWARDED_COUNT);
+
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
     }
 
