@@ -2,6 +2,7 @@ package com.sttl.hrms.workflow.resource.dto;
 
 import com.sttl.hrms.workflow.data.enums.WorkflowType;
 import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity;
+import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,7 +53,7 @@ public class WorkflowTypeDto {
         if (dto.createdByUserId != null) entity.setCreatedByUserId(dto.createdByUserId);
         if (dto.deletedByUserId != null) entity.setDeletedByUserId(dto.deletedByUserId);
 
-        WorkflowTypeEntity.WorkflowProperties properties = WorkflowPropertiesDto.toProp(dto.wfPropDto);
+        WorkflowProperties properties = WorkflowPropertiesDto.toProp(dto.wfPropDto);
         entity.setWorkflowProperties(properties);
 
         return entity;
@@ -64,27 +65,27 @@ public class WorkflowTypeDto {
     public static class WorkflowPropertiesDto {
 
         // workflow properties
-        Boolean hasParallelApproval;
-        Boolean hasRepeatableApprovers;
-        Boolean canRollBackApproval;
-        Boolean canAdminApproveWorkflow;
+        Boolean parallelApproval;
+        Boolean repeatableApprovers;
+        Boolean rollBackApproval;
+        Boolean adminApproveWorkflow;
         List<Long> adminRoleIds;
-        Integer maximumChangeRequestThreshold;
-        Integer maximumRollbackApprovalThreshold;
+        Integer changeReqMaxCount;
+        Integer rollbackMaxCount;
 
-        public static WorkflowTypeEntity.WorkflowProperties toProp(WorkflowPropertiesDto wfPropDto) {
-            WorkflowTypeEntity.WorkflowProperties properties = new WorkflowTypeEntity.WorkflowProperties();
-            if (wfPropDto.hasParallelApproval != null) properties.setHasParallelApproval(wfPropDto.hasParallelApproval);
-            if (wfPropDto.hasRepeatableApprovers != null)
-                properties.setHasRepeatableApprovers(wfPropDto.hasRepeatableApprovers);
-            if (wfPropDto.canRollBackApproval != null) properties.setCanRollBackApproval(wfPropDto.canRollBackApproval);
-            if (wfPropDto.canAdminApproveWorkflow != null)
-                properties.setCanAdminApproveWorkflow(wfPropDto.canAdminApproveWorkflow);
+        public static WorkflowProperties toProp(WorkflowPropertiesDto wfPropDto) {
+            WorkflowProperties properties = new WorkflowProperties();
+            if (wfPropDto.parallelApproval != null) properties.setParallelApproval(wfPropDto.parallelApproval);
+            if (wfPropDto.repeatableApprovers != null)
+                properties.setRepeatableApprovers(wfPropDto.repeatableApprovers);
+            if (wfPropDto.rollBackApproval != null) properties.setRollBackApproval(wfPropDto.rollBackApproval);
+            if (wfPropDto.adminApproveWorkflow != null)
+                properties.setAdminApproveWorkflow(wfPropDto.adminApproveWorkflow);
             if (wfPropDto.adminRoleIds != null) properties.setAdminRoleIds(wfPropDto.adminRoleIds);
-            if (wfPropDto.maximumChangeRequestThreshold != null)
-                properties.setChangeReqMaxCount(wfPropDto.maximumChangeRequestThreshold);
-            if (wfPropDto.maximumRollbackApprovalThreshold != null)
-                properties.setRollbackMaxCount(wfPropDto.maximumRollbackApprovalThreshold);
+            if (wfPropDto.changeReqMaxCount != null)
+                properties.setChangeReqMaxCount(wfPropDto.changeReqMaxCount);
+            if (wfPropDto.rollbackMaxCount != null)
+                properties.setRollbackMaxCount(wfPropDto.rollbackMaxCount);
 
             return properties;
         }

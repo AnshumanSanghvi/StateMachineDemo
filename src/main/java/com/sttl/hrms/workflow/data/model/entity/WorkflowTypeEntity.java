@@ -74,10 +74,10 @@ public class WorkflowTypeEntity extends BaseEntity {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class WorkflowProperties implements Serializable {
-        private boolean hasParallelApproval = false;
-        private boolean hasRepeatableApprovers = false;
-        private boolean canRollBackApproval = true;
-        private boolean canAdminApproveWorkflow = true;
+        private boolean parallelApproval = false;
+        private boolean repeatableApprovers = false;
+        private boolean rollBackApproval = true;
+        private boolean adminApproveWorkflow = true;
         private List<Long> adminRoleIds = new ArrayList<>(5);
         private int changeReqMaxCount = 5;
         private int rollbackMaxCount = 5;

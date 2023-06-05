@@ -35,7 +35,7 @@ public class StateMachineBuilder {
 
         configureStates(builder, reviewerMap, wfProps);
 
-        configureTransitions(builder, wfProps.isHasParallelApproval());
+        configureTransitions(builder, wfProps.isParallelApproval());
 
         StateMachine<String, String> stateMachine = builder.build();
 

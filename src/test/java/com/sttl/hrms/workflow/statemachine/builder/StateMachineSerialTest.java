@@ -46,9 +46,9 @@ class StateMachineSerialTest {
         Map<Integer, Long> reviewerMap = Map.of(1, reviewer1, 2, reviewer2, 3, reviewer3);
         WorkflowProperties wfProps = new WorkflowProperties();
         wfProps.setAdminRoleIds(List.of(admin1, admin2, admin3));
-        wfProps.setCanRollBackApproval(true);
-        wfProps.setCanAdminApproveWorkflow(true);
-        wfProps.setHasParallelApproval(false);
+        wfProps.setRollBackApproval(true);
+        wfProps.setAdminApproveWorkflow(true);
+        wfProps.setParallelApproval(false);
         wfProps.setRollbackMaxCount(3);
         wfProps.setChangeReqMaxCount(3);
         this.stateMachine = StateMachineBuilder.createStateMachine(stateMachineName, reviewerMap, wfProps);

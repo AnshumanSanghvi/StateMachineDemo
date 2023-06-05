@@ -62,7 +62,7 @@ public class Actions {
 
         // flow type property
         stateMap.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.of(workflowProperties)
-                .map(WorkflowProperties::isHasParallelApproval)
+                .map(WorkflowProperties::isParallelApproval)
                 .filter(Boolean::booleanValue).map(flow -> VAL_PARALLEL).orElse(VAL_SERIAL));
 
         // roll back properties
