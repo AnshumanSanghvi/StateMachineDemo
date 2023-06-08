@@ -65,6 +65,7 @@ public class StateMachineBuilder {
         builder.configureStates()
                 .withStates()
                     .initial(S_INITIAL.name(), context -> Actions.initial(context, wfProps, reviewerMap))
+                    .junction(S_CREATE_JUNCTION.name())
                     .states(Set.of(S_CREATED.name(), S_SUBMITTED.name(), S_UNDER_PROCESS.name()))
                     .junction(S_APPROVAL_JUNCTION.name())
                     .state(S_SERIAL_APPROVAL_FLOW.name())
@@ -78,8 +79,13 @@ public class StateMachineBuilder {
 
         transitions
                 .withExternal().name(TX_USER_CREATES_APP)
-                    .source(S_INITIAL.name()).event(E_CREATE.name()).target(S_CREATED.name())
-                    .action(Actions::create).and()
+                    .source(S_INITIAL.name()).event(E_CREATE.name()).target(S_CREATE_JUNCTION.name())
+                    .and()
+
+                .withJunction()
+                    .source(S_CREATE_JUNCTION.name())
+                    .first(S_CLOSED.name(), Guards::adminApprove, Actions::approve)
+                    .last(S_CREATED.name()).and()
 
                 .withExternal().name(TX_USER_CANCELS_CREATED_APP)
                     .source(S_CREATED.name()).event(E_CANCEL.name()).target(S_COMPLETED.name()).and()
@@ -177,6 +183,7 @@ public class StateMachineBuilder {
 
     public enum SMState {
         S_INITIAL,
+        S_CREATE_JUNCTION,
         S_CREATED,
         S_SUBMITTED,
         S_UNDER_PROCESS,

@@ -165,6 +165,11 @@ public class Actions {
         ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
 
+        var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
+        if (adminList.contains(actionBy)) {
+            comment = (comment == null || comment.isBlank()) ? "approved by admin" : comment;
+        }
+
         map.put(KEY_APPROVE_BY, actionBy);
         map.put(KEY_APPROVE_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
@@ -276,22 +281,5 @@ public class Actions {
                         () -> map.remove(KEY_FORWARDED_BY_LAST)); // if no entry is present, then remove.
 
         log.trace("Setting extended state- rollBackCount: {}", get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
-    }
-
-    public static void create(final StateContext<String, String> context) {
-
-        MessageHeaders headers = context.getMessage().getHeaders();
-        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
-        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
-        String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
-
-        var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
-        if (adminIds.contains(actionBy)) {
-            var map = context.getExtendedState().getVariables();
-            map.put(KEY_FORWARDED_BY_LAST, new Pair<>(orderNo, actionBy));
-            map.put(KEY_FORWARDED_COMMENT, Optional.ofNullable(comment).orElse("Created by Admin"));
-            triggerApproveEvent(context);
-        }
-
     }
 }

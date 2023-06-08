@@ -90,7 +90,7 @@ public class Guards {
         return true;
     }
 
-    private static boolean adminApprove(StateContext<String, String> context) {
+    public static boolean adminApprove(StateContext<String, String> context) {
 
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
