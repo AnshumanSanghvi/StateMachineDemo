@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,7 +34,7 @@ public class WorkflowTypeDto {
     Short isActive;
 
     // workflow properties
-    WorkflowPropertiesDto wfPropDto;
+    WorkflowPropertiesDto wfPropDto = new WorkflowPropertiesDto();
 
     public static WorkflowTypeEntity toEntity(WorkflowTypeDto dto) {
         WorkflowTypeEntity entity = new WorkflowTypeEntity();
@@ -69,23 +71,45 @@ public class WorkflowTypeDto {
         Boolean repeatableApprovers;
         Boolean rollBackApproval;
         Boolean adminApproveWorkflow;
-        List<Long> adminRoleIds;
+        List<Long> adminRoleIds = new ArrayList<>();
         Integer changeReqMaxCount;
         Integer rollbackMaxCount;
+        Boolean singleApproval;
 
         public static WorkflowProperties toProp(WorkflowPropertiesDto wfPropDto) {
             WorkflowProperties properties = new WorkflowProperties();
-            if (wfPropDto.parallelApproval != null) properties.setParallelApproval(wfPropDto.parallelApproval);
-            if (wfPropDto.repeatableApprovers != null)
-                properties.setRepeatableApprovers(wfPropDto.repeatableApprovers);
-            if (wfPropDto.rollBackApproval != null) properties.setRollBackApproval(wfPropDto.rollBackApproval);
-            if (wfPropDto.adminApproveWorkflow != null)
-                properties.setAdminApproveWorkflow(wfPropDto.adminApproveWorkflow);
-            if (wfPropDto.adminRoleIds != null) properties.setAdminRoleIds(wfPropDto.adminRoleIds);
-            if (wfPropDto.changeReqMaxCount != null)
-                properties.setChangeReqMaxCount(wfPropDto.changeReqMaxCount);
-            if (wfPropDto.rollbackMaxCount != null)
-                properties.setRollbackMaxCount(wfPropDto.rollbackMaxCount);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getParallelApproval()))
+                    .ifPresent(properties::setParallelApproval);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getRepeatableApprovers()))
+                    .ifPresent(properties::setRepeatableApprovers);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getRollBackApproval()))
+                    .ifPresent(properties::setRollBackApproval);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getAdminApproveWorkflow()))
+                    .ifPresent(properties::setAdminApproveWorkflow);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getAdminRoleIds()))
+                    .ifPresent(properties::setAdminRoleIds);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getChangeReqMaxCount()))
+                    .ifPresent(properties::setChangeReqMaxCount);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getRollbackMaxCount()))
+                    .ifPresent(properties::setRollbackMaxCount);
+
+            Optional.of(wfPropDto)
+                    .flatMap(dto -> Optional.ofNullable(dto.getSingleApproval()))
+                    .ifPresent(properties::setSingleApproval);
 
             return properties;
         }

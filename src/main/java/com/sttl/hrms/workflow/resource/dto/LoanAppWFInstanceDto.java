@@ -51,7 +51,7 @@ public class LoanAppWFInstanceDto {
         var entity = new LoanAppWorkflowInstanceEntity();
 
         entity.setLoanType(LoanType.fromId(dto.getLoanType()));
-        entity.setIsActive(dto.getIsActive());
+        entity.setIsActive(Optional.ofNullable(dto.getIsActive()).orElse((short) 1));
 
         List<Short> workflowVersions = LOAN_APP_SM.getStateMachineIds()
                 .stream()
