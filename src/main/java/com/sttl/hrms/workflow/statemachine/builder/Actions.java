@@ -36,13 +36,13 @@ public class Actions {
     }
 
     public static void initial(StateContext<String, String> context, WorkflowProperties workflowProperties,
-            Map<Integer, List<Long>> reviewerMap) {
+            Map<Integer, List<Long>> reviewerMap, Long createdBy) {
 
-        initial(context.getStateMachine(), workflowProperties, reviewerMap);
+        initial(context.getStateMachine(), workflowProperties, reviewerMap, createdBy);
     }
 
     public static void initial(StateMachine<String, String> stateMachine, WorkflowProperties workflowProperties,
-            Map<Integer, List<Long>> reviewerMap) {
+            Map<Integer, List<Long>> reviewerMap, Long createdBy) {
 
         String stateId = Optional.ofNullable(stateMachine).flatMap(sm -> Optional.ofNullable(sm.getState())
                 .map(State::getId).map(Object::toString)).orElse("null");
@@ -51,14 +51,18 @@ public class Actions {
         Optional.ofNullable(stateMachine)
                 .map(StateMachine::getExtendedState)
                 .flatMap(exs -> Optional.ofNullable(exs.getVariables()))
-                .ifPresent(stateMap -> setExtendedState(stateMachine, workflowProperties, reviewerMap, stateMap));
+                .ifPresent(stateMap -> setExtendedState(stateMachine, workflowProperties, reviewerMap, stateMap,
+                        createdBy));
     }
 
     private static void setExtendedState(StateMachine<String, String> stateMachine, WorkflowProperties wfProps,
-            Map<Integer, List<Long>> reviewerMap, Map<Object, Object> stateMap) {
+            Map<Integer, List<Long>> reviewerMap, Map<Object, Object> stateMap, Long createdBy) {
         ExtendedState extState = stateMachine.getExtendedState();
 
         var workflowProperties = (wfProps == null) ? new WorkflowProperties() : wfProps;
+
+        // property created by
+        stateMap.putIfAbsent(KEY_CREATED_BY, createdBy);
 
         // flow type property
         stateMap.putIfAbsent(KEY_APPROVAL_FLOW_TYPE, Optional.of(workflowProperties)

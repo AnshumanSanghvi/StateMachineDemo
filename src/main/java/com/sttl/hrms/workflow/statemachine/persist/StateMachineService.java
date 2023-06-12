@@ -42,14 +42,14 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
 
         // create statemachine as per the entity's statemachine id.
         var stateMachine = Optional
-                .ofNullable(stateMachineAdapter.createStateMachine(typeEntity, entity.getReviewers()))
+                .ofNullable(stateMachineAdapter.createStateMachine(typeEntity, entity.getReviewers(), entity.getCreatedByUserId()))
                 .orElseThrow(() -> new StateMachineException("StateMachine was not created"));
 
         // set the state machine extended state from the workflow type and workflow instance
         List<Pair<Integer, List<Long>>> reviewersList = entity.getReviewers();
         var properties = workflowTypeService.getWorkFlowPropertiesByType(entity.getTypeId());
         Map<Integer, List<Long>> reviewerMap = new LinkedHashMap<>(Pair.pairListToMap(reviewersList));
-        Actions.initial(stateMachine, properties, reviewerMap);
+        Actions.initial(stateMachine, properties, reviewerMap, entity.getCreatedByUserId());
         return stateMachine;
     }
 
@@ -64,7 +64,8 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
     @Transactional(readOnly = true)
     public StateMachine<String, String> getStateMachineFromEntity(T entity) {
         WorkflowTypeEntity typeEntity = workflowTypeService.findByTypeId(entity.getTypeId());
-        var stateMachine = stateMachineAdapter.restore(stateMachineAdapter.createStateMachine(typeEntity, entity.getReviewers()), entity);
+        var stateMachine = stateMachineAdapter.restore(stateMachineAdapter.createStateMachine(typeEntity,
+                entity.getReviewers(), entity.getCreatedByUserId()), entity);
         log.debug("For entity with id: {} and currentState: {}, Restored statemachine: {}",
                 entity.getId(), entity.getCurrentState(), StringUtil.stateMachine(stateMachine, false));
         return stateMachine;

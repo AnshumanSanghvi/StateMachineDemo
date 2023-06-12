@@ -36,6 +36,7 @@ public class SMConstants {
     public static final String KEY_ROLL_BACK_COMMENT = "ROLL_BACK_COMMENT";
     public static final String KEY_ROLL_BACK_COUNT = "ROLL_BACK_COUNT";
     public static final String KEY_ROLL_BACK_MAX = "ROLL_BACK_MAX";
+    public static final String KEY_CREATED_BY = "APP_CREATED_BY";
 
     // ExtendedState Values
     public static final String VAL_APPROVED = "APPROVED";

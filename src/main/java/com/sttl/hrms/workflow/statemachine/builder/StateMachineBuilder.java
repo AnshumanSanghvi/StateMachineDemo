@@ -28,13 +28,13 @@ public class StateMachineBuilder {
     }
 
     public static StateMachine<String, String> createStateMachine(String stateMachineName,
-            Map<Integer, List<Long>> reviewerMap, WorkflowProperties wfProps)
+            Map<Integer, List<Long>> reviewerMap, WorkflowProperties wfProps, Long createdBy)
             throws Exception {
         Builder<String, String> builder = org.springframework.statemachine.config.StateMachineBuilder.builder();
 
         configureStateMachine(builder, stateMachineName);
 
-        configureStates(builder, reviewerMap, wfProps);
+        configureStates(builder, reviewerMap, wfProps, createdBy);
 
         configureTransitions(builder, wfProps.isParallelApproval());
 
@@ -62,11 +62,11 @@ public class StateMachineBuilder {
     }
 
     private static void configureStates(Builder<String, String> builder, Map<Integer, List<Long>> reviewerMap,
-            WorkflowProperties wfProps)
+            WorkflowProperties wfProps, Long createdBy)
             throws Exception {
         builder.configureStates()
                 .withStates()
-                    .initial(S_INITIAL.name(), context -> Actions.initial(context, wfProps, reviewerMap))
+                    .initial(S_INITIAL.name(), context -> Actions.initial(context, wfProps, reviewerMap, createdBy))
                     .junction(S_CREATE_JUNCTION.name())
                     .states(Set.of(S_CREATED.name(), S_SUBMITTED.name(), S_UNDER_PROCESS.name()))
                     .junction(S_APPROVAL_JUNCTION.name())
@@ -90,7 +90,8 @@ public class StateMachineBuilder {
                     .last(S_CREATED.name()).and()
 
                 .withExternal().name(TX_USER_CANCELS_CREATED_APP)
-                    .source(S_CREATED.name()).event(E_CANCEL.name()).target(S_COMPLETED.name()).and()
+                    .source(S_CREATED.name()).event(E_CANCEL.name()).target(S_COMPLETED.name())
+                    .guard(Guards::cancel).action(Actions::cancel).and()
 
                 .withExternal().name(TX_USER_SUBMITS_APP)
                     .source(S_CREATED.name()).event(E_SUBMIT.name()).target(S_SUBMITTED.name()).and()
@@ -103,7 +104,7 @@ public class StateMachineBuilder {
 
                 .withExternal().name(TX_USER_CANCELS_APP_UNDER_REVIEW)
                     .source(S_UNDER_PROCESS.name()).event(E_CANCEL.name()).target(S_COMPLETED.name())
-                    .action(Actions::cancel).and()
+                    .guard(Guards::cancel).action(Actions::cancel).and()
 
                 .withJunction()
                     .source(S_APPROVAL_JUNCTION.name())

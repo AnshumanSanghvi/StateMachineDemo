@@ -426,6 +426,22 @@ public class Guards {
         return true;
     }
 
+    public static boolean cancel(StateContext<String, String> context) {
+
+        MessageHeaders headers = context.getMessage().getHeaders();
+        Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
+
+        // check that the person requesting cancel is either an admin
+        var adminIds = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
+        if (adminIds.contains(actionBy)) return true;
+
+        // or the creator
+        Long createdBy = get(context, KEY_CREATED_BY, Long.class, 0L);
+        if (actionBy.equals(createdBy)) return true;
+
+        return false;
+    }
+
     private static boolean reviewCountCheck(StateContext<String, String> context) {
         int forwardedCount = get(context, KEY_FORWARDED_COUNT, Integer.class, 0);
         int reviewerCount = get(context, KEY_REVIEWERS_COUNT, Integer.class, 0);

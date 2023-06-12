@@ -21,14 +21,14 @@ public class StateMachineBuilderFactory {
     }
 
     public static StateMachine<String, String> getStateMachineFromEntityAndType(WorkflowTypeEntity typeEntity,
-            List<Pair<Integer, List<Long>>> reviewers) {
+            List<Pair<Integer, List<Long>>> reviewers, Long createdBy) {
         try {
             WorkflowProperties wfProps = typeEntity.getWorkflowProperties();
             return switch (typeEntity.getTypeId()) {
                 case LEAVE_APPLICATION ->
-                        StateMachineBuilder.createStateMachine(LEAVE_APP_WF_V1,  listToMap(reviewers), wfProps);
+                        StateMachineBuilder.createStateMachine(LEAVE_APP_WF_V1,  listToMap(reviewers), wfProps, createdBy);
                 case LOAN_APPLICATION ->
-                        StateMachineBuilder.createStateMachine(LOAN_APP_WF_V1, listToMap(reviewers), wfProps);
+                        StateMachineBuilder.createStateMachine(LOAN_APP_WF_V1, listToMap(reviewers), wfProps, createdBy);
             };
         } catch (Exception ex) {
             throw new StateMachineException(ex);
