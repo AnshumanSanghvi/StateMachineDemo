@@ -157,7 +157,7 @@ public class Guards {
                     }
                 }
             } else { // if the application has not been forwarded before:
-                // check that the current user is the first order user in the reviewersMap
+                // check that the current user is the first order user in the reviewerMap
                 if (!reviewerMap.get(1).contains(actionBy)) {
                     String errorMsg =
                             "Guard failed for requestChanges as the reviewer: " + actionBy + " at position: " + orderNo +
@@ -266,7 +266,7 @@ public class Guards {
         Map<Integer, Set<Long>> reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
                 Collections.emptyMap());
 
-        // check that the forwardingId is present in the reviewersMap
+        // check that the forwardingId is present in the reviewerMap
         Set<Long> reviewerList = reviewerMap.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         if (isUserAbsentFromUserList(context.getStateMachine(), reviewerList, actionBy, "reviewers",
                 "forward"))
@@ -435,7 +435,7 @@ public class Guards {
                     return false;
                 }
             } else { // if the application has not been forwarded before:
-                // check that the current user is the first order user in the reviewersMap
+                // check that the current user is the first order user in the reviewerMap
                 if (!reviewerMap.get(1).contains(actionBy)) {
                     String errorMsg =
                             "Guard failed for reject as the Reviewer: " + actionBy + " at position: " + orderNo + " " +

@@ -407,6 +407,7 @@ class StateMachineSerialTest {
                     E_FORWARD);
             EventSendHelper.passEvents(stateMachine, passEvents);
 
+            // reviewer 2 forwards the application
             List<PassEventDto> passEvents2 = createPassEvents(wfInstanceId, LOAN_APPLICATION, reviewer2, 2, "forward",
                     E_FORWARD);
             EventSendHelper.passEvents(stateMachine, passEvents2);

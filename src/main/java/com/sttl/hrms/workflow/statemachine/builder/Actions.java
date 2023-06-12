@@ -118,24 +118,24 @@ public class Actions {
             return;
         }
 
-        // if reviewers can forward the application in any order, then auto-approve.
+        // if a single reviewer is allowed to directly approve the app, then trigger approval.
+        // (we have already checked in the guard that the user belongs to the reviewer list)
         boolean anyApprove = get(context, KEY_ANY_APPROVE, Boolean.class, Boolean.FALSE);
         if (anyApprove) {
             triggerApproveEvent(context);
         }
 
-        // 1. set the value in the forward map
+        // 1. set the value in the forward map for given user at specified order
         Map<Integer, List<Pair<Long, Boolean>>> forwardMap = get(extState, KEY_FORWARDED_MAP, Map.class, null);
-        var pairList = forwardMap.get(orderNo)
-                .stream()
-                .map(pair -> {
-                    if (pair.getFirst().equals(actionBy)) {
-                        pair.setSecond(true);
+        forwardMap.forEach((fwdOder, fwdRwrStatusList) -> {
+            if (fwdOder.equals(orderNo)) {
+                fwdRwrStatusList.forEach(fwdRwrStatusPair -> {
+                    if (fwdRwrStatusPair.getFirst().equals(actionBy)) {
+                        fwdRwrStatusPair.setSecond(true);
                     }
-                    return pair;
-                })
-                .collect(Collectors.toList());
-        forwardMap.put(orderNo, pairList);
+                });
+            }
+        });
 
         // 2. increment the forward count,
         int forwardedCount = get(extState, KEY_FORWARDED_COUNT, Integer.class, 0) + 1;
@@ -180,6 +180,7 @@ public class Actions {
         ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
 
+        // add default comment if not present, if the application is approved by admin.
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
         if (adminList.contains(actionBy)) {
             comment += " (approved by admin)";
@@ -210,9 +211,9 @@ public class Actions {
         map.put(KEY_ROLL_BACK_COUNT, 0);
 
         log.trace("Setting extended state- returnCount: {}, forwardCount: {}, rollBackCount: {}",
-                get(extState, KEY_RETURN_COUNT, Integer.class, 0),
-                get(extState, KEY_FORWARDED_COUNT, Integer.class, 0),
-                get(extState, KEY_ROLL_BACK_COUNT, Integer.class, 0));
+                get(extState, KEY_RETURN_COUNT, Integer.class, null),
+                get(extState, KEY_FORWARDED_COUNT, Integer.class, null),
+                get(extState, KEY_ROLL_BACK_COUNT, Integer.class, null));
     }
 
     public static void reject(StateContext<String, String> context) {
@@ -224,11 +225,12 @@ public class Actions {
         Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
 
         ExtendedState extState = context.getExtendedState();
-        var map = context.getExtendedState().getVariables();
+        var map = extState.getVariables();
         map.put(KEY_REJECTED_BY, new Pair<>(orderNo, actionBy));
         map.put(KEY_REJECTED_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_REJECTED);
 
+        // remove counts in case application rejection is rolled back
         map.remove(KEY_FORWARDED_BY_LAST);
         map.remove(KEY_FORWARDED_COMMENT);
         map.remove(KEY_FORWARDED_COUNT);
@@ -290,8 +292,8 @@ public class Actions {
         // reset forwarded by to previous entry
         forwardedMap.entrySet()
                 .stream()
+                // only select the entries that are already forwarded
                 .filter(entry -> entry.getValue().stream().anyMatch(Pair::getSecond))
-                 // only select the entries that are already forwarded
                 .max(Map.Entry.comparingByKey()) // find the latest entry that is forwarded
                 .ifPresentOrElse(e -> e.getValue().stream()
                         .filter(Pair::getSecond)
