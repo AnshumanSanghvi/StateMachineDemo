@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.sttl.hrms.workflow.data.enums.WorkFlowTypeStateMachine.LEAVE_APP_SM;
 
@@ -34,7 +35,7 @@ public class LeaveAppWFInstanceDto {
     @Builder.Default
     Short timesReturnedCount = 0;
     Short workflowVersion;
-    @NotNull List<Pair<Integer, List<Long>>> reviewers;
+    @NotNull List<Pair<Integer, Set<Long>>> reviewers;
 
     // base entity
     @NotNull Long companyId;

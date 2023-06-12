@@ -46,9 +46,9 @@ public class StateMachineService<T extends WorkflowInstanceEntity> {
                 .orElseThrow(() -> new StateMachineException("StateMachine was not created"));
 
         // set the state machine extended state from the workflow type and workflow instance
-        List<Pair<Integer, List<Long>>> reviewersList = entity.getReviewers();
+        List<Pair<Integer, Set<Long>>> reviewersList = entity.getReviewers();
         var properties = workflowTypeService.getWorkFlowPropertiesByType(entity.getTypeId());
-        Map<Integer, List<Long>> reviewerMap = new LinkedHashMap<>(Pair.pairListToMap(reviewersList));
+        Map<Integer, Set<Long>> reviewerMap = new LinkedHashMap<>(Pair.pairListToMap(reviewersList));
         Actions.initial(stateMachine, properties, reviewerMap, entity.getCreatedByUserId());
         return stateMachine;
     }

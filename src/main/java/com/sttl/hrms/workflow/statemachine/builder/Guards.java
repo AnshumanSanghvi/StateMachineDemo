@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.sttl.hrms.workflow.statemachine.SMConstants.*;
+import static com.sttl.hrms.workflow.statemachine.builder.StateMachineBuilder.SMState.S_CLOSED;
 import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.get;
 import static com.sttl.hrms.workflow.statemachine.util.ExtStateUtil.getStateId;
 
@@ -42,9 +43,9 @@ public class Guards {
         if (adminApprove(context)) return true;
 
         // check that the approving reviewer is present in the list of reviewers for the application
-        Map<Integer, List<Long>> reviewersMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
+        Map<Integer, Set<Long>> reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
                 Collections.emptyMap());
-        Set<Long> reviewerList = reviewersMap.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         if (isUserAbsentFromUserList(context.getStateMachine(), reviewerList, actionBy, "reviewer",
                 "approve")) return false;
 
@@ -81,7 +82,7 @@ public class Guards {
         // check that the last reviewer in the order is the one who forwarded the application
         Pair<Integer, Long> forwardedBy = (Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class, null);
         if (forwardedBy != null && forwardedBy.getFirst() != null && forwardedBy.getSecond() != null) {
-            Map<Integer, List<Long>> reviewerMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
+            Map<Integer, Set<Long>> reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
                     Collections.emptyMap());
             return reviewerMap.entrySet().stream()
                     .max(Map.Entry.comparingByKey())
@@ -117,8 +118,8 @@ public class Guards {
         if (isUserIdInvalid(context.getStateMachine(), actionBy, "requestChanges")) return false;
 
         // check that the reviewer belongs to the list of reviewers for the application.
-        var reviewerMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+        var reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
+        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         if (isUserAbsentFromUserList(context.getStateMachine(), reviewerList, actionBy, "reviewers",
                 "requestChanges"))
             return false;
@@ -176,6 +177,7 @@ public class Guards {
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
 
         // check that userId is valid
         if (isUserIdInvalid(context.getStateMachine(), actionBy, "rollBack")) return false;
@@ -189,6 +191,19 @@ public class Guards {
         // check that comment is valid
         if (isCommentInvalid(context.getStateMachine(), comment, "rollback Approval")) return false;
 
+        // check that the application has been forwarded / approved or rejected - else there is nothing to roll back.
+        Pair<Integer, Long> forwardBy = ((Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class,
+                null));
+        Pair<Integer, Long> rejectedBy = (Pair<Integer, Long>) get(context, KEY_REJECTED_BY, Pair.class, null);
+        String currentState = context.getStateMachine().getState().getId();
+        if (forwardBy == null && rejectedBy == null && currentState.equalsIgnoreCase(S_CLOSED.name())) {
+            String errorMsg =
+                    "Guard Failed: Cannot roll back the application as the application hasn't been forwarded or " +
+                            "rejected or approved";
+            context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+            return false;
+        }
+
         // check that the user requesting roll back is in the admin list
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
         if (adminList.contains(actionBy)) {
@@ -196,23 +211,31 @@ public class Guards {
         }
 
         // check that the user requesting rollback is in the reviewer list
-        var reviewerMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+        var reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
+        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         if (isUserAbsentFromUserList(context.getStateMachine(), reviewerList, actionBy, "reviewers", "rollBack"))
             return false;
 
         // check that for serial approval flow, the user rolling back approval is the latest reviewer who forwarded the application
         boolean isSerial = get(context, KEY_APPROVAL_FLOW_TYPE, String.class, VAL_SERIAL).equalsIgnoreCase(VAL_SERIAL);
         if (isSerial) {
-            Pair<Integer, Long> forwardBy = ((Pair<Integer, Long>) get(context, KEY_FORWARDED_BY_LAST, Pair.class,
-                    null));
-            if (forwardBy != null && forwardBy.getSecond() != null) {
-                if (!forwardBy.getSecond().equals(actionBy)) {
-                    String errorMsg = "Cannot roll back the application as the roll back reviewerId: " + actionBy +
-                            " does not match the forwarded reviewerId: " + forwardBy.getSecond();
-                    context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
-                    return false;
-                }
+            Map<Integer, List<Pair<Long, Boolean>>> forwardMap = get(context, KEY_FORWARDED_MAP, Map.class,
+                    Collections.emptyMap());
+            boolean userPresent = forwardMap.entrySet().stream()
+                    .filter(entry -> entry.getKey().equals(orderNo))
+                    .map(Map.Entry::getValue)
+                    .anyMatch(pairList -> {
+                        boolean isPresent = pairList.stream().map(Pair::getFirst).anyMatch(actionBy::equals);
+                        if (forwardBy != null)
+                            return isPresent && pairList.stream().map(Pair::getFirst).anyMatch(forwardBy.getSecond()::equals);
+                        return isPresent;
+                    });
+            if (!userPresent) {
+                String errorMsg =
+                        "Guard Failed: Cannot roll back the application as the roll back reviewerId: " + actionBy +
+                                " does not match the forwarded reviewerId: " + forwardBy.getSecond();
+                context.getStateMachine().setStateMachineError(new StateMachineException(errorMsg));
+                return false;
             }
         }
 
@@ -240,11 +263,11 @@ public class Guards {
         // check that the comment is not null or empty.
         if (isCommentInvalid(context.getStateMachine(), comment, "forward")) return false;
 
-        Map<Integer, List<Long>> reviewerMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
+        Map<Integer, Set<Long>> reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
                 Collections.emptyMap());
 
         // check that the forwardingId is present in the reviewersMap
-        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         if (isUserAbsentFromUserList(context.getStateMachine(), reviewerList, actionBy, "reviewers",
                 "forward"))
             return false;
@@ -271,7 +294,7 @@ public class Guards {
 
     private static boolean forwardParallelCheck(StateContext<String, String> context, Long forwardingId,
             Integer forwardingOrder) {
-        Map<Integer, List<Long>> reviewerMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
+        Map<Integer, Set<Long>> reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
                 Collections.emptyMap());
 
         // check that the order number and the userId of the forwarding reviewer are present in the list of reviewers for the application.
@@ -309,7 +332,7 @@ public class Guards {
     }
 
     private static boolean forwardSerialCheck(StateContext<String, String> context, Long forwardingId, Integer forwardingOrder) {
-        Map<Integer, List<Long>> reviewerMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
+        Map<Integer, Set<Long>> reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class,
                 Collections.emptyMap());
 
         // check that the order number and the userId of the forwarding reviewer are present in the list of reviewers for the application.
@@ -380,8 +403,8 @@ public class Guards {
         }
 
         // check that the reviewer belongs to the list of reviewers for the application.
-        var reviewerMap = (Map<Integer, List<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
-        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+        var reviewerMap = (Map<Integer, Set<Long>>) get(context, KEY_REVIEWERS_MAP, Map.class, Collections.emptyMap());
+        Set<Long> reviewerList = reviewerMap.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         if (isUserAbsentFromUserList(context.getStateMachine(), reviewerList, actionBy, "reviewers",
                 "reject")) return false;
 

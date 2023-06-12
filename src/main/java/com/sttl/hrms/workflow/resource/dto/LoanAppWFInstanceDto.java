@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.sttl.hrms.workflow.data.enums.WorkFlowTypeStateMachine.LOAN_APP_SM;
 
@@ -36,7 +37,7 @@ public class LoanAppWFInstanceDto {
     Short timesReturnedCount = 0;
     Short workflowVersion;
     @Builder.Default
-    List<Pair<Integer, List<Long>>> reviewers = new ArrayList<>();
+    List<Pair<Integer, Set<Long>>> reviewers = new ArrayList<>();
 
     // base entity
     @NotNull Long companyId;

@@ -36,13 +36,13 @@ public class Actions {
     }
 
     public static void initial(StateContext<String, String> context, WorkflowProperties workflowProperties,
-            Map<Integer, List<Long>> reviewerMap, Long createdBy) {
+            Map<Integer, Set<Long>> reviewerMap, Long createdBy) {
 
         initial(context.getStateMachine(), workflowProperties, reviewerMap, createdBy);
     }
 
     public static void initial(StateMachine<String, String> stateMachine, WorkflowProperties workflowProperties,
-            Map<Integer, List<Long>> reviewerMap, Long createdBy) {
+            Map<Integer, Set<Long>> reviewerMap, Long createdBy) {
 
         String stateId = Optional.ofNullable(stateMachine).flatMap(sm -> Optional.ofNullable(sm.getState())
                 .map(State::getId).map(Object::toString)).orElse("null");
@@ -56,7 +56,7 @@ public class Actions {
     }
 
     private static void setExtendedState(StateMachine<String, String> stateMachine, WorkflowProperties wfProps,
-            Map<Integer, List<Long>> reviewerMap, Map<Object, Object> stateMap, Long createdBy) {
+            Map<Integer, Set<Long>> reviewerMap, Map<Object, Object> stateMap, Long createdBy) {
         ExtendedState extState = stateMachine.getExtendedState();
 
         var workflowProperties = (wfProps == null) ? new WorkflowProperties() : wfProps;
@@ -175,16 +175,17 @@ public class Actions {
         MessageHeaders headers = context.getMessage().getHeaders();
         Long actionBy = get(headers, MSG_KEY_ACTION_BY, Long.class, null);
         String comment = get(headers, MSG_KEY_COMMENT, String.class, null);
+        Integer orderNo = get(headers, MSG_KEY_ORDER_NO, Integer.class, null);
 
         ExtendedState extState = context.getExtendedState();
         Map<Object, Object> map = extState.getVariables();
 
         var adminList = (List<Long>) get(context, KEY_ADMIN_IDS, List.class, Collections.emptyList());
         if (adminList.contains(actionBy)) {
-            comment = (comment == null || comment.isBlank()) ? "approved by admin" : comment;
+            comment += " (approved by admin)";
         }
 
-        map.put(KEY_APPROVE_BY, actionBy);
+        map.put(KEY_APPROVE_BY, new Pair<>(orderNo, actionBy));
         map.put(KEY_APPROVE_COMMENT, comment);
         map.put(KEY_CLOSED_STATE_TYPE, VAL_APPROVED);
         log.trace("Setting extended state- closedState: {}", get(extState, KEY_CLOSED_STATE_TYPE, String.class, ""));
@@ -284,7 +285,6 @@ public class Actions {
         forwardedMap.entrySet().stream()
                 .filter(entry -> entry.getKey().equals(orderNo))
                 .flatMap(entry -> entry.getValue().stream())
-                .filter(pair -> pair.getFirst().equals(actionBy))
                 .forEach(pair -> pair.setSecond(false));
 
         // reset forwarded by to previous entry

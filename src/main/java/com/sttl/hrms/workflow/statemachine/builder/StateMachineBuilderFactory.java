@@ -6,10 +6,7 @@ import com.sttl.hrms.workflow.data.model.entity.WorkflowTypeEntity.WorkflowPrope
 import com.sttl.hrms.workflow.statemachine.exception.StateMachineException;
 import org.springframework.statemachine.StateMachine;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.sttl.hrms.workflow.statemachine.SMConstants.LEAVE_APP_WF_V1;
 import static com.sttl.hrms.workflow.statemachine.SMConstants.LOAN_APP_WF_V1;
@@ -21,7 +18,7 @@ public class StateMachineBuilderFactory {
     }
 
     public static StateMachine<String, String> getStateMachineFromEntityAndType(WorkflowTypeEntity typeEntity,
-            List<Pair<Integer, List<Long>>> reviewers, Long createdBy) {
+            List<Pair<Integer, Set<Long>>> reviewers, Long createdBy) {
         try {
             WorkflowProperties wfProps = typeEntity.getWorkflowProperties();
             return switch (typeEntity.getTypeId()) {
@@ -35,7 +32,7 @@ public class StateMachineBuilderFactory {
         }
     }
 
-    private static Map<Integer, List<Long>> listToMap(List<Pair<Integer, List<Long>>> list) {
+    private static Map<Integer, Set<Long>> listToMap(List<Pair<Integer, Set<Long>>> list) {
         return Optional.ofNullable(list)
                 .orElse(Collections.emptyList())
                 .stream()

@@ -20,6 +20,7 @@ import javax.persistence.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "wf_inst_mst", schema = "public")
@@ -54,7 +55,7 @@ public abstract class WorkflowInstanceEntity extends BaseEntity implements Conte
     @Column(columnDefinition = "jsonb", name = "reviewers")
     @Type(type = "jsonb")
     @Basic(fetch = FetchType.EAGER)
-    private List<Pair<Integer, List<Long>>> reviewers = Collections.emptyList();
+    private List<Pair<Integer, Set<Long>>> reviewers = Collections.emptyList();
 
     @Column(name = "current_state", length = 100)
     private String currentState = StateMachineBuilder.SMState.S_INITIAL.name();

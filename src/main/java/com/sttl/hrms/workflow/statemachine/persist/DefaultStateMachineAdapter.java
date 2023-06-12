@@ -13,6 +13,7 @@ import org.springframework.statemachine.persist.StateMachinePersister;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * This is a wrapper class over the DefaultStateMachinePersister.
@@ -52,7 +53,7 @@ public class DefaultStateMachineAdapter<T> {
     }
 
     public StateMachine<String, String> createStateMachine(WorkflowTypeEntity typeEntity,
-            List<Pair<Integer, List<Long>>> reviewers, Long createdBy) {
+            List<Pair<Integer, Set<Long>>> reviewers, Long createdBy) {
         try {
             StateMachine<String, String> stateMachine =
                     StateMachineBuilderFactory.getStateMachineFromEntityAndType(typeEntity, reviewers, createdBy);

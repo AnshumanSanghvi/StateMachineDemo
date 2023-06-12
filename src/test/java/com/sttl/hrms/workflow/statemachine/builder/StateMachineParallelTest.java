@@ -11,10 +11,7 @@ import org.springframework.statemachine.ExtendedState;
 import org.springframework.statemachine.StateMachine;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.sttl.hrms.workflow.data.enums.WorkflowType.LEAVE_APPLICATION;
 import static com.sttl.hrms.workflow.data.enums.WorkflowType.LOAN_APPLICATION;
@@ -42,8 +39,8 @@ public class StateMachineParallelTest {
 
     public StateMachineParallelTest() throws Exception {
         String stateMachineName = "testStateMachine";
-        Map<Integer, List<Long>> reviewerMap = Map.of(1, List.of(reviewer1, reviewer4), 2, List.of(reviewer2,
-                reviewer5), 3, List.of(reviewer3, reviewer6));
+        Map<Integer, Set<Long>> reviewerMap = Map.of(1, Set.of(reviewer1, reviewer4), 2, Set.of(reviewer2,
+                reviewer5), 3, Set.of(reviewer3, reviewer6));
         WorkflowTypeEntity.WorkflowProperties wfProps = new WorkflowTypeEntity.WorkflowProperties();
         wfProps.setAdminRoleIds(List.of(admin1, admin2, admin3));
         wfProps.setRollBackApproval(true);
