@@ -35,6 +35,7 @@ public class LoanAppWFInstanceDto {
     @Builder.Default
     Short timesReturnedCount = 0;
     Short workflowVersion;
+    @Builder.Default
     List<Pair<Integer, List<Long>>> reviewers = new ArrayList<>();
 
     // base entity
